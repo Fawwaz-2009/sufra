@@ -1,10 +1,6 @@
 import { Hono } from "hono"
 
-type Bindings = {
-  ASSETS: Fetcher
-}
-
-const app = new Hono<{ Bindings: Bindings }>()
+const app = new Hono<{ Bindings: Env }>()
   .get("/api/health", (c) =>
     c.json({ status: "ok", service: "sufra", time: new Date().toISOString() })
   )

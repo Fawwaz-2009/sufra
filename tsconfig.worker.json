@@ -4,7 +4,7 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "module": "ESNext",
-    "types": ["@cloudflare/workers-types"],
+    "types": [],
     "skipLibCheck": true,
 
     "moduleResolution": "bundler",
@@ -20,5 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["worker"]
+  "include": ["worker/**/*.ts"],
+  "files": ["./worker-configuration.d.ts"]
 }

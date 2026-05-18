@@ -21,7 +21,8 @@ src/routeTree.gen.ts
 # Cloudflare / Wrangler
 .wrangler/
 .dev.vars
-worker-configuration.d.ts
+# NB: worker-configuration.d.ts is committed — regenerate via `pnpm cf-typegen`
+# after editing wrangler.jsonc (it's derived but pinned so fresh clones build).
 
 # Editor directories and files
 .vscode/*
