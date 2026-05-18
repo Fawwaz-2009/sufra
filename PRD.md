@@ -1,14 +1,14 @@
 # Sufra — PRD (v0.1)
 
-*A photo-first calorie tracker for the people at your table.*
+_A photo-first calorie tracker for the people at your table._
 
 ---
 
 ## About the name
 
-*Sufra (سفرة)* is the Arabic word for the dining table — but it means more than the furniture. A sufra is the spread of food laid out, the act of gathering people around it, the hospitality of feeding the people you love. In Arab and Middle Eastern cultures, the family sufra is a near-sacred space.
+_Sufra (سفرة)_ is the Arabic word for the dining table — but it means more than the furniture. A sufra is the spread of food laid out, the act of gathering people around it, the hospitality of feeding the people you love. In Arab and Middle Eastern cultures, the family sufra is a near-sacred space.
 
-The name is deliberate. This app exists to help you stay *at* the sufra — to keep showing up and sharing food with the people you love, while staying aware of what you're eating. It's not here to police what's on your table. It's here to make what's on your plate legible, so the choices you make at the table are yours.
+The name is deliberate. This app exists to help you stay _at_ the sufra — to keep showing up and sharing food with the people you love, while staying aware of what you're eating. It's not here to police what's on your table. It's here to make what's on your plate legible, so the choices you make at the table are yours.
 
 The app ships in English and Arabic, with Middle Eastern cuisine as a first-class citizen in food recognition. But you don't need to be Arab to have a sufra — every household has a table.
 
@@ -73,13 +73,13 @@ Deferred but possible later:
 
 The product sits between the over-built and the under-built ends of the open-source space.
 
-| Project | Scope | AI photo | Multi-user | Uncertainty UX | Distribution |
-|---|---|---|---|---|---|
-| MyFitnessPal / Cal AI | comprehensive | yes, cost-constrained | SaaS | single number or none | native app |
-| SparkyFitness | comprehensive (food + fitness + water + sleep + mood) | yes | yes | none | self-host, web |
-| caloriemate | calories + protein only | yes | single user | free-text retry | self-host, web |
-| OpenNutriTracker / Food You | nutrition (DB-driven) | no | single user | n/a (precise lookup) | mobile native |
-| **Sufra** | calories + macros + key nutrients + weight | yes, host-paid inference | yes (host-provisioned) | structured confidence + targeted clarification | Cloudflare-deployed PWA |
+| Project                     | Scope                                                 | AI photo                 | Multi-user             | Uncertainty UX                                 | Distribution            |
+| --------------------------- | ----------------------------------------------------- | ------------------------ | ---------------------- | ---------------------------------------------- | ----------------------- |
+| MyFitnessPal / Cal AI       | comprehensive                                         | yes, cost-constrained    | SaaS                   | single number or none                          | native app              |
+| SparkyFitness               | comprehensive (food + fitness + water + sleep + mood) | yes                      | yes                    | none                                           | self-host, web          |
+| caloriemate                 | calories + protein only                               | yes                      | single user            | free-text retry                                | self-host, web          |
+| OpenNutriTracker / Food You | nutrition (DB-driven)                                 | no                       | single user            | n/a (precise lookup)                           | mobile native           |
+| **Sufra**                   | calories + macros + key nutrients + weight            | yes, host-paid inference | yes (host-provisioned) | structured confidence + targeted clarification | Cloudflare-deployed PWA |
 
 Four positioning claims the rest of the PRD has to deliver on:
 
@@ -100,7 +100,7 @@ Four positioning claims the rest of the PRD has to deliver on:
 The PRD should be judged against these outcomes, not against feature count.
 
 1. **Awareness.** An end user, after using the app for two weeks, can answer "roughly how many calories was that meal?" before logging it, with materially better accuracy than at week zero. The app's job is to build that intuition until the user can mostly do without it.
-2. **Trust.** Users believe estimates are reasonable *because* the app is honest about what it's unsure of, not despite it. A user who corrects an estimate sees the correction reflected in the next similar meal.
+2. **Trust.** Users believe estimates are reasonable _because_ the app is honest about what it's unsure of, not despite it. A user who corrects an estimate sees the correction reflected in the next similar meal.
 3. **Effortlessness.** Logging a meal — photo to confirmed entry — takes under 15 seconds in the common case. If logging takes longer than eating a snack, adherence collapses.
 4. **Deployability.** A host with a Cloudflare account and an OpenRouter API key can deploy a working Sufra instance via `wrangler deploy` in under 10 minutes, with no infrastructure decisions to make.
 5. **Onboardability for end users.** A non-technical end user, handed a URL and credentials by the host, can install the PWA and log their first meal in under 2 minutes with no help.
@@ -115,19 +115,19 @@ Shared login form, role-based routing after authentication. Same URL for both ro
 
 **First deploy.** Worker comes up, D1 has zero users. First visit triggers a setup wizard: host picks a username and password, the wizard creates the host record with `role = 'host'`, sets a session cookie, redirects to admin. The wizard only ever runs when zero hosts exist.
 
-**Provisioning end users.** From admin, host types a username and a temporary password; record is created with `role = 'user'` and `must_change_password = true`. Host hands credentials to the end user out of band (text, in person, paper). No email is ever involved.
+**Provisioning end users.** From admin, host types a username and a password; record is created with `role = 'user'`. Host hands credentials to the end user out of band (text, in person, paper). No email is ever involved. The password the host sets is the user's password — there is no separate "temporary" state. Users can change it later from Profile.
 
-**End user first login.** Login form → temporary password accepted → forced password-change screen → "Add to Home Screen" prompt with platform-specific instructions → onboarding flow → Day view.
+**End user first login.** Login form → password accepted → "Add to Home Screen" prompt with platform-specific instructions → onboarding flow → Day view.
 
 **Steady-state.** httpOnly cookie carries an opaque session token, validated against D1 on every request. 90-day rolling expiry, configurable. Host can revoke any active session from admin.
 
-**Password reset.** End user forgets password → asks host → host sets a new temporary password in admin → end user forced to change on next login. Manual, social, deliberate.
+**Password reset.** End user forgets password → asks host → host sets a new password in admin → hands it over out of band. The user signs in with it and may change it from Profile. Manual, social, deliberate.
 
 **Host forgets their password.** Broken-glass recovery: a `wrangler`-callable admin endpoint gated by a deploy-time secret. Documented in the README. Ugly but honest about what no-email means.
 
 **Brute-force protection.** Per-username and per-IP rate limiting with progressive lockout. Cloudflare's built-in rate limiting as a second layer.
 
-**Storage.** `users` table (id, username, password_hash via argon2id, role, must_change_password, created_at, last_login_at). `sessions` table (token, user_id, expires_at, created_at, last_used_at, user_agent). That's the entire auth schema.
+**Storage.** Auth tables are managed by better-auth (with the `username` plugin, no email): `user` (id, username, role, createdAt, …), `session`, `account` (holds the scrypt password hash), `verification` (unused but created by the library). Role is a custom field on `user`; profile data (age, height, weight, language, goal, activity) lives in a separate 1-1 `user_profile` table we own.
 
 ### 6.2 Onboarding (end user, first launch)
 
@@ -181,8 +181,7 @@ Past days scrollable. Weekly/monthly chart of intake vs target. Weight trend. Ma
 
 Separate `/admin` route accessible only to `role = 'host'`:
 
-- OpenRouter API key configuration
-- Vision model selection (with sensible defaults)
+- Vision model selection (with sensible defaults). The OpenRouter API key is **not** in the admin UI — it's a Cloudflare secret set via `wrangler secret put OPENROUTER_API_KEY` and rotated the same way. Keeps the key out of the database and out of any UI surface.
 - Default language for newly created accounts
 - User CRUD (create, reset password, deactivate)
 - Active session view + revoke
@@ -213,18 +212,18 @@ Multi-language is a property of the whole app, not a feature.
 
 **Host stories**
 
-- *As the host, I can deploy Sufra with `wrangler deploy` and an OpenRouter key, and have a working instance behind my own URL within 10 minutes.*
-- *I can create an account for my partner, hand them a URL and login, and they can use Sufra without me explaining anything.*
-- *When my mother forgets her password, I can reset it from the admin panel in two clicks — no email round-trip.*
-- *I can see roughly how much inference cost my instance has incurred this month, so I can decide if I need to change models.*
+- _As the host, I can deploy Sufra with `wrangler deploy` and an OpenRouter key, and have a working instance behind my own URL within 10 minutes._
+- _I can create an account for my partner, hand them a URL and login, and they can use Sufra without me explaining anything._
+- _When my mother forgets her password, I can reset it from the admin panel in two clicks — no email round-trip._
+- _I can see roughly how much inference cost my instance has incurred this month, so I can decide if I need to change models._
 
 **End user stories**
 
-- *I open the app, photograph my lunch, see "~580 kcal, medium confidence," and either accept it or tap the confidence chip to answer two questions that tighten the number — all within 20 seconds.*
-- *When I eat my usual oats, I can tap a saved meal instead of taking a photo, and I still see that the estimate is approximate.*
-- *I can log my weight on Sunday morning and see whether my actual progress matches what the app projected.*
-- *After a month of logging, the app tells me my real maintenance seems different from the original estimate and asks if I want to adjust my target. I say yes (or no) and continue.*
-- *I can swipe back to yesterday to remember what I ate, and see at a glance whether last week trended green or red.*
+- _I open the app, photograph my lunch, see "~580 kcal, medium confidence," and either accept it or tap the confidence chip to answer two questions that tighten the number — all within 20 seconds._
+- _When I eat my usual oats, I can tap a saved meal instead of taking a photo, and I still see that the estimate is approximate._
+- _I can log my weight on Sunday morning and see whether my actual progress matches what the app projected._
+- _After a month of logging, the app tells me my real maintenance seems different from the original estimate and asks if I want to adjust my target. I say yes (or no) and continue._
+- _I can swipe back to yesterday to remember what I ate, and see at a glance whether last week trended green or red._
 
 ---
 
@@ -239,7 +238,7 @@ Multi-language is a property of the whole app, not a feature.
 - **Database:** Cloudflare D1 (SQLite-compatible); schema versioned and migrated via Wrangler
 - **Storage:** Cloudflare R2 for meal photos, accessed via signed URLs only
 - **Inference:** OpenRouter (host's key, configured at deploy); Gemini 2.5 Flash as default vision model
-- **Auth:** rolled, username/password, sessions in D1, argon2id for hashing (WASM in Workers)
+- **Auth:** better-auth with the `username` plugin (no email), `signUp` disabled (admin-provisioned accounts only); sessions in D1; scrypt hashing (Web Crypto, no WASM)
 - **Deploy:** `wrangler deploy` from the repo
 
 ### 8.2 Why this shape
@@ -304,27 +303,27 @@ Scoped for ~1 week of focused work. Each milestone is end-to-end testable.
 
 **M1 — Skeleton & deploy path (Day 1)**
 Repo with Vite + Hono single-Worker scaffolding. `wrangler deploy` produces a working hello-world. D1 provisioned with migration runner. R2 bucket provisioned. Login screen, session handling, setup wizard creates first host.
-*Exit:* host can clone repo, deploy, create admin account, log in.
+_Exit:_ host can clone repo, deploy, create admin account, log in.
 
 **M2 — Onboarding & Day view shell (Day 2)**
 Admin can create end-user accounts. End user can log in, complete onboarding, see Day view with target and empty meal list. Week strip renders gray.
-*Exit:* end user can be provisioned and reach empty Day view with target visible.
+_Exit:_ end user can be provisioned and reach empty Day view with target visible.
 
 **M3 — Meal capture & analysis (Days 3–4)**
 Camera capture (or library fallback). Photo upload to R2 via signed URL. OpenRouter call with vision prompt and structured output. Meal saved to D1. Meal card in Day view with confidence chip. Totals update; week dot updates.
-*Exit:* end user can photograph a meal and see it logged.
+_Exit:_ end user can photograph a meal and see it logged.
 
 **M4 — Clarification flow (Day 5)**
 Tap confidence chip → clarification view → model-generated questions → user answers → re-inference → updated estimate. Original photo and clarification history retained on meal detail.
-*Exit:* end user can refine an inaccurate estimate by answering 1–3 questions.
+_Exit:_ end user can refine an inaccurate estimate by answering 1–3 questions.
 
 **M5 — Saved meals & weight tracking (Day 6)**
 Save logged meal as named template. Log-from-saved flow (skips inference). Prompt includes saved meal names for implicit matching. Weight log + trend chart. Maintenance refinement logic (≥4 weeks data) surfaces suggestion.
-*Exit:* end user can save/re-log a usual meal and log weight to see trend.
+_Exit:_ end user can save/re-log a usual meal and log weight to see trend.
 
 **M6 — History, polish, deploy docs (Day 7)**
 History view (past days, week/month chart). Admin polish (API key rotation, model selection, cost view, user CRUD complete). Arabic translation pass — every UI string translated, RTL layout verified on real device, LLM prompt tested for Arabic output quality and Middle Eastern dish recognition. README with deploy guide and "About the name" section. Add-to-Home-Screen prompt and instructions. Error states, skeletons, basic offline handling.
-*Exit:* shippable. Another host could deploy a fresh Sufra instance from the README alone.
+_Exit:_ shippable. Another host could deploy a fresh Sufra instance from the README alone.
 
 ---
 
@@ -344,11 +343,11 @@ History view (past days, week/month chart). Admin polish (API key rotation, mode
 
 ### Risks
 
-1. **The structured confidence flow doesn't pan out.** Load-bearing claim of the whole project. *Mitigation:* prototype the inference call in isolation on Day 1, before committing to UI work. If clarification questions are bad, positioning needs rethinking before we build the rest.
-2. **OpenRouter cost is higher than expected.** Clarifications multiply inference calls. *Mitigation:* measure during dogfooding, cap clarifications at 2–3 rounds per meal, document cost per logged meal upfront.
-3. **PWA limitations on iOS.** Camera access, push notifications, storage eviction. *Mitigation:* test on real iOS hardware early in M3. Document the Add-to-Home-Screen gesture clearly. Expo wrapper as v2 escape hatch.
-4. **D1 is still relatively young.** *Mitigation:* keep schema simple, hide it behind a data-access layer, swap to Turso or Neon if needed.
-5. **Build it for the family, they don't use it.** The unglamorous risk. *Mitigation:* be your own first user. Don't expand scope until two weeks of consistent personal use proves the core value.
-6. **The "open source" promise creates maintenance burden.** *Mitigation:* upfront in README that this is a personal project shared publicly, not a community-maintained one. Set expectations.
-7. **Arabic LLM output quality is uneven across models.** Vision models vary in how well they handle Arabic food names, regional dish identification (Middle Eastern cuisine specifically), and clarification phrasing. *Mitigation:* Day 1 prototype tests both English and Arabic prompts against the default model, with a specific test set of Middle Eastern dishes (kabsa, mansaf, fattoush, koshari, etc.). If Arabic output is poor on the default, document an Arabic-preferred alternative in admin model selection.
-8. **Tonal drift — the name pulls warmer than the function.** Sufra is celebratory and abundant; calorie tracking is, at some level, the opposite. *Mitigation:* hold the framing as "Sufra helps you stay at the sufra," not "Sufra helps you avoid the sufra." Any feature that sounds restrictive or shame-coded gets the name pulled out of its description as a sanity check — if it reads wrong with "Sufra" in the sentence, it's probably wrong regardless.
+1. **The structured confidence flow doesn't pan out.** Load-bearing claim of the whole project. _Mitigation:_ prototype the inference call in isolation on Day 1, before committing to UI work. If clarification questions are bad, positioning needs rethinking before we build the rest.
+2. **OpenRouter cost is higher than expected.** Clarifications multiply inference calls. _Mitigation:_ measure during dogfooding, cap clarifications at 2–3 rounds per meal, document cost per logged meal upfront.
+3. **PWA limitations on iOS.** Camera access, push notifications, storage eviction. _Mitigation:_ test on real iOS hardware early in M3. Document the Add-to-Home-Screen gesture clearly. Expo wrapper as v2 escape hatch.
+4. **D1 is still relatively young.** _Mitigation:_ keep schema simple, hide it behind a data-access layer, swap to Turso or Neon if needed.
+5. **Build it for the family, they don't use it.** The unglamorous risk. _Mitigation:_ be your own first user. Don't expand scope until two weeks of consistent personal use proves the core value.
+6. **The "open source" promise creates maintenance burden.** _Mitigation:_ upfront in README that this is a personal project shared publicly, not a community-maintained one. Set expectations.
+7. **Arabic LLM output quality is uneven across models.** Vision models vary in how well they handle Arabic food names, regional dish identification (Middle Eastern cuisine specifically), and clarification phrasing. _Mitigation:_ Day 1 prototype tests both English and Arabic prompts against the default model, with a specific test set of Middle Eastern dishes (kabsa, mansaf, fattoush, koshari, etc.). If Arabic output is poor on the default, document an Arabic-preferred alternative in admin model selection.
+8. **Tonal drift — the name pulls warmer than the function.** Sufra is celebratory and abundant; calorie tracking is, at some level, the opposite. _Mitigation:_ hold the framing as "Sufra helps you stay at the sufra," not "Sufra helps you avoid the sufra." Any feature that sounds restrictive or shame-coded gets the name pulled out of its description as a sanity check — if it reads wrong with "Sufra" in the sentence, it's probably wrong regardless.
