@@ -4,13 +4,46 @@ import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import { defineConfig } from "vite"
+import { VitePWA } from "vite-plugin-pwa"
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),
     tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      pwaAssets: {
+        preset: "minimal-2023",
+        image: "public/favicon.svg",
+      },
+      manifest: {
+        name: "Sufra",
+        short_name: "Sufra",
+        description: "Photo-first calorie tracking for the people at your table.",
+        theme_color: "#3D5A3D",
+        background_color: "#3D5A3D",
+        display: "standalone",
+        start_url: "/",
+        scope: "/",
+        lang: "en",
+        dir: "ltr",
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,woff,woff2}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\//,
+            handler: "NetworkOnly",
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
+    }),
     cloudflare(),
   ],
   resolve: {
