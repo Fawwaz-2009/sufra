@@ -143,18 +143,25 @@ After the last step the user lands in Day view, empty state, with a prominent ca
 
 ### 6.3 Meal capture (photo-first)
 
-Default action on opening the app is to take a photo. Capture screen has one prominent shutter button and one secondary "pick from library" action. After capture, photo uploads to R2 via signed URL, then the Worker calls OpenRouter with the vision prompt and structured-output schema. A skeleton state shows during inference (~3-5 seconds typical). Result card displays: estimated calories, macros (protein/carbs/fat), key nutrients (fiber, sugar, sat fat, sodium — no goals attached), and a confidence chip (High / Medium / Low).
+Default action on opening the app is to take a photo. Capture screen has one prominent shutter button and one secondary "pick from library" action. After capture, photo uploads to R2 via signed URL, then the Worker calls OpenRouter with the vision prompt and structured-output schema. A skeleton state shows during inference (~3-5 seconds typical). Result card displays: a dish name (the model's read of what this meal is), estimated calories, macros (protein/carbs/fat), and a confidence chip (High / Medium / Low).
+
+**Estimate display rule (load-bearing for honest framing):** all numeric totals shown to the user are derived from the per-food breakdown — `kcal = sum(foods[i].estimatedKcal)`, same for protein/carbs/fat. The AI's per-food numbers are *immutable* once produced and rendered as muted, non-editable reference text labeled as the AI's estimate. The user cannot edit the AI numbers directly; they can only override the resolved totals (see below). The original AI estimate remains visible even after override.
+
+**User override.** Each top-level total (kcal, protein, carbs, fat) has an optional user-set override stored separately on the meal record. The displayed total resolves as `override.kcal ?? sum(foods.kcal)` etc., per field. Overriding never mutates the AI snapshot.
+
+Key nutrients (fiber, sugar, sat fat, sodium) are deferred to v2 — calorie + macro accuracy is the v1 priority.
 
 ### 6.4 Structured confidence and clarification
 
-Internally, the estimate decomposes into three components: food identification, portion size, and recipe/preparation assumptions. Each has its own model-reported confidence. The displayed value is a combined one, but tapping the confidence chip opens a clarification view listing the model's uncertainties as questions ("Is the sauce oil-based?", "Closer to 1 cup or 1.5 cups?", "Is there meat in this?"). User answers any subset; the estimate re-computes with answers as added context. Free-text additional context is available as a fallback. Clarifications are capped at 2–3 rounds per meal to bound inference cost.
+Internally, the estimate decomposes into two components: food identification and portion size. Per-evals, portion is the dominant error source (~50% accuracy on bare photos vs ~85%+ identification). The model reports an overall confidence (high/medium/low). Tapping the confidence chip opens a clarification view listing the model's uncertainties as questions ("Closer to 1 cup or 1.5 cups?", "Is there ~1 tbsp of olive oil or more?"). Questions are biased toward **portion disambiguation**, not identification, because that's where the headroom is. User answers any subset; the estimate re-computes with answers as added context. Free-text additional context is available as a fallback. Clarifications are capped at 2–3 rounds per meal to bound inference cost.
+
+**Two correction paths, distinct:** clarification (above) refines the AI estimate by giving the model more context; user override (§6.3) bypasses the AI estimate entirely with a manual value. Clarification updates the per-food breakdown; override only adjusts the resolved top-level totals.
 
 ### 6.5 Saved meals
 
-Two-phase approach, both in v1:
+**Explicit match only.** Any logged meal can be marked as saved. To re-log it, the user taps "Log a saved meal" before capture and picks from their list; the system copies the saved meal's `aiAnalysis` and any prior override into a new meal entry timestamped now. Bypasses inference entirely.
 
-- **Explicit match:** before capture, user can tap "Log a saved meal" and pick from a list. Bypasses inference entirely.
-- **Implicit match:** during normal photo analysis, the model is given the user's saved meal names as part of the prompt. If it matches one, the UI shows "Looks like your usual oats — use saved values, or compute fresh?"
+The AI never sees the user's saved meals — saved-meal matching is a pure data-layer concern, not a prompt-injection one. (Earlier draft had an "implicit match" where the model was given saved meal names and would suggest them mid-analysis; dropped because it added prompt cost forever and produced non-deterministic suggestions that were hard to debug and easy to disagree with.)
 
 Saved meal values are always shown with a "≈" prefix — real portions vary.
 
@@ -261,23 +268,36 @@ The system prompt explicitly instructs the model to recognize Middle Eastern, Le
 
 ### 8.4 Structured confidence — data model
 
-Model returns JSON (simplified):
+Model returns JSON (simplified, actual Zod schema in `worker/meal-analysis/schema.ts`):
 
 ```ts
 {
-  foods: [{ name, portion_estimate, portion_unit, confidence }],
-  recipe_assumptions: [{ assumption, confidence }],
-  macros: { kcal, protein_g, carbs_g, fat_g },
-  key_nutrients: { fiber_g, sugar_g, sat_fat_g, sodium_mg },
-  matched_saved_meal: string | null,
+  notAnalyzable: boolean,                 // true if photo isn't food / unreadable
+  notAnalyzableReason: string,            // user-read; locale-aware; empty when analyzable
+  dishName: string,                       // user-read; "Kabsa", "Fruit and rice plate"; locale-aware
+  foods: [{
+    name,                                  // user-read; locale-aware
+    portionGrams,                          // mass in grams; drives all math
+    portionEstimate, portionUnit,          // human-readable display (e.g. 4 + "pieces")
+    estimatedKcal, estimatedProteinG, estimatedCarbsG, estimatedFatG,
+    confidence,                            // high | medium | low
+  }],
   clarifications: [
-    { id, question, type: "binary" | "choice" | "scale", options?: [] }
+    { id, question, type: "binary" | "choice" | "scale", options: [] }
   ],
-  overall_confidence: "high" | "medium" | "low"
+  overallConfidence: "high" | "medium" | "low",
 }
 ```
 
-Clarification questions are generated by the model from its own uncertainties. The user answers any subset; answers are appended to the next inference call as additional context. We don't try to mathematically update components — we just re-ask the model with more information.
+**No top-level totals.** Meal totals (kcal, protein, carbs, fat) are computed by the consumer as `sum(foods[i].field)`. Storing both per-food and top-level invites consistency bugs (LLM non-determinism can produce a top-level total that doesn't match the per-food sum); keeping per-food as the only source of truth eliminates the class of bug.
+
+**Key nutrients** (fiber, sugar, sat fat, sodium) deferred to v2 — not in the schema today.
+
+**No `matchedSavedMeal` field.** Saved-meal handling is data-layer only (§6.5) — the model never sees saved meals.
+
+Clarification questions are generated by the model from its own uncertainties (biased toward portion disambiguation). The user answers any subset; answers are appended to the next inference call as additional context. We don't try to mathematically update components — we just re-ask the model with more information.
+
+**DB persistence (M3+):** the route handler stores `ai_analysis` (the immutable model output) and optional `override: { kcal?, proteinG?, carbsG?, fatG? }` (mutable per-field user corrections) per meal. The display layer resolves `override.field ?? sum(foods.field)`. The AI snapshot is never mutated.
 
 ### 8.5 Time and day boundaries
 
@@ -301,17 +321,20 @@ This means we don't try to be authoritative about what day a meal "belongs to" i
 
 Scoped for ~1 week of focused work. Each milestone is end-to-end testable.
 
-**M1 — Skeleton & deploy path (Day 1)**
+**M1 — Skeleton & deploy path (Day 1) — LANDED**
 Repo with Vite + Hono single-Worker scaffolding. `wrangler deploy` produces a working hello-world. D1 provisioned with migration runner. R2 bucket provisioned. Login screen, session handling, setup wizard creates first host.
 _Exit:_ host can clone repo, deploy, create admin account, log in.
+
+**AI evaluation harness (out of milestone order) — LANDED**
+`evals/` (promptfoo + Nutrition5K measured ground truth) imports from the shared `worker/meal-analysis/` module. Tests bare vs with-portion-hints variants × multiple models. Key findings: Gemini 3 Flash leads at ~78% kcal accuracy bare / ~96% with portion hints; portion is the dominant error source across all models (~50% accuracy on bare photos vs ~85%+ identification). Model rankings, prompts, and the Zod schema are now under continuous regression testing — any prompt/schema change re-runs through the eval before shipping. See `evals/RESULTS.md`.
 
 **M2 — Onboarding & Day view shell (Day 2)**
 Admin can create end-user accounts. End user can log in, complete onboarding, see Day view with target and empty meal list. Week strip renders gray.
 _Exit:_ end user can be provisioned and reach empty Day view with target visible.
 
 **M3 — Meal capture & analysis (Days 3–4)**
-Camera capture (or library fallback). Photo upload to R2 via signed URL. OpenRouter call with vision prompt and structured output. Meal saved to D1. Meal card in Day view with confidence chip. Totals update; week dot updates.
-_Exit:_ end user can photograph a meal and see it logged.
+Camera capture (or library fallback). Photo upload to R2 via signed URL. Worker calls `worker/meal-analysis/` to analyze; analysis returned for confirmation before persistence. Meal saved to D1 with both the immutable AI estimate and optional user override (§6.3). Meal card in Day view with confidence chip. Totals update; week dot updates.
+_Exit:_ end user can photograph a meal, confirm or override totals, and see it logged.
 
 **M4 — Clarification flow (Day 5)**
 Tap confidence chip → clarification view → model-generated questions → user answers → re-inference → updated estimate. Original photo and clarification history retained on meal detail.

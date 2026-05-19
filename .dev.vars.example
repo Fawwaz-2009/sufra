@@ -1,3 +1,8 @@
 # Local-only secrets for `pnpm dev`. Never commit `.dev.vars`.
-# Generate the secret with: openssl rand -base64 32
+# Generate the auth secret with: openssl rand -base64 32
 BETTER_AUTH_SECRET="replace-me-with-openssl-rand-base64-32"
+
+# OpenRouter API key for vision analysis (worker/vision/openrouter.ts).
+# Get one at https://openrouter.ai. In production, set via:
+#   wrangler secret put OPENROUTER_API_KEY
+OPENROUTER_API_KEY=""

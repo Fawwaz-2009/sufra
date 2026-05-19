@@ -24,6 +24,11 @@ src/routeTree.gen.ts
 # NB: worker-configuration.d.ts is committed — regenerate via `pnpm cf-typegen`
 # after editing wrangler.jsonc (it's derived but pinned so fresh clones build).
 
+# Eval harness — local secrets and cached results
+evals/.env
+evals/.promptfoo/
+evals/**/.promptfoo/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
