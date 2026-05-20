@@ -7,27 +7,22 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 
-import { api } from "@/lib/api"
-import { authClient } from "@/lib/auth-client"
+import type { AuthValue } from "@/lib/auth-context"
 
 interface RouterContext {
   queryClient: QueryClient
+  auth: AuthValue
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({ location }) => {
-    const [setupRes, sessionRes] = await Promise.all([
-      api.api.setup.status.$get(),
-      authClient.getSession(),
-    ])
-    const { needsSetup } = await setupRes.json()
-    const session = sessionRes.data
-
-    if (needsSetup && location.pathname !== "/setup") {
+  beforeLoad: ({ context, location }) => {
+    if (context.auth.needsSetup && location.pathname !== "/setup") {
       throw redirect({ to: "/setup" })
     }
-
-    return { needsSetup, session }
+    return {
+      needsSetup: context.auth.needsSetup,
+      session: context.auth.session,
+    }
   },
   component: RootLayout,
 })

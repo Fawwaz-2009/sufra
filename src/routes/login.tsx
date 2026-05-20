@@ -9,8 +9,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
+import { useAuth } from "@/lib/auth-context"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/login")({
 })
 
 function LoginPage() {
-  const navigate = useNavigate()
+  const auth = useAuth()
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
@@ -49,7 +50,7 @@ function LoginPage() {
       setSubmitError("Username or password is incorrect.")
       return
     }
-    await navigate({ to: "/" })
+    await auth.refresh()
   }
 
   return (
