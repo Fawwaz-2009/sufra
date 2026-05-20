@@ -29,8 +29,6 @@ type Override = {
 type MealDetailData = {
   id: string
   capturedAt: string
-  analysisStatus: "pending" | "analyzed" | "failed"
-  analysisError: string | null
   aiAnalysis: {
     dishName: string
     foods: Array<{
@@ -51,7 +49,7 @@ type MealDetailData = {
       options: string[]
     }>
     overallConfidence: "high" | "medium" | "low"
-  } | null
+  }
   override: Override | null
 }
 
@@ -154,28 +152,6 @@ function DetailBody({
   meal: MealDetailData
   onSaved: () => void
 }) {
-  if (meal.analysisStatus === "pending") {
-    return (
-      <div className="p-5 text-center" aria-busy="true">
-        <Sparkle className="text-muted-foreground mx-auto size-8 animate-pulse" />
-        <p className="text-muted-foreground mt-2 text-sm">
-          Analyzing this photo…
-        </p>
-      </div>
-    )
-  }
-
-  if (meal.analysisStatus === "failed" || !meal.aiAnalysis) {
-    return (
-      <div className="px-5 py-6">
-        <h1 className="text-xl font-semibold">Couldn't analyze</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {meal.analysisError ?? "Analysis failed."}
-        </p>
-      </div>
-    )
-  }
-
   const ai = meal.aiAnalysis
   const time = new Date(meal.capturedAt).toLocaleString(undefined, {
     weekday: "short",

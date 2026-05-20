@@ -133,10 +133,6 @@ function mealsListQueryOptions(from: string, to: string) {
       if (!res.ok) throw new Error("failed_to_load_meals")
       return res.json()
     },
-    refetchInterval: (query) => {
-      const meals = (query.state.data?.meals ?? []) as MealCardData[]
-      return meals.some((m) => m.analysisStatus === "pending") ? 2000 : false
-    },
   })
 }
 

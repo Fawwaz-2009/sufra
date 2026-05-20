@@ -13,5 +13,5 @@
     "verbatimModuleSyntax": false,
     "types": ["node"]
   },
-  "include": ["*.ts", "scorers/**/*.ts", "../worker/meal-analysis/**/*.ts"]
+  "include": ["*.ts", "scorers/**/*.ts", "../worker/meals/estimator/**/*.ts"]
 }

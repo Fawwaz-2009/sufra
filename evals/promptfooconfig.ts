@@ -2,9 +2,11 @@ import { config as loadEnv } from "dotenv"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 import { zodResponseFormat } from "openai/helpers/zod"
-import { MealAnalysis } from "../worker/meal-analysis/schema.js"
-import { getSystemPrompt } from "../worker/meal-analysis/prompts.js"
-import { MODELS } from "../worker/meal-analysis/models.js"
+import {
+  MealAnalysis,
+  getSystemPrompt,
+  MODELS,
+} from "../worker/meals/estimator/index.js"
 import { DISHES } from "./dishes.js"
 import type { UnifiedConfig } from "promptfoo"
 
