@@ -363,6 +363,21 @@ _Exit:_ shippable. Another host could deploy a fresh Sufra instance from the REA
 7. **Eastern Arabic numerals as default for Arabic?** Currently planning Western (0-9) as default with Eastern as toggle. Worth checking with a few family members which feels more natural.
 8. **Domain.** `sufra.app` availability check needed. If taken, fallbacks: `sufra.dev`, `sufra.food`, `getsufra.com`.
 9. **Day cutoff setting.** Default day boundary is local midnight. Some users (late-night eaters) want a configurable cutoff (e.g., 4am). Deferred to post-v1 unless real users ask; flag it here so we don't forget.
+10. **Override-vs-refinement collision is invisible AND refinement has no causal trace.** Two related UX gaps caught during M3 dogfooding.
+
+    _Collision:_ Per §6.4 the override always wins over the AI estimate, and refinement only updates the AI breakdown, never the override. Correct behavior, but the UI doesn't surface it: a user (the person building the app) set an override of 200 kcal, then refined the AI to 300 kcal, and the displayed total stayed stuck at 200 with no explanation.
+
+    _No causal trace:_ After a refinement, the Member sees the breakdown change but doesn't see *what they typed* or *how the AI responded to it*. The chain "I said X → the AI changed because of it" is invisible. The previous AI estimate is gone (replace, not history). So a Member can't tell what their context actually did, can't audit the change, and can't undo if they regret the refinement.
+
+    Candidates for the collision: (a) "edited" badge on the meal card when override is set, (b) banner in the override editor when override differs from current AI ("AI now estimates 300 kcal — clear your override to use it"), (c) one-time prompt after a successful refine if override is set, (d) show both numbers side-by-side with a "use AI" toggle.
+
+    Candidates for the trace: (e) store the user's refinement text on the meal record and surface it in detail view ("You said: …"), (f) keep a small per-meal log of refinement events (text + timestamp + resulting kcal delta), (g) at minimum, an inline confirmation after refine: "AI re-estimated based on what you said. Was 150 kcal → now 300 kcal."
+
+    Pick before M4 ships the clarification round-trip more broadly.
+
+11. **Confidence chip is useless without clarifications.** The current Meal card displays a high/medium/low chip per PRD §6.4, but the clarification surface that the chip is supposed to open (PRD §4: "tapping it surfaces the specific things the model is uncertain about") is deferred to M4. Result: in v1 the Member sees an abstract label with no way to act on it. The chip is the visible side of specific ambiguities — without exposing those ambiguities, it adds noise rather than signal. Two paths: (a) bring clarification surfacing forward into M3 so the chip ships *with* its actionable counterpart, (b) suppress the chip in M3 entirely (or replace with an action-oriented affordance like "3 questions to tighten this estimate" only when the model has ambiguity) and re-introduce it in M4. Either way, "chip alone" should not be the v1 state. Resolve before M4 begins.
+
+12. **Failed Meals have no remediation surface.** Once a Meal lands in `failed` status (AI errored, photo malformed, key missing during the no-key window), the Member sees the card with the error text but has no way to retry, delete, or otherwise clear it. v1 lifecycle is one-way (`pending → analyzed | failed`, no transitions out of `failed`). This is a deliberate choice for v1 simplicity — a proper design for retry / delete / orphan-cleanup needs more thought than was warranted at M3. Known UX debt: failed Meals accumulate as scar tissue (already several visible in dev). When designing the fix, consider: per-Meal retry button using the same R2 photo, per-Meal delete (would also need delete for analyzed Meals — bigger scope), and orphan R2 cleanup for deleted Meals. Resolve before v1 ships to non-developer households.
 
 ### Risks
 
