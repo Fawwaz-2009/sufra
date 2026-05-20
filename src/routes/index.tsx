@@ -204,7 +204,9 @@ function weekMealsQueryOptions(weekStartDate: Date) {
       const { from, to } = weekRange(weekStartDate)
       const res = await api.api.meals.$get({ query: { from, to } })
       if (!res.ok) throw new Error("failed_to_load_meals")
-      return res.json()
+      const json = await res.json()
+      if ("error" in json) throw new Error(json.error)
+      return json
     },
   })
 }

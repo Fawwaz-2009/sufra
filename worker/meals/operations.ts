@@ -3,6 +3,7 @@ import { and, desc, eq, gte, lt } from "drizzle-orm"
 import { createDb } from "../db"
 import type { MealOverride } from "../db/schema"
 import { meal } from "../db/schema"
+import { ERROR_CODES } from "../errors"
 
 import {
   estimateMeal,
@@ -99,16 +100,14 @@ export function createMealsModule(env: MealsEnv) {
       }
     }) {
       const row = await fetchOwned(db, args.id, args.memberId)
-      if (!row) return { ok: false as const, error: "not_found" as const }
+      if (!row) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
 
       const next: MealOverride = { ...(row.override ?? {}) }
       for (const k of ["kcal", "proteinG", "carbsG", "fatG"] as const) {
-        if (k in args.patch) {
-          const v = args.patch[k]
-          if (v === null || v === undefined) delete next[k]
-          else if (typeof v === "number" && Number.isFinite(v) && v >= 0)
-            next[k] = v
-        }
+        if (!(k in args.patch)) continue
+        const v = args.patch[k]
+        if (v === null || v === undefined) delete next[k]
+        else next[k] = v
       }
       const cleaned = Object.keys(next).length > 0 ? next : null
       const newKcalTotal = cleaned?.kcal ?? sumKcal(row.aiAnalysis)
@@ -124,11 +123,11 @@ export function createMealsModule(env: MealsEnv) {
 
     async refine(args: { id: string; memberId: string; userText: string }) {
       const row = await fetchOwned(db, args.id, args.memberId)
-      if (!row) return { ok: false as const, error: "not_found" as const }
+      if (!row) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
 
       const obj = await env.BUCKET.get(row.photoR2Key)
       if (!obj) {
-        return { ok: false as const, error: "photo_missing" as const }
+        return { ok: false as const, error: ERROR_CODES.PHOTO_MISSING }
       }
       const photo = new Uint8Array(await obj.arrayBuffer())
 

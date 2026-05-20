@@ -1,9 +1,12 @@
+import { zValidator } from "@hono/zod-validator"
 import { count, eq } from "drizzle-orm"
 import { Hono } from "hono"
+import { z } from "zod"
 
 import { createAuth } from "./auth"
 import { createDb } from "./db"
 import { appSettings, user } from "./db/schema"
+import { apiError, ERROR_CODES, onInvalidInput } from "./errors"
 import { createMealsModule, MAX_IMAGE_BYTES } from "./meals"
 
 interface AppEnv extends Env {
@@ -36,125 +39,135 @@ const app = new Hono<{
     return c.json({ needsSetup: (row?.hosts ?? 0) === 0 })
   })
 
-  .post("/api/setup", async (c) => {
-    const body = await c.req.json<{ username: string; password: string }>()
+  .post(
+    "/api/setup",
+    zValidator(
+      "json",
+      z.object({
+        username: z
+          .string()
+          .min(3, ERROR_CODES.INVALID_USERNAME)
+          .regex(/^[a-zA-Z0-9_]+$/, ERROR_CODES.INVALID_USERNAME),
+        password: z.string().min(8, ERROR_CODES.INVALID_INPUT),
+      }),
+      onInvalidInput
+    ),
+    async (c) => {
+      const body = c.req.valid("json")
 
-    if (
-      typeof body?.username !== "string" ||
-      typeof body?.password !== "string" ||
-      body.username.length < 3 ||
-      body.password.length < 8 ||
-      !/^[a-zA-Z0-9_]+$/.test(body.username)
-    ) {
-      return c.json({ error: "invalid_input" }, 400)
-    }
-
-    const db = createDb(c.env.DB)
-    const [row] = await db
-      .select({ hosts: count() })
-      .from(user)
-      .where(eq(user.role, "host"))
-    if ((row?.hosts ?? 0) > 0) {
-      return c.json({ error: "already_set_up" }, 403)
-    }
-
-    const auth = createAuth(c.env)
-    const created = await auth.api.signUpEmail({
-      body: {
-        email: `${body.username}@sufra.local`,
-        password: body.password,
-        name: body.username,
-        username: body.username,
-      },
-    })
-
-    await db
-      .update(user)
-      .set({ role: "host" })
-      .where(eq(user.id, created.user.id))
-
-    await db
-      .insert(appSettings)
-      .values({ id: 1, updatedAt: new Date() })
-      .onConflictDoNothing()
-
-    const signIn = await auth.api.signInUsername({
-      body: { username: body.username, password: body.password },
-      returnHeaders: true,
-    })
-
-    for (const [key, value] of signIn.headers.entries()) {
-      if (key.toLowerCase() === "set-cookie") {
-        c.header("set-cookie", value, { append: true })
+      const db = createDb(c.env.DB)
+      const [row] = await db
+        .select({ hosts: count() })
+        .from(user)
+        .where(eq(user.role, "host"))
+      if ((row?.hosts ?? 0) > 0) {
+        return apiError(c, 403, ERROR_CODES.ALREADY_SET_UP)
       }
-    }
 
-    return c.json({ ok: true, userId: created.user.id })
-  })
+      const auth = createAuth(c.env)
+      const created = await auth.api.signUpEmail({
+        body: {
+          email: `${body.username}@sufra.local`,
+          password: body.password,
+          name: body.username,
+          username: body.username,
+        },
+      })
+
+      await db
+        .update(user)
+        .set({ role: "host" })
+        .where(eq(user.id, created.user.id))
+
+      await db
+        .insert(appSettings)
+        .values({ id: 1, updatedAt: new Date() })
+        .onConflictDoNothing()
+
+      const signIn = await auth.api.signInUsername({
+        body: { username: body.username, password: body.password },
+        returnHeaders: true,
+      })
+
+      for (const [key, value] of signIn.headers.entries()) {
+        if (key.toLowerCase() === "set-cookie") {
+          c.header("set-cookie", value, { append: true })
+        }
+      }
+
+      return c.json({ ok: true, userId: created.user.id })
+    }
+  )
 
   .use("/api/meals/*", async (c, next) => {
     const auth = createAuth(c.env)
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
-    if (!session) return c.json({ error: "unauthorized" }, 401)
+    if (!session) return apiError(c, 401, ERROR_CODES.UNAUTHORIZED)
     c.set("session", session)
     await next()
   })
 
-  .get("/api/meals", async (c) => {
-    const from = c.req.query("from")
-    const to = c.req.query("to")
-    if (!from || !to) return c.json({ error: "missing_range" }, 400)
-
-    const fromMs = Date.parse(from)
-    const toMs = Date.parse(to)
-    if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
-      return c.json({ error: "invalid_range" }, 400)
+  .get(
+    "/api/meals",
+    zValidator(
+      "query",
+      z
+        .object({
+          from: z.iso.datetime({ message: ERROR_CODES.INVALID_RANGE }),
+          to: z.iso.datetime({ message: ERROR_CODES.INVALID_RANGE }),
+        })
+        .refine(
+          ({ from, to }) => Date.parse(to) > Date.parse(from),
+          ERROR_CODES.INVALID_RANGE
+        )
+        .refine(
+          ({ from, to }) => Date.parse(to) - Date.parse(from) <= MAX_RANGE_MS,
+          ERROR_CODES.RANGE_TOO_LARGE
+        ),
+      onInvalidInput
+    ),
+    async (c) => {
+      const { from, to } = c.req.valid("query")
+      const meals = createMealsModule(c.env)
+      const items = await meals.list({
+        memberId: c.var.session.user.id,
+        from,
+        to,
+      })
+      return c.json({ meals: items })
     }
-    if (toMs - fromMs > MAX_RANGE_MS) {
-      return c.json({ error: "range_too_large" }, 400)
-    }
+  )
 
-    const meals = createMealsModule(c.env)
-    const items = await meals.list({
-      memberId: c.var.session.user.id,
-      from,
-      to,
-    })
-    return c.json({ meals: items })
-  })
-
-  .post("/api/meals", async (c) => {
-    const form = await c.req.formData()
-    const file = form.get("photo")
-    if (!(file instanceof File)) {
-      return c.json({ error: "missing_photo" }, 400)
+  .post(
+    "/api/meals",
+    zValidator(
+      "form",
+      z.object({
+        photo: z
+          .instanceof(File)
+          .refine((f) => f.size <= MAX_IMAGE_BYTES, ERROR_CODES.PHOTO_TOO_LARGE),
+        capturedAt: z.iso
+          .datetime()
+          .refine(
+            (s) => Date.parse(s) <= Date.now(),
+            ERROR_CODES.CAPTURED_AT_IN_FUTURE
+          )
+          .optional(),
+      }),
+      onInvalidInput
+    ),
+    async (c) => {
+      const { photo, capturedAt } = c.req.valid("form")
+      const meals = createMealsModule(c.env)
+      const created = await meals.create({
+        memberId: c.var.session.user.id,
+        photo: new Uint8Array(await photo.arrayBuffer()),
+        contentType: photo.type || "image/jpeg",
+        capturedAt,
+      })
+      return c.json(created)
     }
-    if (file.size > MAX_IMAGE_BYTES) {
-      return c.json({ error: "photo_too_large" }, 413)
-    }
-
-    const capturedAtRaw = form.get("capturedAt")
-    let capturedAt: string | undefined
-    if (typeof capturedAtRaw === "string" && capturedAtRaw.length > 0) {
-      const ms = Date.parse(capturedAtRaw)
-      if (Number.isNaN(ms)) {
-        return c.json({ error: "invalid_captured_at" }, 400)
-      }
-      if (ms > Date.now()) {
-        return c.json({ error: "captured_at_in_future" }, 400)
-      }
-      capturedAt = new Date(ms).toISOString()
-    }
-
-    const meals = createMealsModule(c.env)
-    const created = await meals.create({
-      memberId: c.var.session.user.id,
-      photo: new Uint8Array(await file.arrayBuffer()),
-      contentType: file.type || "image/jpeg",
-      capturedAt,
-    })
-    return c.json(created)
-  })
+  )
 
   .get("/api/meals/:id", async (c) => {
     const meals = createMealsModule(c.env)
@@ -162,42 +175,57 @@ const app = new Hono<{
       id: c.req.param("id"),
       memberId: c.var.session.user.id,
     })
-    if (!item) return c.json({ error: "not_found" }, 404)
+    if (!item) return apiError(c, 404, ERROR_CODES.NOT_FOUND)
     return c.json(item)
   })
 
-  .post("/api/meals/:id/refine", async (c) => {
-    const body = await c.req.json<{ userText?: string }>()
-    const userText = body.userText?.trim()
-    if (!userText) return c.json({ error: "missing_user_text" }, 400)
+  .post(
+    "/api/meals/:id/refine",
+    zValidator(
+      "json",
+      z.object({
+        userText: z.string().trim().min(1, ERROR_CODES.MISSING_USER_TEXT),
+      }),
+      onInvalidInput
+    ),
+    async (c) => {
+      const { userText } = c.req.valid("json")
+      const meals = createMealsModule(c.env)
+      const result = await meals.refine({
+        id: c.req.param("id"),
+        memberId: c.var.session.user.id,
+        userText,
+      })
+      if (result.ok)
+        return c.json({ ok: true, aiAnalysis: result.meal.aiAnalysis })
+      return apiError(c, 404, result.error)
+    }
+  )
 
-    const meals = createMealsModule(c.env)
-    const result = await meals.refine({
-      id: c.req.param("id"),
-      memberId: c.var.session.user.id,
-      userText,
-    })
-    if (result.ok) return c.json({ ok: true, aiAnalysis: result.meal.aiAnalysis })
-    return c.json({ error: result.error }, 404)
-  })
-
-  .patch("/api/meals/:id/override", async (c) => {
-    const patch = await c.req.json<{
-      kcal?: number | null
-      proteinG?: number | null
-      carbsG?: number | null
-      fatG?: number | null
-    }>()
-
-    const meals = createMealsModule(c.env)
-    const result = await meals.setOverride({
-      id: c.req.param("id"),
-      memberId: c.var.session.user.id,
-      patch,
-    })
-    if (result.ok) return c.json({ ok: true, override: result.meal.override })
-    return c.json({ error: result.error }, 404)
-  })
+  .patch(
+    "/api/meals/:id/override",
+    zValidator(
+      "json",
+      z.object({
+        kcal: z.number().nonnegative().nullable().optional(),
+        proteinG: z.number().nonnegative().nullable().optional(),
+        carbsG: z.number().nonnegative().nullable().optional(),
+        fatG: z.number().nonnegative().nullable().optional(),
+      }),
+      onInvalidInput
+    ),
+    async (c) => {
+      const patch = c.req.valid("json")
+      const meals = createMealsModule(c.env)
+      const result = await meals.setOverride({
+        id: c.req.param("id"),
+        memberId: c.var.session.user.id,
+        patch,
+      })
+      if (result.ok) return c.json({ ok: true, override: result.meal.override })
+      return apiError(c, 404, result.error)
+    }
+  )
 
   .get("/api/meals/:id/photo", async (c) => {
     const meals = createMealsModule(c.env)
@@ -205,7 +233,7 @@ const app = new Hono<{
       id: c.req.param("id"),
       memberId: c.var.session.user.id,
     })
-    if (!obj) return c.json({ error: "not_found" }, 404)
+    if (!obj) return apiError(c, 404, ERROR_CODES.NOT_FOUND)
 
     return new Response(obj.body, {
       headers: {
