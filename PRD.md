@@ -307,6 +307,8 @@ Day-segmentation is a client-side concern. The server exposes range-based querie
 
 This means we don't try to be authoritative about what day a meal "belongs to" in some absolute sense. We present a consistent view based on where the user is now. A traveler with a 30-hour day from crossing timezones just sees more meals in that day's record — a faithful representation rather than a forced bucketing.
 
+Week boundaries follow the same rule. The Day view's visible week is `weekStart(selectedDay, firstDayOfWeek) .. +7d`, computed entirely on the client. The server only sees the resulting UTC range via the standard `GET /api/meals?from&to`. First-day-of-week is hardcoded Monday in v1 (matches the mockup); localizing it — per `Intl.Locale.prototype.getWeekInfo()` or a Member-level profile setting — is a pure client change with no server or schema impact (see §10 #13). This is a load-bearing property of the design: bucketing logic stays where the user's TZ lives, so culture-specific calendar conventions never become a backend concern.
+
 ### 8.6 What we're NOT building in v1
 
 - No CLIP / embedding-based meal matching (LLM-naming is enough)
@@ -378,6 +380,8 @@ _Exit:_ shippable. Another host could deploy a fresh Sufra instance from the REA
 11. **Confidence chip is useless without clarifications.** The current Meal card displays a high/medium/low chip per PRD §6.4, but the clarification surface that the chip is supposed to open (PRD §4: "tapping it surfaces the specific things the model is uncertain about") is deferred to M4. Result: in v1 the Member sees an abstract label with no way to act on it. The chip is the visible side of specific ambiguities — without exposing those ambiguities, it adds noise rather than signal. Two paths: (a) bring clarification surfacing forward into M3 so the chip ships *with* its actionable counterpart, (b) suppress the chip in M3 entirely (or replace with an action-oriented affordance like "3 questions to tighten this estimate" only when the model has ambiguity) and re-introduce it in M4. Either way, "chip alone" should not be the v1 state. Resolve before M4 begins.
 
 12. **Capture failure handling.** Resolved structurally by the M3 architecture: create is synchronous, and the AI call is a precondition for any R2/D1 write. Failed estimates leave no orphan rows or storage. What remains is the client-side affordance: the Member sees the button spinner; if the call fails, the route returns an error and the client shows a toast. A retry-the-same-photo button on the toast is the obvious next polish. Also need: an admin-side delete (analyzed Meals can still need removal — wrong photo, mis-logged session, etc.). Resolve before v1 ships to non-developer households.
+
+13. **Locale-aware first-day-of-week.** v1 hardcodes Monday-start for the Day view's week strip — matches the mockup and ISO convention, simple, consistent across Members. The right v2 answer is locale-derived via `Intl.Locale.prototype.getWeekInfo()` (en-GB → Mon, en-US → Sun, ar-SA → Sat), possibly with a Member-level override stored on `user_profile`. Per §8.5, this is a pure client change — no server work and no schema migration unless a profile override is added. Revisit once Arabic Members adopt or when onboarding (M2) lands and we have a natural place to plumb the preference. If shipped, the week strip helper signature (`weekStart(date, firstDay: 1–7)`) is already parameterized for this swap.
 
 ### Risks
 

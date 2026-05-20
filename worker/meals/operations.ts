@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lt } from "drizzle-orm"
+import { and, desc, eq, gte, lt } from "drizzle-orm"
 
 import { createDb } from "../db"
 import type { MealOverride } from "../db/schema"
@@ -32,7 +32,7 @@ export function createMealsModule(env: MealsEnv) {
             lt(meal.capturedAt, args.to)
           )
         )
-        .orderBy(asc(meal.capturedAt))
+        .orderBy(desc(meal.createdAt))
       return rows.map(toSummary)
     },
 
@@ -54,6 +54,7 @@ export function createMealsModule(env: MealsEnv) {
       memberId: string
       photo: Uint8Array
       contentType: string
+      capturedAt?: string
     }) {
       if (args.photo.byteLength > MAX_IMAGE_BYTES) {
         throw new VisionError(
@@ -67,6 +68,7 @@ export function createMealsModule(env: MealsEnv) {
       const id = crypto.randomUUID()
       const photoKey = `meals/${args.memberId}/${id}.jpg`
       const now = new Date()
+      const capturedAt = args.capturedAt ?? now.toISOString()
 
       await env.BUCKET.put(photoKey, args.photo, {
         httpMetadata: { contentType: args.contentType },
@@ -75,7 +77,7 @@ export function createMealsModule(env: MealsEnv) {
       await db.insert(meal).values({
         id,
         userId: args.memberId,
-        capturedAt: now.toISOString(),
+        capturedAt,
         photoR2Key: photoKey,
         aiAnalysis: result.analysis,
         kcalTotal: sumKcal(result.analysis),

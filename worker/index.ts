@@ -10,6 +10,8 @@ interface AppEnv extends Env {
   OPENROUTER_API_KEY: string
 }
 
+const MAX_RANGE_MS = 31 * 24 * 60 * 60 * 1000
+
 type AuthedSession = { user: { id: string } }
 
 const app = new Hono<{
@@ -103,6 +105,15 @@ const app = new Hono<{
     const to = c.req.query("to")
     if (!from || !to) return c.json({ error: "missing_range" }, 400)
 
+    const fromMs = Date.parse(from)
+    const toMs = Date.parse(to)
+    if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
+      return c.json({ error: "invalid_range" }, 400)
+    }
+    if (toMs - fromMs > MAX_RANGE_MS) {
+      return c.json({ error: "range_too_large" }, 400)
+    }
+
     const meals = createMealsModule(c.env)
     const items = await meals.list({
       memberId: c.var.session.user.id,
@@ -122,11 +133,25 @@ const app = new Hono<{
       return c.json({ error: "photo_too_large" }, 413)
     }
 
+    const capturedAtRaw = form.get("capturedAt")
+    let capturedAt: string | undefined
+    if (typeof capturedAtRaw === "string" && capturedAtRaw.length > 0) {
+      const ms = Date.parse(capturedAtRaw)
+      if (Number.isNaN(ms)) {
+        return c.json({ error: "invalid_captured_at" }, 400)
+      }
+      if (ms > Date.now()) {
+        return c.json({ error: "captured_at_in_future" }, 400)
+      }
+      capturedAt = new Date(ms).toISOString()
+    }
+
     const meals = createMealsModule(c.env)
     const created = await meals.create({
       memberId: c.var.session.user.id,
       photo: new Uint8Array(await file.arrayBuffer()),
       contentType: file.type || "image/jpeg",
+      capturedAt,
     })
     return c.json(created)
   })
