@@ -8,6 +8,15 @@ import {
   text,
 } from "drizzle-orm/sqlite-core"
 
+import type { MealAnalysis } from "../meal-analysis/schema"
+
+export type MealOverride = {
+  kcal?: number
+  proteinG?: number
+  carbsG?: number
+  fatG?: number
+}
+
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -116,6 +125,29 @@ export const weightLog = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   },
   (t) => [index("weight_log_user_logged_idx").on(t.userId, t.loggedAt)]
+)
+
+export const meal = sqliteTable(
+  "meal",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    capturedAt: text("captured_at").notNull(),
+    photoR2Key: text("photo_r2_key").notNull(),
+    analysisStatus: text("analysis_status", {
+      enum: ["pending", "analyzed", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    aiAnalysis: text("ai_analysis", { mode: "json" }).$type<MealAnalysis>(),
+    analysisError: text("analysis_error"),
+    override: text("override", { mode: "json" }).$type<MealOverride>(),
+    kcalTotal: real("kcal_total"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("meal_user_captured_idx").on(t.userId, t.capturedAt)]
 )
 
 export const appSettings = sqliteTable(

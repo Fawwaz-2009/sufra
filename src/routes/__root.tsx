@@ -2,7 +2,6 @@ import type { QueryClient } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import {
   createRootRouteWithContext,
-  Link,
   Outlet,
   redirect,
 } from "@tanstack/react-router"
@@ -36,14 +35,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootLayout() {
   return (
     <>
-      <nav className="flex gap-4 border-b p-4 text-sm">
-        <Link to="/" className="[&.active]:font-bold">
-          Home
-        </Link>
-        <Link to="/about" className="[&.active]:font-bold">
-          About
-        </Link>
-      </nav>
       <Outlet />
       <TanStackRouterDevtools position="bottom-right" />
       <ReactQueryDevtools buttonPosition="bottom-left" />

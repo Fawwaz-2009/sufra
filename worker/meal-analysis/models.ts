@@ -18,7 +18,21 @@ export type ModelInfo = {
 //   - Gemini 3 Flash preview: 78% kcal, 93% identification, top default
 //   - Gemini 2.5 Flash: 79% kcal, cheapest premium, current PRD default
 //   - GPT-5.4 Mini: 73% kcal, fastest at ~3s, OpenAI representative
+//
+// Gemini 3.5 Flash added post-Google-I/O 2026. Pricing values below are
+// placeholders — verify against OpenRouter's catalog before relying on
+// cost-view numbers. Eval harness auto-enrolls this entry.
 export const MODELS: ModelInfo[] = [
+  {
+    id: "google/gemini-3.5-flash",
+    label: "Gemini 3.5 Flash — newest, eval pending",
+    family: "closed",
+    pricing: {
+      inputPerMTokens: 0.5,
+      outputPerMTokens: 3.0,
+      imagePerMTokens: 0.5,
+    },
+  },
   {
     id: "google/gemini-3-flash-preview",
     label: "Gemini 3 Flash (preview) — recommended",
