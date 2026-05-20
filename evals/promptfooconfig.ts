@@ -1,9 +1,7 @@
 import { config as loadEnv } from "dotenv"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
-import { zodResponseFormat } from "openai/helpers/zod"
 import {
-  MealAnalysis,
   getSystemPrompt,
   MODELS,
 } from "../worker/meals/estimator/index.js"
@@ -12,8 +10,6 @@ import type { UnifiedConfig } from "promptfoo"
 
 const here = dirname(fileURLToPath(import.meta.url))
 loadEnv({ path: join(here, ".env") })
-
-const responseFormat = zodResponseFormat(MealAnalysis, "meal_analysis")
 
 // Test variants per dish:
 //   bare        — analyze the image alone
@@ -70,22 +66,21 @@ const tests = [
   },
 ]
 
+// One provider entry per model, all pointing at the same file. Promptfoo loads
+// estimator-provider.ts and instantiates the default-exported class with the
+// per-entry config. Each invocation calls the production estimator function
+// directly — no response_format / chat-completions divergence from prod.
 const providers = MODELS.map((m) => ({
-  id: `openai:chat:${m.id}`,
+  id: "file://./estimator-provider.ts",
   label: m.id,
-  config: {
-    apiBaseUrl: "https://openrouter.ai/api/v1",
-    apiKeyEnvar: "OPENROUTER_API_KEY",
-    response_format: responseFormat,
-    max_completion_tokens: 4000,
-  },
+  config: { modelId: m.id },
 }))
 
-const prompts = ["file://./prompt.ts"]
+const prompts = ["{{userText}}"]
 
 export default {
   description:
-    "Sufra vision benchmark — bare vs with-hints, side-by-side per model. Schema imported live from worker/meal-analysis/, no drift.",
+    "Sufra vision benchmark — bare vs with-hints, side-by-side per model. Calls the production estimator (worker/meals/estimator) directly via a custom provider; same code path as prod, no response_format divergence.",
   commandLineOptions: {
     maxConcurrency: 10,
   },

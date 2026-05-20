@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Evaluation harness for Sufra's vision model selection. Single promptfooconfig.ts imports schema + prompts + model list from worker/meal-analysis/, generates the test matrix, references scorers as files.",
+  "description": "Evaluation harness for Sufra's vision model selection. Custom EstimatorProvider routes promptfoo through the production estimator (worker/meals/estimator/) — same code path as the Worker.",
   "engines": {
     "node": ">=22.22.0"
   },
