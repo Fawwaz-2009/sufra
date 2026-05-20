@@ -2,13 +2,17 @@ import { and, desc, eq, gte, lt } from "drizzle-orm"
 
 import { createDb } from "../db"
 import type { MealOverride } from "../db/schema"
-import { meal } from "../db/schema"
+import { appSettings, inferenceRun, meal } from "../db/schema"
 import { ERROR_CODES } from "../errors"
 
 import {
+  computeCost,
+  DEFAULT_VISION_MODEL_ID,
   estimateMeal,
+  getModel,
   MAX_IMAGE_BYTES,
   VisionError,
+  type EstimateMealResult,
   type MealAnalysis,
 } from "./estimator"
 
@@ -17,6 +21,8 @@ type MealsEnv = {
   BUCKET: R2Bucket
   OPENROUTER_API_KEY: string
 }
+
+type Db = ReturnType<typeof createDb>
 
 export function createMealsModule(env: MealsEnv) {
   const db = createDb(env.DB)
@@ -64,7 +70,13 @@ export function createMealsModule(env: MealsEnv) {
         )
       }
 
-      const result = await estimateMeal(env, args.photo)
+      const modelId = await readVisionModelId(db)
+      const result = await runEstimate({
+        db,
+        userId: args.memberId,
+        kind: "estimate",
+        run: () => estimateMeal(env, args.photo, { modelId }),
+      })
 
       const id = crypto.randomUUID()
       const photoKey = `meals/${args.memberId}/${id}.jpg`
@@ -131,7 +143,14 @@ export function createMealsModule(env: MealsEnv) {
       }
       const photo = new Uint8Array(await obj.arrayBuffer())
 
-      const result = await estimateMeal(env, photo, { userText: args.userText })
+      const modelId = await readVisionModelId(db)
+      const result = await runEstimate({
+        db,
+        userId: args.memberId,
+        kind: "refinement",
+        run: () =>
+          estimateMeal(env, photo, { modelId, userText: args.userText }),
+      })
       const newKcalTotal = row.override?.kcal ?? sumKcal(result.analysis)
 
       await db
@@ -147,11 +166,65 @@ export function createMealsModule(env: MealsEnv) {
 
 export type MealsModule = ReturnType<typeof createMealsModule>
 
-async function fetchOwned(
-  db: ReturnType<typeof createDb>,
-  id: string,
-  memberId: string
-) {
+async function readVisionModelId(db: Db): Promise<string> {
+  const [row] = await db
+    .select({ visionModelId: appSettings.visionModelId })
+    .from(appSettings)
+    .where(eq(appSettings.id, 1))
+  return row?.visionModelId ?? DEFAULT_VISION_MODEL_ID
+}
+
+// Wraps every call to estimateMeal() so cost is captured before any downstream
+// persistence can fail. Failed schema-parse runs still produced billable
+// tokens — we record those too so monthly cost reflects reality.
+async function runEstimate(args: {
+  db: Db
+  userId: string
+  kind: "estimate" | "refinement"
+  run: () => Promise<EstimateMealResult>
+}): Promise<EstimateMealResult> {
+  try {
+    const result = await args.run()
+    await args.db.insert(inferenceRun).values({
+      id: crypto.randomUUID(),
+      userId: args.userId,
+      modelId: result.modelId,
+      kind: args.kind,
+      status: "ok",
+      errorCode: null,
+      promptTokens: result.usage.promptTokens,
+      completionTokens: result.usage.completionTokens,
+      costUsd: result.costUsd,
+      latencyMs: result.latencyMs,
+      createdAt: new Date(),
+    })
+    return result
+  } catch (e) {
+    if (e instanceof VisionError && e.usage) {
+      // The model ran and OpenRouter billed for tokens, but the response
+      // didn't match the Zod schema (or another mid-flight failure occurred).
+      // Persist the cost row so the bill is not silently absorbed.
+      const modelId = await readVisionModelId(args.db)
+      const model = getModel(modelId)
+      await args.db.insert(inferenceRun).values({
+        id: crypto.randomUUID(),
+        userId: args.userId,
+        modelId,
+        kind: args.kind,
+        status: "failed",
+        errorCode: e.code,
+        promptTokens: e.usage.promptTokens,
+        completionTokens: e.usage.completionTokens,
+        costUsd: computeCost(model, e.usage),
+        latencyMs: e.latencyMs ?? 0,
+        createdAt: new Date(),
+      })
+    }
+    throw e
+  }
+}
+
+async function fetchOwned(db: Db, id: string, memberId: string) {
   const [row] = await db.select().from(meal).where(eq(meal.id, id))
   if (!row || row.userId !== memberId) return null
   return row
@@ -161,12 +234,13 @@ function sumKcal(analysis: MealAnalysis): number {
   return analysis.foods.reduce((acc, f) => acc + f.estimatedKcal, 0)
 }
 
-function resolveTotals(
-  analysis: MealAnalysis,
-  override: MealOverride | null
-) {
+function resolveTotals(analysis: MealAnalysis, override: MealOverride | null) {
   const sum = (
-    k: "estimatedKcal" | "estimatedProteinG" | "estimatedCarbsG" | "estimatedFatG"
+    k:
+      | "estimatedKcal"
+      | "estimatedProteinG"
+      | "estimatedCarbsG"
+      | "estimatedFatG"
   ) => analysis.foods.reduce((acc, f) => acc + f[k], 0)
   const o = override ?? {}
   return {

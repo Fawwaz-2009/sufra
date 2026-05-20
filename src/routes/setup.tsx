@@ -1,36 +1,12 @@
+import { useState } from "react"
+import { createFileRoute, redirect } from "@tanstack/react-router"
+
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
-import { createFileRoute, redirect } from "@tanstack/react-router"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-
-const schema = z
-  .object({
-    username: z
-      .string()
-      .min(3, "At least 3 characters")
-      .regex(/^[a-zA-Z0-9_]+$/, "Letters, numbers, underscore only"),
-    password: z.string().min(8, "At least 8 characters"),
-    confirm: z.string(),
-  })
-  .refine((d) => d.password === d.confirm, {
-    path: ["confirm"],
-    message: "Passwords don't match",
-  })
-
-type FormValues = z.infer<typeof schema>
+import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/setup")({
   beforeLoad: ({ context }) => {
@@ -38,101 +14,262 @@ export const Route = createFileRoute("/setup")({
       throw redirect({ to: context.session ? "/" : "/login" })
     }
   },
-  component: SetupPage,
+  component: SetupWizard,
 })
 
-function SetupPage() {
+function SetupWizard() {
   const auth = useAuth()
+  const [step, setStep] = useState<1 | 2>(1)
+  const [familyName, setFamilyName] = useState("")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirm, setConfirm] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: standardSchemaResolver(schema) })
+  const trimmedFamily = familyName.trim()
+  const canContinueStep1 = trimmedFamily.length > 0 && trimmedFamily.length <= 40
 
-  const onSubmit = async (values: FormValues) => {
-    setSubmitError(null)
-    const res = await api.api.setup.$post({
-      json: { username: values.username, password: values.password },
-    })
-    if (!res.ok) {
-      setSubmitError("Something went wrong. Try again.")
+  const validateStep2 = (): string | null => {
+    if (username.length < 3) return "Username must be at least 3 characters."
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return "Username: letters, numbers, underscore only."
+    }
+    if (password.length < 6) return "Password must be at least 6 characters."
+    if (password !== confirm) return "Passwords don't match."
+    return null
+  }
+
+  const submit = async () => {
+    const err = validateStep2()
+    if (err) {
+      setSubmitError(err)
       return
     }
-    await auth.refresh()
+    setSubmitError(null)
+    setIsSubmitting(true)
+    try {
+      const res = await api.api.setup.$post({
+        json: { familyName: trimmedFamily, username, password },
+      })
+      if (!res.ok) {
+        setSubmitError("Something went wrong. Try again.")
+        return
+      }
+      await auth.refresh()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Welcome to Sufra</CardTitle>
-          <CardDescription>
-            First, create the host account. You'll be the only person who can
-            add or remove users.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
-          >
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                autoComplete="username"
-                autoFocus
-                {...register("username")}
-              />
-              {errors.username && (
-                <p className="text-xs text-destructive">
-                  {errors.username.message}
-                </p>
-              )}
-            </div>
+    <Shell>
+      <Dots step={step} />
+      {step === 1 ? (
+        <StepFamilyName
+          familyName={familyName}
+          setFamilyName={setFamilyName}
+          canContinue={canContinueStep1}
+          onContinue={() => setStep(2)}
+        />
+      ) : (
+        <StepAccount
+          familyName={trimmedFamily}
+          username={username}
+          setUsername={setUsername}
+          password={password}
+          setPassword={setPassword}
+          confirm={confirm}
+          setConfirm={setConfirm}
+          submitError={submitError}
+          isSubmitting={isSubmitting}
+          onBack={() => {
+            setSubmitError(null)
+            setStep(1)
+          }}
+          onSubmit={submit}
+        />
+      )}
+    </Shell>
+  )
+}
 
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-xs text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center bg-background px-6 py-10">
+      <div className="w-full max-w-md">{children}</div>
+    </div>
+  )
+}
 
-            <div className="grid gap-2">
-              <Label htmlFor="confirm">Confirm password</Label>
-              <Input
-                id="confirm"
-                type="password"
-                autoComplete="new-password"
-                {...register("confirm")}
-              />
-              {errors.confirm && (
-                <p className="text-xs text-destructive">
-                  {errors.confirm.message}
-                </p>
-              )}
-            </div>
+function Dots({ step }: { step: 1 | 2 }) {
+  return (
+    <div className="mb-8 flex items-center gap-1.5">
+      <Dot active />
+      <Dot active={step === 2} />
+    </div>
+  )
+}
 
-            {submitError && (
-              <p className="text-xs text-destructive">{submitError}</p>
-            )}
+function Dot({ active }: { active: boolean }) {
+  return (
+    <span
+      className={cn(
+        "size-2 rounded-full transition-colors",
+        active ? "bg-foreground" : "bg-foreground/20"
+      )}
+    />
+  )
+}
 
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating…" : "Create host"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+function StepFamilyName({
+  familyName,
+  setFamilyName,
+  canContinue,
+  onContinue,
+}: {
+  familyName: string
+  setFamilyName: (s: string) => void
+  canContinue: boolean
+  onContinue: () => void
+}) {
+  const trimmed = familyName.trim()
+  const previewName = trimmed.length > 0 ? trimmed : "…"
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-3">
+        <h1 className="font-heading text-2xl font-semibold">
+          Welcome to Sufra
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Sufra is the Arabic word for the dining table — more than the
+          furniture, it's the spread of food and the people gathered around it.
+          Sufra exists to help you stay at yours.
+        </p>
+      </header>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (canContinue) onContinue()
+        }}
+        className="flex flex-col gap-3"
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="family-name">What do you call your sufra?</Label>
+          <Input
+            id="family-name"
+            autoFocus
+            maxLength={40}
+            placeholder="Al Harbi"
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Your Sufra will be called{" "}
+          <span className="text-foreground">the {previewName} Sufra</span>
+        </p>
+        <Button type="submit" disabled={!canContinue} className="mt-2">
+          Continue →
+        </Button>
+      </form>
+    </div>
+  )
+}
+
+function StepAccount({
+  familyName,
+  username,
+  setUsername,
+  password,
+  setPassword,
+  confirm,
+  setConfirm,
+  submitError,
+  isSubmitting,
+  onBack,
+  onSubmit,
+}: {
+  familyName: string
+  username: string
+  setUsername: (s: string) => void
+  password: string
+  setPassword: (s: string) => void
+  confirm: string
+  setConfirm: (s: string) => void
+  submitError: string | null
+  isSubmitting: boolean
+  onBack: () => void
+  onSubmit: () => void
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-3">
+        <h1 className="font-heading text-2xl font-semibold">
+          Create your account
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          You're the Host. You manage the {familyName} Sufra and invite the
+          people who'll join you at it.
+        </p>
+      </header>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          onSubmit()
+        }}
+        className="flex flex-col gap-4"
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            autoComplete="username"
+            autoFocus
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="password">Password (6+ characters)</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="confirm">Confirm password</Label>
+          <Input
+            id="confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+        </div>
+
+        {submitError && (
+          <p className="text-xs text-destructive">{submitError}</p>
+        )}
+
+        <Button type="submit" disabled={isSubmitting} className="mt-2">
+          {isSubmitting ? "Creating…" : `Create the ${familyName} Sufra →`}
+        </Button>
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          ← Back
+        </button>
+      </form>
     </div>
   )
 }

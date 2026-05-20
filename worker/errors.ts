@@ -3,8 +3,13 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 export const ERROR_CODES = {
   UNAUTHORIZED: "unauthorized",
+  FORBIDDEN: "forbidden",
   ALREADY_SET_UP: "already_set_up",
   NOT_FOUND: "not_found",
+  INVALID_MODEL: "invalid_model",
+  USERNAME_TAKEN: "username_taken",
+  LINK_INVALID: "link_invalid",
+  LINK_EXPIRED: "link_expired",
   PHOTO_MISSING: "photo_missing",
   INVALID_INPUT: "invalid_input",
   INVALID_USERNAME: "invalid_username",

@@ -85,6 +85,9 @@ export const userProfile = sqliteTable("user_profile", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
+  // language + numeralSystem retained as schema-level columns but deferred to v2;
+  // translation is cut from v1, no rows reference these yet. Defaults applied
+  // by SQLite if a v1 row is somehow created.
   language: text("language", { enum: ["en", "ar"] })
     .notNull()
     .default("en"),
@@ -150,9 +153,9 @@ export const appSettings = sqliteTable(
   "app_settings",
   {
     id: integer("id").primaryKey(),
-    visionModelId: text("vision_model_id")
-      .notNull()
-      .default("google/gemini-2.5-flash"),
+    visionModelId: text("vision_model_id").notNull(),
+    familyName: text("family_name").notNull().default("My"),
+    // defaultLanguage retained for the v2 multi-language work; unused in v1.
     defaultLanguage: text("default_language", { enum: ["en", "ar"] })
       .notNull()
       .default("en"),
@@ -164,4 +167,44 @@ export const appSettings = sqliteTable(
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },
   (t) => [check("app_settings_singleton", sql`${t.id} = 1`)]
+)
+
+// Single-use, Host-issued URL token that lets a Member set a password.
+// Backs both the initial invite (Member has no account row yet) and password
+// reset (Member already has an account) flows — see CONTEXT.md "Password link".
+// UNIQUE on userId enforces "one active link per Member" — regenerate replaces
+// in place via ON CONFLICT UPDATE. Cascade on user deletion: a deleted Member
+// loses any pending password link.
+export const passwordLink = sqliteTable("password_link", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  createdBy: text("created_by").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+})
+
+// Append-only audit log of every estimateMeal() invocation. Decoupled from
+// meals and users on purpose — the bill is ground truth, deleting a meal or
+// removing a Member must not erase the record of money spent. No FK
+// constraints; userId is a soft text column.
+export const inferenceRun = sqliteTable(
+  "inference_run",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id"),
+    modelId: text("model_id").notNull(),
+    kind: text("kind", { enum: ["estimate", "refinement"] }).notNull(),
+    status: text("status", { enum: ["ok", "failed"] }).notNull(),
+    errorCode: text("error_code"),
+    promptTokens: integer("prompt_tokens").notNull(),
+    completionTokens: integer("completion_tokens").notNull(),
+    costUsd: real("cost_usd").notNull(),
+    latencyMs: integer("latency_ms").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("inference_run_created_idx").on(t.createdAt)]
 )

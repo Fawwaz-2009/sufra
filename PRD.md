@@ -34,7 +34,7 @@ The product has two distinct users, and both need to be designed for explicitly.
 
 **The End User.** The person whose food gets photographed. Low-to-moderate IT prowess assumed — could be a parent, a sibling, a partner, a teenager. They never see the deployment, never enter an API key, never read a config file. They install a PWA on their phone, sign in with credentials the host gave them, and from that moment forward the app is just "the food app." Their mental model is: take photo → see number → move on. They should never need to understand that there's a server or an LLM behind it.
 
-End users are explicitly assumed to span languages. Many will not use the app at all if it's English-only. v1 ships with English and Arabic; the architecture must support adding languages without code changes (translation files only).
+Members are explicitly assumed to span languages. Many will not use the app at all if it's English-only. **v1 ships English-only as a scope cut; multi-language UI (Arabic first) is v2 work** (see §6.10 + §10 #14). The cultural framing the product carries in v1 lives in Middle Eastern cuisine recognition by the LLM — eval-verified — rather than in UI strings.
 
 ---
 
@@ -109,37 +109,42 @@ The PRD should be judged against these outcomes, not against feature count.
 
 ## 6. Core Features (v1)
 
-### 6.1 Auth (host and end users)
+### 6.1 Auth (host and members)
 
 Shared login form, role-based routing after authentication. Same URL for both roles; the server determines where to send each post-login.
 
-**First deploy.** Worker comes up, D1 has zero users. First visit triggers a setup wizard: host picks a username and password, the wizard creates the host record with `role = 'host'`, sets a session cookie, redirects to admin. The wizard only ever runs when zero hosts exist.
+**First deploy (Setup wizard).** Worker comes up, D1 has zero users. First visit triggers a 2-step wizard. Step 1 — host names the Sufra ("What do you call your sufra?", free-text up to 40 chars, live preview "the {family_name} Sufra"). Step 2 — host picks a username and a password (min 6 chars). Submit creates the host record with `role = 'host'`, initializes `app_settings`, sets a session cookie, redirects to Day view. The wizard only ever runs when zero hosts exist.
 
-**Provisioning end users.** From admin, host types a username and a password; record is created with `role = 'user'`. Host hands credentials to the end user out of band (text, in person, paper). No email is ever involved. The password the host sets is the user's password — there is no separate "temporary" state. Users can change it later from Profile.
+**Provisioning Members (Password link flow).** From admin, host types a username and clicks Add. The server creates the `user` row with `role = 'user'` (no `account` row yet) and a `password_link` row (opaque base64url token, 24h TTL, UNIQUE on `userId`). The client immediately copies a pre-baked share message to the clipboard — `"Hi {username}, here's your link to join Sufra:\n{url}"` — and toasts a confirmation that surfaces the 24h expiry. Host pastes the message wherever (WhatsApp, iMessage, group chat). No email is ever involved. The Member sets their own password at the link page; the Host never knows it.
 
-**End user first login.** Login form → password accepted → "Add to Home Screen" prompt with platform-specific instructions → onboarding flow → Day view.
+**Password link page.** Unauthenticated, lives at `/set-password/<token>`. Validates the token + TTL, greets the Member with the family-Sufra name + username, prompts for a password (6+) and a confirmation. On submit: writes the password hash via better-auth, signs the Member in (set-cookie), deletes the password_link row, navigates to Day view. The page sets a `noindex,nofollow` meta tag — the link is a credential, not a discoverable page. On invalid / expired token, shows a stub page telling the Member to ask the Host for a new link.
 
-**Steady-state.** httpOnly cookie carries an opaque session token, validated against D1 on every request. 90-day rolling expiry, configurable. Host can revoke any active session from admin.
+**Member first sign-in.** Password link → form submitted → "Add to Home Screen" prompt with platform-specific instructions → onboarding flow (when M2 lands) → Day view.
 
-**Password reset.** End user forgets password → asks host → host sets a new password in admin → hands it over out of band. The user signs in with it and may change it from Profile. Manual, social, deliberate.
+**Steady-state.** httpOnly cookie carries an opaque session token, validated against D1 on every request. 90-day rolling expiry, configurable.
+
+**Password reset.** Same mechanism as invite. Host clicks the 🔑 icon on an existing Member's row → fresh `password_link` issued (UPSERT replaces any prior one) → message copied to clipboard. Member sets a new password at the link; their old password keeps working until they redeem. "Invite" and "reset" are the same operation in the data model; only the underlying account state differs.
 
 **Host forgets their password.** Broken-glass recovery: a `wrangler`-callable admin endpoint gated by a deploy-time secret. Documented in the README. Ugly but honest about what no-email means.
 
+**Deactivation.** Not modelled. Hosts delete-and-destroy Members instead — cascade removes their meals, photos, weights, profile, sessions, account row. `inference_run` rows survive (audit log is decoupled from the entities it describes — see CONTEXT.md "Password link" / earlier ADRs).
+
 **Brute-force protection.** Per-username and per-IP rate limiting with progressive lockout. Cloudflare's built-in rate limiting as a second layer.
 
-**Storage.** Auth tables are managed by better-auth (with the `username` plugin, no email): `user` (id, username, role, createdAt, …), `session`, `account` (holds the scrypt password hash), `verification` (unused but created by the library). Role is a custom field on `user`; profile data (age, height, weight, language, goal, activity) lives in a separate 1-1 `user_profile` table we own.
+**Storage.** Auth tables are managed by better-auth (with the `username` plugin, no email): `user` (id, username, role, createdAt, …), `session`, `account` (holds the scrypt password hash), `verification` (unused but created by the library). Role is a custom field on `user`; profile data (age, height, weight, goal, activity) lives in a separate 1-1 `user_profile` table we own. Password links live in `password_link` (id, userId UNIQUE, token UNIQUE, createdBy, createdAt, expiresAt; cascades on user delete).
 
-### 6.2 Onboarding (end user, first launch)
+### 6.2 Onboarding (Member, first launch)
 
-Five screens, ~75 seconds for a motivated user:
+Four screens, ~60 seconds for a motivated Member. Universal — runs once per account including the Host. Triggered when the account has no `user_profile` row.
 
-- **Language.** First screen, before anything else. Picker showing each available language in its own script ("English", "العربية"). Default highlighted based on browser `Accept-Language`, but always shown — host-set defaults can be wrong for any individual user. Choice is saved to the user profile; subsequent logins skip this screen and load the user's language immediately. Switching language later is possible from settings.
 - **Welcome.** "This app helps you understand what you eat. Take photos, get calorie estimates, see your trend over time."
 - **About you.** Sex, age, height, current weight, activity level (sedentary / light / moderate / active — four buttons with inline definitions, not a slider).
 - **Your goal.** Lose / maintain / gain weight. If lose or gain, an optional weekly rate (default 0.5 kg/week).
 - **Your numbers.** Computed maintenance via Mifflin-St Jeor × activity multiplier, presented with framing: "Based on what you told us, you burn about 2,200 kcal/day. To lose 0.5 kg/week, eat about 1,700 kcal/day. We'll refine these as you log — the first estimate is a starting point." User can adjust manually; aggressive deficits get a one-line warning but aren't blocked.
 
-After the last step the user lands in Day view, empty state, with a prominent capture button.
+After the last step the Member lands in Day view, empty state, with a prominent capture button.
+
+The language picker that was Step 0 of this flow is **deferred to v2** (see §6.10 and §10).
 
 ### 6.3 Meal capture (photo-first)
 
@@ -186,32 +191,33 @@ Past days scrollable. Weekly/monthly chart of intake vs target. Weight trend. Ma
 
 ### 6.9 Host admin
 
-Separate `/admin` route accessible only to `role = 'host'`:
+Separate `/admin` route accessible only to `role = 'host'`. Reached from a bottom nav tab visible only to the Host.
 
-- Vision model selection (with sensible defaults). The OpenRouter API key is **not** in the admin UI — it's a Cloudflare secret set via `wrangler secret put OPENROUTER_API_KEY` and rotated the same way. Keeps the key out of the database and out of any UI surface.
-- Default language for newly created accounts
-- User CRUD (create, reset password, deactivate)
-- Active session view + revoke
-- Optional deficit safety bounds toggle
-- Inference cost view (if OpenRouter exposes it)
+- **Inference cost view.** Sum of `inference_run.cost_usd` for the current calendar month (Host-TZ-resolved client-side, server takes a UTC range — same pattern as the Day view). Shows total, ~per-Member average, run count. Computed locally from per-call accounting at the rates we know about; not a reconciliation with OpenRouter's bill.
+- **Vision model selection.** Radio list sourced from the `MODELS` const (single source of truth, isomorphic module imported by both worker and SPA). Instant commit on radio click. The OpenRouter API key is **not** in the admin UI — it's a Cloudflare secret set via `wrangler secret put OPENROUTER_API_KEY` and rotated the same way. Keeps the key out of the database and out of any UI surface.
+- **Members.** Single list. Each row: username + 🔑 (Copy password link) + 🗑 (Delete). Add-Member form at the top (username only); submit creates the Member + a Password link in one shot and copies the share message to the clipboard. Delete uses a typed confirm dialog and removes the Member's account, meals, photos, weights, and profile via cascade. `inference_run` rows survive (audit-log decoupling).
+- **Instance settings.** Family-Sufra name (the value entered during Setup, editable here).
+- **Optional deficit safety bounds toggle** (deferred polish).
 
-End users have no path to this surface.
+Members have no path to this surface — the Admin tab in the bottom nav is rendered only when `session.user.role === "host"`, and `/api/admin/*` is gated by a 403-on-non-host middleware regardless of client state.
 
-### 6.10 Localization
+### 6.10 Localization — DEFERRED TO V2
 
-Multi-language is a property of the whole app, not a feature.
+Multi-language UI is **deferred to v2.** v1 ships English-only.
 
-**Languages at launch.** English and Arabic. Adding a third language is a translation contribution — drop a JSON file into `src/locales/`, no code changes.
+**The positioning claim still holds.** Sufra's "specific table, not a generic database" claim (§4) was always carried by **Middle Eastern cuisine recognition in the LLM** (kabsa, fattoush, mansaf identified correctly, not approximated as "rice with chicken") more than by UI language. That part is intact and eval-verified. The estimator's `locale` plumbing already exists (Locale type, `getSystemPrompt(locale)`) and is exercised in evals — production calls it with `locale: "en"` hardcoded. Adding Arabic UI in v2 is a translation pass and an RTL stylesheet flip, not a refactor: the codebase keeps using logical CSS properties (`ms-*` / `me-*` / `text-start`) as a free habit so v2 doesn't need a sweep.
 
-**Selection.** Step 0 of onboarding (see 6.2). Choice persists on the user profile. Settings screen has a language picker so users can switch later. Host can pre-set a default language for new accounts.
+**What v2 will add.**
 
-**RTL.** Arabic flips the layout. Layout is built from day one with logical CSS properties (`ms-*` / `me-*` over `ml-*` / `mr-*`, `text-start` over `text-left`); `dir="rtl"` on `<html>` handles the rest automatically. Directional icons (back arrows, etc.) get mirrored.
+- React-i18next setup with lazy-loaded JSON locale files
+- Arabic translation pass for all UI strings, error messages, onboarding copy
+- RTL verification on real device
+- Language picker as Step 0 of onboarding
+- `userProfile.language` and `userProfile.numeralSystem` columns (schema retains these as dead columns in v1; v2 starts populating them)
+- `app_settings.default_language` activated (Host-set default for new accounts)
+- Eastern Arabic numerals as a per-Member toggle
 
-**Numbers and dates.** Western Arabic numerals (0123456789) by default in both languages. Dates formatted via `Intl.DateTimeFormat` with the user's locale. Eastern Arabic numerals (٠١٢٣٤٥٦٧٨٩) are a per-user toggle for Arabic users who prefer them.
-
-**LLM output language.** The vision model is prompted in the user's language and instructed to return food names, recipe assumptions, and clarification questions in that language. Modern vision models handle Arabic output well. Saved meals are stored in the language they were created in — there's no cross-language meal sharing in v1.
-
-**What's translated.** All UI strings, error messages, onboarding copy, and the LLM system prompt. Documentation (README) ships in English only; community translations welcome.
+**The name stays.** Sufra remains an Arabic word; the "About the name" section is intact; the icon language and cuisine recognition carry the cultural framing in v1.
 
 ---
 
@@ -238,8 +244,8 @@ Multi-language is a property of the whole app, not a feature.
 
 ### 8.1 Stack
 
-- **Frontend:** Vite + React + TanStack Router + TanStack Query + vite-plugin-pwa + Tailwind
-- **i18n:** react-i18next with lazy-loaded JSON locale files; logical CSS properties throughout for RTL
+- **Frontend:** Vite + React + TanStack Router + TanStack Query + vite-plugin-pwa + Tailwind + shadcn + sonner (toasts)
+- **i18n:** _Deferred to v2._ v1 ships English-only; logical CSS properties used throughout as a free habit so v2 RTL is a stylesheet flip, not a refactor.
 - **Backend:** Hono on Cloudflare Workers, with Hono RPC for end-to-end type safety
 - **Single Worker** serving both static assets (the built React bundle) and `/api/*` routes
 - **Database:** Cloudflare D1 (SQLite-compatible); schema versioned and migrated via Wrangler
@@ -347,8 +353,8 @@ Save logged meal as named template. Log-from-saved flow (skips inference). Promp
 _Exit:_ end user can save/re-log a usual meal and log weight to see trend.
 
 **M6 — History, polish, deploy docs (Day 7)**
-History view (past days, week/month chart). Admin polish (API key rotation, model selection, cost view, user CRUD complete). Arabic translation pass — every UI string translated, RTL layout verified on real device, LLM prompt tested for Arabic output quality and Middle Eastern dish recognition. README with deploy guide and "About the name" section. Add-to-Home-Screen prompt and instructions. Error states, skeletons, basic offline handling.
-_Exit:_ shippable. Another host could deploy a fresh Sufra instance from the README alone.
+History view (past days, week/month chart). Admin polish (model selection, cost view, Members CRUD complete — all landed). README with deploy guide and "About the name" section. Add-to-Home-Screen prompt and instructions. Error states, skeletons, basic offline handling.
+_Exit:_ shippable in English. Another host could deploy a fresh Sufra instance from the README alone. Arabic UI translation pass is **v2 work**, not v1 (see §6.10).
 
 ---
 
@@ -359,10 +365,10 @@ _Exit:_ shippable. Another host could deploy a fresh Sufra instance from the REA
 1. **OpenRouter zero-log claim — verified scope?** Marketing says zero log; does this apply uniformly across upstream providers OpenRouter routes to? Affects the privacy claim in README.
 2. **R2 photo lifecycle.** Keep forever (default), or auto-delete after N days with host toggle? Free tier is generous but not infinite.
 3. **Photo preprocessing.** Client-side resize to max 1024px long edge, JPEG q85 before upload — confirm?
-4. **Vision model default.** Gemini 2.5 Flash recommended, with Claude Haiku 4.5 and GPT-4.1-mini as documented alternatives. Confirm default? Verify Arabic output quality AND Middle Eastern dish recognition during the Day 1 inference prototype.
+4. **Vision model default.** Resolved — eval-driven. Gemini 3 Flash preview leads at ~78% kcal bare / ~96% with portion hints. `DEFAULT_VISION_MODEL_ID = "google/gemini-3-flash-preview"`, single source of truth in `worker/meals/estimator/models.ts`. Schema column default dropped; Setup wizard inserts the const explicitly. Arabic-output quality verification deferred to v2 alongside the translation pass.
 5. **Maintenance refinement window.** Default 4 weeks of logging data before surfacing suggestion. Host-configurable, or fixed? Right window length?
 6. **Safety floor on deficits.** Soft warning above 25% deficit, no hard block. Confirm or push back?
-7. **Eastern Arabic numerals as default for Arabic?** Currently planning Western (0-9) as default with Eastern as toggle. Worth checking with a few family members which feels more natural.
+7. **Eastern Arabic numerals as default for Arabic?** _Deferred to v2_ alongside the translation pass (§6.10). Currently planning Western (0-9) as default with Eastern as toggle. Revisit with Arabic-speaking Members once v2 lands.
 8. **Domain.** `sufra.app` availability check needed. If taken, fallbacks: `sufra.dev`, `sufra.food`, `getsufra.com`.
 9. **Day cutoff setting.** Default day boundary is local midnight. Some users (late-night eaters) want a configurable cutoff (e.g., 4am). Deferred to post-v1 unless real users ask; flag it here so we don't forget.
 10. **Override-vs-refinement collision is invisible AND refinement has no causal trace.** Two related UX gaps caught during M3 dogfooding.
@@ -382,6 +388,8 @@ _Exit:_ shippable. Another host could deploy a fresh Sufra instance from the REA
 12. **Capture failure handling.** Resolved structurally by the M3 architecture: create is synchronous, and the AI call is a precondition for any R2/D1 write. Failed estimates leave no orphan rows or storage. What remains is the client-side affordance: the Member sees the button spinner; if the call fails, the route returns an error and the client shows a toast. A retry-the-same-photo button on the toast is the obvious next polish. Also need: an admin-side delete (analyzed Meals can still need removal — wrong photo, mis-logged session, etc.). Resolve before v1 ships to non-developer households.
 
 13. **Locale-aware first-day-of-week.** v1 hardcodes Monday-start for the Day view's week strip — matches the mockup and ISO convention, simple, consistent across Members. The right v2 answer is locale-derived via `Intl.Locale.prototype.getWeekInfo()` (en-GB → Mon, en-US → Sun, ar-SA → Sat), possibly with a Member-level override stored on `user_profile`. Per §8.5, this is a pure client change — no server work and no schema migration unless a profile override is added. Revisit once Arabic Members adopt or when onboarding (M2) lands and we have a natural place to plumb the preference. If shipped, the week strip helper signature (`weekStart(date, firstDay: 1–7)`) is already parameterized for this swap.
+
+14. **Multi-language UI (Arabic + RTL).** Cut from v1, deferred to v2. v2 work: react-i18next setup with lazy-loaded JSON locale files, Arabic translation pass, RTL verification on a real device, language picker as Onboarding Step 0, activation of dead schema columns (`userProfile.language`, `userProfile.numeralSystem`, `app_settings.default_language`), Arabic-quality LLM eval. v1's logical CSS habit (`ms-*` / `me-*` / `text-start`) was kept specifically to make this a stylesheet flip rather than a sweep. See §6.10.
 
 ### Risks
 

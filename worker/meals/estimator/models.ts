@@ -1,3 +1,9 @@
+// ISOMORPHIC MODULE — imported from both worker AND src/. Must remain
+// runnable in the browser bundle: do NOT add runtime imports (no AI SDK,
+// no OpenRouter, no Cloudflare runtime types beyond `type`-only). Type-only
+// imports are fine. If this file ever needs runtime dependencies, extract
+// MODELS to a sibling isomorphic file and import that from the SPA instead.
+
 export type ModelInfo = {
   id: string
   label: string

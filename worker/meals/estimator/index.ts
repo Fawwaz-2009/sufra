@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 
-import { MAX_IMAGE_BYTES, VisionError } from "./errors.js"
+import { MAX_IMAGE_BYTES, VisionError, type VisionUsage } from "./errors.js"
 import { computeCost, DEFAULT_VISION_MODEL_ID, getModel } from "./models.js"
 import { buildUserPromptText, getSystemPrompt, type Locale } from "./prompts.js"
 import { MealAnalysis } from "./schema.js"
@@ -63,14 +63,16 @@ export async function estimateMeal(
       ],
     })
   } catch (e) {
+    const latencyMs = Date.now() - start
     const msg = e instanceof Error ? e.message : String(e)
+    const usage = extractUsage(e)
     if (/no object generated|could not parse|did not match schema/i.test(msg)) {
-      throw new VisionError("schema-parse-failed", msg, e)
+      throw new VisionError("schema-parse-failed", msg, e, { usage, latencyMs })
     }
     if (/rate|429|quota/i.test(msg)) {
-      throw new VisionError("rate-limited", msg, e)
+      throw new VisionError("rate-limited", msg, e, { latencyMs })
     }
-    throw new VisionError("provider-error", msg, e)
+    throw new VisionError("provider-error", msg, e, { usage, latencyMs })
   }
   const latencyMs = Date.now() - start
 
@@ -86,6 +88,23 @@ export async function estimateMeal(
     costUsd: computeCost(modelInfo, usage),
     latencyMs,
     modelId,
+  }
+}
+
+// The AI SDK attaches `usage` to `NoObjectGeneratedError` (and a few other
+// error types) when the model already produced billable tokens before the
+// failure. Returns undefined when the error happened before the model ran
+// (rate limit, network) — in which case OpenRouter didn't bill.
+function extractUsage(e: unknown): VisionUsage | undefined {
+  if (!e || typeof e !== "object") return undefined
+  const u = (e as { usage?: unknown }).usage as
+    | { inputTokens?: number; outputTokens?: number; totalTokens?: number }
+    | undefined
+  if (!u) return undefined
+  return {
+    promptTokens: u.inputTokens ?? 0,
+    completionTokens: u.outputTokens ?? 0,
+    totalTokens: u.totalTokens ?? 0,
   }
 }
 
@@ -105,4 +124,9 @@ export {
   type Locale,
   type UserPromptParts,
 } from "./prompts.js"
-export { VisionError, MAX_IMAGE_BYTES, type VisionErrorCode } from "./errors.js"
+export {
+  VisionError,
+  MAX_IMAGE_BYTES,
+  type VisionErrorCode,
+  type VisionUsage,
+} from "./errors.js"

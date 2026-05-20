@@ -10,6 +10,7 @@ import { CaretLeft, CaretRight, Camera, SignOut } from "@phosphor-icons/react"
 
 import { z } from "zod"
 
+import { BottomNav } from "@/components/bottom-nav"
 import { MealCard, type MealCardData } from "@/components/meal-card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
@@ -147,7 +148,7 @@ function Home() {
         onSelect={selectDay}
       />
 
-      <main className="flex-1 px-5 pb-32">
+      <main className="flex-1 px-5 pb-40">
         <section>
           <h2 className="mt-6 mb-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
             Meals
@@ -193,6 +194,7 @@ function Home() {
         label={uploadMutation.isPending ? "Uploading…" : "Log a meal"}
         onClick={() => fileInputRef.current?.click()}
       />
+      <BottomNav />
     </DayShell>
   )
 }
@@ -331,7 +333,7 @@ function CaptureFab({
   onClick: () => void
 }) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md justify-center bg-gradient-to-t from-background via-background/80 to-transparent px-5 pt-8 pb-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-16 z-10 mx-auto flex max-w-md justify-center bg-linear-to-t from-background via-background/80 to-transparent px-5 pt-8 pb-2">
       <Button
         size="lg"
         disabled={disabled}
@@ -403,7 +405,7 @@ function DayViewPending() {
           </div>
         ))}
       </div>
-      <main className="flex-1 px-5 pb-32">
+      <main className="flex-1 px-5 pb-40">
         <h2 className="mt-6 mb-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
           Meals
         </h2>

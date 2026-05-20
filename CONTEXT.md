@@ -60,6 +60,10 @@ _Avoid_: Weigh-in, weighing, weight entry, weight log (the table, not the row).
 The one-time, per-deploy wizard that creates the Host account. Triggered automatically when the deploy has zero Hosts; suppressed forever after. Produces the `user` row with `role = 'host'` and initializes the `app_settings` singleton. Host-only.
 _Avoid_: Install, initialization, deployment, first-run.
 
+**Password link**:
+A single-use, Host-issued URL token that lets the recipient set a password on a `user` account. The same mechanism backs two distinct Host actions — adding a Member (whose `user` row has no `account` yet) and resetting a Member's password (whose `account` row gets overwritten). The Host hands the link to the recipient out of band; possession of the token is the credential. Exactly one Password link per Member can be active at a time — generating a new one replaces the old. Deleted the moment the password is set. Also expires by TTL if unredeemed.
+_Avoid_: Invite, magic link, reset link, invitation, signup token.
+
 **Onboarding**:
 The one-time, per-account flow that produces a Member's profile (sex, age, height, current weight, activity level, goal) and computes their initial Target. Universal — every account goes through it once, including the Host (because Hosts eat too). Triggered when the account has no `user_profile` row. Distinct from Setup: Setup is host-creates-themselves; Onboarding is profile-creation.
 _Avoid_: Signup, registration, intro flow, welcome.

@@ -11,14 +11,33 @@ export type VisionErrorCode =
   | "schema-parse-failed"
   | "model-unavailable"
 
+export type VisionUsage = {
+  promptTokens: number
+  completionTokens: number
+  totalTokens: number
+}
+
 export class VisionError extends Error {
   readonly code: VisionErrorCode
   readonly cause?: unknown
-  constructor(code: VisionErrorCode, message: string, cause?: unknown) {
+  // Present when the failure happened AFTER OpenRouter had already billed for
+  // tokens — most commonly a schema-parse failure where the model produced
+  // output but it didn't match the Zod schema. Callers use this to record an
+  // inference_run row with status="failed" so monthly cost reflects reality.
+  readonly usage?: VisionUsage
+  readonly latencyMs?: number
+  constructor(
+    code: VisionErrorCode,
+    message: string,
+    cause?: unknown,
+    extras?: { usage?: VisionUsage; latencyMs?: number }
+  ) {
     super(message)
     this.name = "VisionError"
     this.code = code
     this.cause = cause
+    this.usage = extras?.usage
+    this.latencyMs = extras?.latencyMs
   }
 }
 

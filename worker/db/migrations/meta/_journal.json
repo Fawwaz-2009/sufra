@@ -29,6 +29,27 @@
       "when": 1779243343115,
       "tag": "0003_silent_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1779268935154,
+      "tag": "0004_organic_king_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1779269807998,
+      "tag": "0005_fancy_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1779277938248,
+      "tag": "0006_wonderful_enchantress",
+      "breakpoints": true
     }
   ]
 }
