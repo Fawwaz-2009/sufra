@@ -19,6 +19,12 @@
       "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
       "computedHash": "a5c65e76275008b469962f7bee8b34866f1c9b0709f4886e71c8e731735640e4"
     },
+    "hallmark": {
+      "source": "nutlope/hallmark",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "5c0fa3fe0dd99fd3016ac120a1b5f425c6f93ce1d2f1c531b19e34361e532d6f"
+    },
     "handoff": {
       "source": "mattpocock/skills",
       "sourceType": "github",
