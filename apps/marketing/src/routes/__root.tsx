@@ -7,16 +7,22 @@ import appCss from '../styles.css?url'
 export const Route = createRootRoute({
   head: () => ({
     meta: [
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { name: 'theme-color', content: '#f1ead8' },
+      { title: 'Sufra — a photo-first calorie tracker you host yourself' },
       {
-        charSet: 'utf-8',
+        name: 'description',
+        content:
+          'Open-source, photo-first calorie tracker for households. Runs on your own Cloudflare account; calls your own OpenRouter key. No SaaS, no email server, no subscriptions.',
       },
+      { property: 'og:title', content: 'Sufra — host your own calorie tracker' },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        property: 'og:description',
+        content:
+          'Photo-first, household-scale, Cloudflare-native. MIT licensed.',
       },
-      {
-        title: 'TanStack Start Starter',
-      },
+      { property: 'og:type', content: 'website' },
     ],
     links: [
       {
