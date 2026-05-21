@@ -27,6 +27,7 @@ export function OverrideEditor({
   )
 
   const mutation = useMutation({
+    mutationKey: ["meal", meal.id],
     mutationFn: async (patch: MealOverridePatchInput) => {
       const res = await fetch(`/api/meals/${meal.id}/override`, {
         method: "PATCH",

@@ -186,6 +186,27 @@ export function createMealsModule(env: MealsEnv) {
       return { ok: true as const, meal: toDetail(updated!) }
     },
 
+    // Hard delete — meal row + R2 photo. `inference_run` rows survive (audit
+    // log decoupling: the AI cost stays on the books even after the meal is
+    // gone). D1 delete first so the meal is gone from the Member's view the
+    // moment the response returns; R2 cleanup is best-effort (orphan photo
+    // on R2 failure is a host-cost issue, not a user issue — same posture
+    // as admin Member-delete in routes/admin.ts).
+    async delete(args: { id: string; memberId: string }) {
+      const row = await fetchOwned(db, args.id, args.memberId)
+      if (!row) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
+
+      await db.delete(meal).where(eq(meal.id, args.id))
+
+      try {
+        await env.BUCKET.delete(row.photoR2Key)
+      } catch (e) {
+        console.error("meal-delete: r2 cleanup failed", row.photoR2Key, e)
+      }
+
+      return { ok: true as const }
+    },
+
     // Re-log a Saved Meal: a brand-new `meal` row that clones the source's
     // ai_analysis + override + photo bytes (basket pattern — ADR 0008).
     // Independent lifecycle thereafter: deleting either source or clone does

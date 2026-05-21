@@ -171,6 +171,16 @@ export const mealsRouter = new Hono<AppEnvCtx>()
     }
   )
 
+  .delete("/:id", async (c) => {
+    const meals = createMealsModule(c.env)
+    const result = await meals.delete({
+      id: c.req.param("id"),
+      memberId: c.var.session.user.id,
+    })
+    if (result.ok) return c.json({ ok: true })
+    return apiError(c, 404, result.error)
+  })
+
   .get("/:id/photo", async (c) => {
     const meals = createMealsModule(c.env)
     const obj = await meals.streamPhoto({

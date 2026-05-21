@@ -30,6 +30,7 @@ export function ImproveEstimateSheet({
   }, [open, lastRefinementText])
 
   const mutation = useMutation({
+    mutationKey: ["meal", mealId],
     mutationFn: async (userText: string) => {
       const res = await fetch(`/api/meals/${mealId}/refine`, {
         method: "POST",

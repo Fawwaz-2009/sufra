@@ -16,6 +16,7 @@ export function BookmarkButton({
   const queryClient = useQueryClient()
 
   const toggle = useMutation({
+    mutationKey: ["meal", mealId],
     mutationFn: async () => {
       const res = await api.api.meals[":id"].saved.$patch({
         param: { id: mealId },

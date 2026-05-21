@@ -25,7 +25,7 @@ A Member's manual correction of a Meal's totals (kcal, protein, carbs, fat), set
 _Avoid_: Edit, correction, adjustment, manual entry.
 
 **Refinement**:
-A Member adds free-text context ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the original photo + that text. The new Estimate **replaces** the prior one — no history kept. Does not touch the Override. Costs an AI call per Refinement.
+A Member adds free-text context ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the original photo + that text. The new Estimate **replaces** the prior one — no Estimate history kept. The Refinement *text itself* IS retained on the Meal record (`meal.last_refinement_text`, latest-only — a new Refinement overwrites the previous text) so the Improve estimate sheet can prefill the textarea with what the Member previously told the AI. Does not touch the Override. Costs an AI call per Refinement.
 _Avoid_: Re-analyze, re-estimate, clarification, edit.
 
 **Total**:
@@ -37,7 +37,7 @@ A specific point of uncertainty the model has identified in an Estimate — e.g.
 _Avoid_: Question, prompt, hint, suggestion.
 
 **Confidence**:
-A data attribute on the Estimate (and recursively on each Food), one of `high | medium | low`. Used internally by eval scorers and routing logic. **Not a primary user-facing concept** — the user-facing form of uncertainty is the list of Clarifications, which is specific and actionable. Where Confidence does appear in UI (today: a chip on the Meal card), it must couple to the Clarifications surface; a Confidence label without exposing the underlying Clarifications has been deemed broken (see PRD §10 #11). Unqualified "Confidence" means the Estimate's overall value; per-Food values are "the Food's Confidence."
+A data attribute on the Estimate (and recursively on each Food), one of `high | medium | low`. Used internally by eval scorers and routing logic. **Not a primary user-facing concept** — the user-facing form of uncertainty is the list of Clarifications, which is specific and actionable. The label string ("HIGH"/"MEDIUM"/"LOW") is **never** rendered in the UI. The only place Confidence surfaces visually is as the **color tint** of the "Improve estimate" button beside the AI Estimate on the Meal detail view (green/amber/red); tapping the button opens the Clarifications sheet, satisfying the rule from the prior chip era — that any Confidence affordance must couple to the Clarifications surface. Unqualified "Confidence" means the Estimate's overall value; per-Food values are "the Food's Confidence."
 _Avoid_: Certainty, reliability, accuracy.
 
 **Day**:

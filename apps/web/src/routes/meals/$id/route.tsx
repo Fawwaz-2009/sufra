@@ -4,6 +4,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router"
 import { resolveTotals } from "../../../../worker/meals/isomorphic/totals"
 import { AiBreakdown } from "./-components/ai-breakdown"
 import { BookmarkButton } from "./-components/bookmark-button"
+import { DeleteMealButton } from "./-components/delete-meal-button"
 import { DetailShell } from "./-components/detail-shell"
 import { MealDetailError } from "./-components/error"
 import { MealNotFound } from "./-components/not-found"
@@ -73,6 +74,8 @@ function MealDetail() {
           lastRefinementText={meal.lastRefinementText}
           onRefined={onSaved}
         />
+
+        <DeleteMealButton mealId={meal.id} />
       </div>
     </DetailShell>
   )
