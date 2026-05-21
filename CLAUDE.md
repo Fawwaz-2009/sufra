@@ -47,7 +47,9 @@ Both `wrangler deploy --env staging` AND `CLOUDFLARE_ENV=staging` are required �
 
 ## Local sharp build
 
-`.npmrc` sets `SHARP_IGNORE_GLOBAL_LIBVIPS=1` because sharp 0.34's install/check.js fails when it detects a Homebrew-installed `libvips` (it tries to build from source and asks for `node-addon-api`). The env var forces sharp to use its prebuilt platform package (`@img/sharp-darwin-arm64` etc.) instead. If `pnpm install` ever fails with sharp errors, confirm `.npmrc` is present.
+Sharp@0.34's install script runs `install/check.js`, which on machines with a Homebrew-installed `libvips` exits non-zero (version mismatch), falls back to building from source, and dies because `node-addon-api` isn't in deps. The fix: **sharp is deliberately NOT in `pnpm.onlyBuiltDependencies`** in the root `package.json`. With pnpm 9's default-secure model, that means pnpm skips sharp's install script entirely. The runtime is fine — sharp's `@img/sharp-<platform>` prebuilt binary is installed as an optional dep and loaded by sharp's entry point at runtime. `pnpm install` will print *"The following dependencies have build scripts that were ignored: sharp"* — that's the expected, working state.
+
+(The previous workaround — an `.npmrc` with `SHARP_IGNORE_GLOBAL_LIBVIPS=1` — didn't actually work. pnpm doesn't forward arbitrary `.npmrc` keys to install-script child processes, so the env var never reached check.js. Don't re-add it.)
 
 ## Project layout
 
@@ -112,7 +114,6 @@ apps/
 package.json                  # workspace root — turbo + lint/prettier devDeps only
 pnpm-workspace.yaml           # packages: apps/*
 turbo.json                    # dev / build / lint / typecheck / deploy / eval pipelines
-.npmrc                        # SHARP_IGNORE_GLOBAL_LIBVIPS=1 — see "Local sharp build"
 eslint.config.js              # root config; ADR 0005 isomorphism boundary
                               # anchored to apps/web/src/** + apps/web/worker/**/isomorphic/**
 CLAUDE.md                     # this file

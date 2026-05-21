@@ -1,15 +1,21 @@
 # Local-only secrets for `pnpm dev`. Never commit `.dev.vars`.
-# Generate the auth secret with: openssl rand -base64 32
-BETTER_AUTH_SECRET="replace-me-with-openssl-rand-base64-32"
+#
+# In production these are set as Worker secrets — the `pnpm bootstrap`
+# script handles this for you. Manual override:
+#   pnpm --filter @sufra/web exec wrangler secret put <NAME>
 
-# Base URL better-auth uses for callbacks + cookie scope. Without this,
-# better-auth logs a warning on every request ("Base URL could not be
-# determined"). Match the dev server's host:port (default 5173).
-# In production, set via `wrangler secret put BETTER_AUTH_URL` to the
-# deployed origin (e.g. https://sufra.example.com).
-BETTER_AUTH_URL="http://localhost:5173"
+# 32-byte random string used to sign session cookies.
+# Generate with: openssl rand -base64 32
+# NEVER ship a placeholder value — anyone who reads this repo can forge
+# sessions if you do.
+BETTER_AUTH_SECRET=""
 
-# OpenRouter API key for vision analysis (worker/vision/openrouter.ts).
-# Get one at https://openrouter.ai. In production, set via:
-#   wrangler secret put OPENROUTER_API_KEY
+# OPTIONAL. Set ONLY if you bind a custom domain to the Worker.
+# When deploying to *.workers.dev, leave empty — the Worker uses the
+# request origin and the cookie scopes correctly.
+BETTER_AUTH_URL=""
+
+# OpenRouter API key for vision analysis. Get one at:
+#   https://openrouter.ai/keys
+# They give $1 free credit on signup, which covers hundreds of meals.
 OPENROUTER_API_KEY=""
