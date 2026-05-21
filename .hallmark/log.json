@@ -1,5 +1,34 @@
 [
   {
+    "date": "2026-05-22",
+    "macrostructure": "Long Document",
+    "theme": "studied-DNA",
+    "theme_source": "apps/web/src/index.css :root",
+    "theme_axes": "paper-white / italic-serif Fraunces + Raleway / accent forest-green hue 150",
+    "paper": "oklch(1 0 0)",
+    "accent": "oklch(0.527 0.154 150.069)",
+    "ink": "oklch(0.147 0.004 49.3)",
+    "display": "Fraunces (preserved)",
+    "body": "Raleway Variable (was Manrope)",
+    "enrichment": "E2 phone-screenshot triptych",
+    "nav": "N9 edge-aligned + logo glyph",
+    "footer": "Ft4 dense colophon",
+    "scope": "apps/marketing + scripts/bootstrap.mjs",
+    "brief": "Sufra · multi-surface unification on app DNA · brand reads as one across marketing, CLI, and the deployed app",
+    "diversification": "suspended (studied-DNA from app)"
+  },
+  {
+    "date": "2026-05-21",
+    "macrostructure": "Long Document",
+    "theme": "Linen",
+    "theme_axes": "paper-light / italic-serif / accent-warm",
+    "enrichment": "E2 phone-screenshot triptych",
+    "nav": "N9 edge-aligned + logo glyph",
+    "footer": "Ft4 dense colophon",
+    "scope": "apps/marketing",
+    "brief": "Sufra · redesign: family-first hero · screenshots added · deploy section rewritten around bootstrap script · all URLs fixed"
+  },
+  {
     "date": "2026-05-21",
     "macrostructure": "Long Document",
     "theme": "Linen",

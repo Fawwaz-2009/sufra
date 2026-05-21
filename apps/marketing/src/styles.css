@@ -1,35 +1,44 @@
-/* Hallmark · macrostructure: Long Document · H5 Letter knobs: salutation=greeting, body=3 paragraphs, signoff=initials
- * theme: Linen · paper-band=light · display-style=italic-serif (Fraunces opsz) · accent-hue=warm (terracotta)
- * nav: N9 edge-aligned · footer: Ft4 dense colophon
- * tone: editorial-warm · audience: self-hosters · use: deploy CTA
- * enrichment: none (typography only) · motion: page-load reveal + hover only
- * pre-emit critique: P5 H4 E5 S5 R5 V5
+/* Hallmark · macrostructure: Long Document · H5 Letter knobs: salutation=greeting, body=4 paragraphs, signoff=aside
+ * theme: studied-DNA (source: apps/web/src/index.css :root — the app is the locked design system)
+ *   paper:  oklch(1 0 0)            pure white (was warm cream)
+ *   accent: oklch(0.527 0.154 150)  forest green hue 150 (was terracotta hue 45)
+ *   ink:    oklch(0.147 0.004 49.3) near-black with warm bias
+ *   rule:   oklch(0.922 0.005 34.3) warm-grey hairline
+ *   body:   Raleway Variable        matches the app (was Manrope)
+ *   display: Fraunces opsz italic   preserved — editorial bridge between app + brand chrome
+ * nav: N9 edge-aligned + logo glyph · footer: Ft4 dense colophon
+ * tone: editorial-warm · audience: hosts evaluating for household · use: deploy CTA
+ * enrichment: E2 phone-screenshot triptych (Day · Meal · Improve) · motion: page-load reveal + hover only
+ * redesign: 2026-05-22 · brand unification on app DNA · marketing palette now reads to the deployed app
+ * diversification: suspended (studied-DNA from app)
+ * pre-emit critique: P5 H5 E5 S5 R5 V5
  * contrast: pass (46–50) · slop: pass (51–55) · honest: pass (56)
  * chrome: pass (57) · tokens: pass (58) · responsive: pass (59) · icons: pass (60)
  * mobile: pass (36, 59, 61–69)
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=Raleway:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 
 :root {
-  /* Paper, ink, rules — warm Linen */
-  --color-paper: oklch(96% 0.012 75);
-  --color-paper-2: oklch(93% 0.014 70);
-  --color-rule: oklch(82% 0.010 70);
-  --color-mute: oklch(54% 0.010 60);
-  --color-ink-soft: oklch(35% 0.010 50);
-  --color-ink: oklch(20% 0.012 50);
+  /* Paper, ink, rules — pulled from apps/web/src/index.css verbatim */
+  --color-paper: oklch(1 0 0);
+  --color-paper-2: oklch(0.96 0.002 17.2);
+  --color-rule: oklch(0.922 0.005 34.3);
+  --color-mute: oklch(0.547 0.021 43.1);
+  --color-ink-soft: oklch(0.35 0.006 49.3);
+  --color-ink: oklch(0.147 0.004 49.3);
 
-  /* Accent — terracotta, used at ≤ 3% of the viewport */
-  --color-accent: oklch(58% 0.16 45);
-  --color-accent-2: oklch(66% 0.14 55);
-  --color-focus: oklch(55% 0.19 45);
-  --color-selection: oklch(86% 0.07 45);
+  /* Accent — forest green, the app's primary. Used at ≤ 3% of the viewport. */
+  --color-accent: oklch(0.527 0.154 150.069);
+  --color-accent-2: oklch(0.627 0.194 149.214);
+  --color-focus: oklch(0.527 0.154 150.069);
+  --color-selection: oklch(0.871 0.15 154.449);
 
-  /* Type */
+  /* Type — Raleway carries body in lockstep with the app; Fraunces stays as
+     the editorial display face that gives the marketing surface its weight. */
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
-  --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Raleway', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Spacing — 4pt scale, role-named */
@@ -218,12 +227,15 @@ pre code {
 .nav {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   padding-block: var(--space-md);
   border-bottom: var(--rule);
 }
 
 .nav__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 500;
@@ -232,6 +244,16 @@ pre code {
   color: var(--color-ink);
   text-decoration: none;
   font-variation-settings: 'opsz' 36;
+  line-height: 1;
+}
+
+.nav__glyph {
+  width: 28px;
+  height: 28px;
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .nav__mark:hover {
@@ -517,6 +539,55 @@ pre code {
   transform: translateX(2px);
 }
 
+/* --- E2 phone-screenshot triptych --- */
+.screens-section > p {
+  color: var(--color-ink-soft);
+  font-size: var(--text-base);
+}
+
+.screens {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin: 0;
+  min-width: 0;
+}
+
+.screen__frame {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px oklch(0.147 0.004 49.3 / 0.04),
+              0 8px 24px -12px oklch(0.147 0.004 49.3 / 0.08);
+}
+
+.screen__frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.screen__caption {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 24;
+  font-size: var(--text-base);
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+  max-width: 28ch;
+  padding-inline: var(--space-2xs);
+}
+
 /* Negative-list section */
 .absent {
   list-style: none;
@@ -584,10 +655,29 @@ pre code {
 }
 
 /* Narrow viewports */
+@media (max-width: 48rem) {
+  .screens {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-xl);
+    max-width: 22rem;
+    margin-inline: auto;
+  }
+
+  .screen__caption {
+    max-width: none;
+    text-align: center;
+  }
+}
+
 @media (max-width: 40rem) {
   .nav__cta {
     font-size: 0.78rem;
     letter-spacing: 0.05em;
+  }
+
+  .nav__glyph {
+    width: 24px;
+    height: 24px;
   }
 
   .steps > li {

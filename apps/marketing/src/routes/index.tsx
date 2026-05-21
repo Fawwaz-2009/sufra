@@ -8,10 +8,18 @@ function Home() {
       <header className="gutter">
         <nav className="nav reveal" style={{ ['--i' as never]: 0 }}>
           <a href="/" className="nav__mark" aria-label="Sufra — home">
-            Sufra
+            <img
+              src="/sufra-mark.png"
+              alt=""
+              className="nav__glyph"
+              width={32}
+              height={32}
+              aria-hidden="true"
+            />
+            <span>Sufra</span>
           </a>
           <a
-            href="https://github.com/sufra-app/sufra"
+            href="https://github.com/Fawwaz-2009/sufra"
             className="nav__cta"
             rel="noopener"
           >
@@ -26,9 +34,10 @@ function Home() {
             <em>Dear self-hoster,</em>
           </p>
           <p className="hero__lede">
-            Sufra is an open, photo-first calorie tracker that runs on{' '}
-            <em>your own</em> Cloudflare account, calls <em>your own</em>{' '}
-            OpenRouter key, and stays inside your household.
+            A sufra is a table set for the people you love.{' '}
+            <em>Sufra the app</em> is a photo-first calorie tracker for the
+            people at yours — open-source, deployed to your own Cloudflare
+            account, never phoning home.
           </p>
           <div className="hero__meta">
             <span>v0.1 · MIT · dogfooding</span>
@@ -52,7 +61,52 @@ function Home() {
           </p>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 3 }}>
+        <section className="reveal screens-section" style={{ ['--i' as never]: 3 }}>
+          <h2 className="h-section">See it.</h2>
+          <p>
+            <em>Three things, in the order you'll do them.</em>
+          </p>
+          <div className="screens">
+            <figure className="screen">
+              <div className="screen__frame">
+                <img
+                  src="/screens/day.png"
+                  alt="Day view with calorie ring showing 1553 kcal remaining, three macro bars, and two logged meals."
+                  loading="lazy"
+                />
+              </div>
+              <figcaption className="screen__caption">
+                Today at a glance — what's left, what's eaten.
+              </figcaption>
+            </figure>
+            <figure className="screen">
+              <div className="screen__frame">
+                <img
+                  src="/screens/meal.png"
+                  alt="Meal detail page for chocolate gelato — large photo, override fields for calories and macros."
+                  loading="lazy"
+                />
+              </div>
+              <figcaption className="screen__caption">
+                Override anything. The AI's number stays as a placeholder.
+              </figcaption>
+            </figure>
+            <figure className="screen">
+              <div className="screen__frame">
+                <img
+                  src="/screens/improve.png"
+                  alt="Improve this estimate bottom sheet — the AI's specific uncertainties listed as questions, plus a freeform textarea."
+                  loading="lazy"
+                />
+              </div>
+              <figcaption className="screen__caption">
+                When the AI's unsure, it tells you. Answer what you know.
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className="reveal" style={{ ['--i' as never]: 4 }}>
           <h2 className="h-section">Who it's for.</h2>
           <p>
             Two people, on purpose. The <strong>Host</strong> — that's you. You
@@ -69,7 +123,7 @@ function Home() {
           </p>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 4 }}>
+        <section className="reveal" style={{ ['--i' as never]: 5 }}>
           <h2 className="h-section">How it works.</h2>
           <ol className="steps">
             <li>
@@ -122,7 +176,7 @@ function Home() {
           </ol>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 5 }}>
+        <section className="reveal" style={{ ['--i' as never]: 6 }}>
           <h2 className="h-section">The stack.</h2>
           <p style={{ marginBottom: 'var(--space-md)' }}>
             One Worker, your data, no vendors with a seat at your table.
@@ -199,11 +253,20 @@ function Home() {
           </table>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 6 }}>
+        <section className="reveal" style={{ ['--i' as never]: 7 }}>
           <h2 className="h-section">Deploy it.</h2>
           <p>
-            Two requirements: a Cloudflare account, and an OpenRouter API key.
-            That's the whole list.
+            Two things you'll need: a Cloudflare account, and an OpenRouter
+            API key. That's the whole list.
+          </p>
+
+          <p
+            className="aside"
+            style={{ marginTop: 'var(--space-xl)' }}
+          >
+            One command walks you through the rest — provisions D1 and R2 in
+            your account, generates a session secret, applies migrations,
+            deploys. About 90 seconds.
           </p>
 
           <div
@@ -213,17 +276,10 @@ function Home() {
             <span className="code__label">Terminal</span>
             <pre>
               <code>
-                <span className="comment">{`# 1. Clone the repo, install, and deploy.`}</span>
-                {`\n`}
                 <span className="prompt">$</span>git clone
-                https://github.com/sufra-app/sufra && cd sufra{`\n`}
+                https://github.com/Fawwaz-2009/sufra && cd sufra{`\n`}
                 <span className="prompt">$</span>pnpm install{`\n`}
-                <span className="prompt">$</span>pnpm deploy{`\n`}
-                {`\n`}
-                <span className="comment">{`# 2. Set your OpenRouter key as a Worker secret.`}</span>
-                {`\n`}
-                <span className="prompt">$</span>pnpm --filter @sufra/web exec
-                wrangler secret put OPENROUTER_API_KEY
+                <span className="prompt">$</span>pnpm bootstrap
               </code>
             </pre>
           </div>
@@ -235,22 +291,9 @@ function Home() {
             household.</em> WhatsApp, iMessage, a sticky note on the fridge.
             No email is ever sent because there is no email server to send it.
           </p>
-
-          <p style={{ marginTop: 'var(--space-xl)' }}>
-            <a
-              href="https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fsufra-app%2Fsufra"
-              className="link-cta"
-              rel="noopener"
-            >
-              Deploy to Cloudflare
-              <span className="link-cta__arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
-          </p>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 7 }}>
+        <section className="reveal" style={{ ['--i' as never]: 8 }}>
           <h2 className="h-section">What isn't here.</h2>
           <p style={{ marginBottom: 'var(--space-md)' }}>
             Negative space matters. v1 ships without these on purpose.
@@ -267,17 +310,12 @@ function Home() {
             </li>
             <li>Email infrastructure. Notifications. Magic links.</li>
             <li>
-              Subscriptions, ads, paid tiers. The only cost is whatever
-              inference your household actually runs.
-            </li>
-            <li>
-              Multi-tenant SaaS. Every instance lives on the host's own
-              Cloudflare account; nobody shares infrastructure with strangers.
+              Ads, surveillance, anyone monetising what your household eats.
             </li>
           </ul>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 8 }}>
+        <section className="reveal" style={{ ['--i' as never]: 9 }}>
           <h2 className="h-section">About the name.</h2>
           <p>
             <em>Sufra (سفرة)</em> is the Arabic word for the dining table — but
@@ -309,12 +347,12 @@ function Home() {
           <p className="foot__line">
             Sufra · a photo-first calorie tracker for households. Built on
             Cloudflare Workers, D1, and R2. Inference via OpenRouter — host's
-            key, host's bill. MIT licensed. No telemetry. No email. No
-            subscriptions. v0.1, in dogfood. Set in Fraunces, Manrope, and
-            JetBrains Mono. Made between meals.
+            key, host's bill. MIT licensed. No telemetry. No email. v0.1, in
+            dogfood. Set in Fraunces, Manrope, and JetBrains Mono. Made
+            between meals.
           </p>
           <div className="foot__meta">
-            <span>github.com/sufra-app/sufra</span>
+            <span>github.com/Fawwaz-2009/sufra</span>
             <span className="dot">·</span>
             <span>MIT</span>
             <span className="dot">·</span>

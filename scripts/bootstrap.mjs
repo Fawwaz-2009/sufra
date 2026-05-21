@@ -32,7 +32,12 @@ const WRANGLER_JSONC = resolve(ROOT, "apps/web/wrangler.jsonc")
 
 // -- Tiny helpers -----------------------------------------------------------
 
-const accent = (s) => `\x1b[38;2;200;90;50m${s}\x1b[0m` // terracotta
+// Forest green, pulled from the app's --primary (oklch 0.527 0.154 150)
+// converted to sRGB. The CLI shares this accent with marketing + the
+// deployed app so the brand reads as one across surfaces. Used sparingly —
+// brand bookends only (wordmark, deployed URL, /admin reference). The
+// functional UI relies on clack's defaults.
+const accent = (s) => `\x1b[38;2;82;140;81m${s}\x1b[0m`
 const mute = (s) => `\x1b[2m${s}\x1b[0m`
 const bold = (s) => `\x1b[1m${s}\x1b[0m`
 
@@ -152,7 +157,7 @@ async function chooseNames() {
 
 async function provisionD1(dbName) {
   const s = spinner({ indicator: "timer" })
-  s.start(`Looking for a D1 database named ${accent(dbName)}`)
+  s.start(`Looking for a D1 database named ${bold(dbName)}`)
 
   const list = await wrangler(["d1", "list", "--json"])
   let dbId = null
@@ -170,7 +175,7 @@ async function provisionD1(dbName) {
     }
   }
 
-  s.message(`Creating D1 database ${accent(dbName)}`)
+  s.message(`Creating D1 database ${bold(dbName)}`)
   const create = await wrangler(["d1", "create", dbName])
   if (create.status !== 0) {
     s.stop("D1 creation failed")
@@ -193,7 +198,7 @@ async function provisionD1(dbName) {
 
 async function provisionR2(bucketName) {
   const s = spinner({ indicator: "timer" })
-  s.start(`Looking for an R2 bucket named ${accent(bucketName)}`)
+  s.start(`Looking for an R2 bucket named ${bold(bucketName)}`)
 
   const list = await wrangler(["r2", "bucket", "list"])
   if (list.status === 0 && list.stdout.includes(`name: ${bucketName}`)) {
@@ -201,7 +206,7 @@ async function provisionR2(bucketName) {
     return
   }
 
-  s.message(`Creating R2 bucket ${accent(bucketName)}`)
+  s.message(`Creating R2 bucket ${bold(bucketName)}`)
   const create = await wrangler(["r2", "bucket", "create", bucketName])
   if (create.status !== 0 && !create.stderr.includes("already exists")) {
     s.stop("R2 creation failed")
@@ -314,7 +319,7 @@ async function main() {
   intro(bold(accent("Sufra")) + mute("  ·  one-time setup"))
 
   note(
-    `Sufra deploys to ${bold("your own")} Cloudflare account, calls ${bold("your own")}\nOpenRouter key, and never phones home. This script sets that up.\n\nYou'll need:\n  ${accent("·")}  A Cloudflare account (free tier is enough)\n  ${accent("·")}  An OpenRouter API key — ${mute("https://openrouter.ai/keys")}`,
+    `Sufra deploys to ${bold("your own")} Cloudflare account, calls ${bold("your own")}\nOpenRouter key, and never phones home. This script sets that up.\n\nYou'll need:\n  ·  A Cloudflare account (free tier is enough)\n  ·  An OpenRouter API key — ${mute("https://openrouter.ai/keys")}`,
     "Welcome",
   )
 
