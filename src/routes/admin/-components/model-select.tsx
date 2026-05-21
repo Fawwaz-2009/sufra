@@ -1,5 +1,6 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -21,7 +22,10 @@ export function ModelSelect() {
     },
     onSuccess: (next) => {
       queryClient.setQueryData(settingsQueryOptions().queryKey, next)
+      const model = MODELS.find((m) => m.id === next.visionModelId)
+      toast.success(`Vision model updated → ${model?.label ?? next.visionModelId}.`)
     },
+    onError: () => toast.error("Couldn't update model. Try again."),
   })
 
   return (

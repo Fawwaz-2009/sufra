@@ -162,10 +162,11 @@ These have been incorporated into PRD.md but are easy to miss:
 
 ```
 BETTER_AUTH_SECRET="<openssl rand -base64 32>"
+BETTER_AUTH_URL="http://localhost:5173"
 OPENROUTER_API_KEY="sk-or-v1-..."
 ```
 
-In production, set the OpenRouter key via `wrangler secret put OPENROUTER_API_KEY`.
+In production, set the OpenRouter key via `wrangler secret put OPENROUTER_API_KEY` and `BETTER_AUTH_URL` to the deployed origin via `wrangler secret put BETTER_AUTH_URL`. Without `BETTER_AUTH_URL`, better-auth logs a `Base URL could not be determined` WARN on every request — functionally OK for cookie sessions but noisy.
 
 ## Pending renames / migrations
 

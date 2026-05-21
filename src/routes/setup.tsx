@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/setup")({
 
 function SetupWizard() {
   const auth = useAuth()
+  const navigate = useNavigate()
   const [step, setStep] = useState<1 | 2>(1)
   const [familyName, setFamilyName] = useState("")
   const [username, setUsername] = useState("")
@@ -53,10 +54,20 @@ function SetupWizard() {
         json: { familyName: trimmedFamily, username, password },
       })
       if (!res.ok) {
-        setSubmitError("Something went wrong. Try again.")
+        // Surface the actual server error code so a stale second submission
+        // (already_set_up) is recognizable instead of the vague catch-all.
+        const body = (await res
+          .json()
+          .catch(() => ({ error: "unknown" }))) as { error?: string }
+        setSubmitError(`Error: ${body.error ?? `HTTP ${res.status}`}`)
         return
       }
       await auth.refresh()
+      // Refreshing the auth context updates `needsSetup` and `session`, but
+      // TSR doesn't re-fire beforeLoad on context mutation. Navigate
+      // explicitly — the root onboarding gate then routes a brand-new host
+      // to /onboarding (no profile_log row yet).
+      void navigate({ to: "/" })
     } finally {
       setIsSubmitting(false)
     }
@@ -161,7 +172,7 @@ function StepFamilyName({
             id="family-name"
             autoFocus
             maxLength={40}
-            placeholder="Al Harbi"
+            placeholder="Your family name"
             value={familyName}
             onChange={(e) => setFamilyName(e.target.value)}
           />
