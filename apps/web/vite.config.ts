@@ -15,7 +15,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       pwaAssets: {
         preset: "minimal-2023",
-        image: "public/favicon.svg",
+        image: "public/favicon.png",
       },
       manifest: {
         name: "Sufra",
