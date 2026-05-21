@@ -21,6 +21,7 @@ export function BackButton({
 }) {
   return (
     <Button
+      type="button"
       variant="ghost"
       size="icon"
       onClick={onClick}

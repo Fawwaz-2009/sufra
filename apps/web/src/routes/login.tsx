@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { useAuth } from "@/lib/auth-context"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -32,6 +32,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const auth = useAuth()
+  const navigate = useNavigate()
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
@@ -51,6 +52,7 @@ function LoginPage() {
       return
     }
     await auth.refresh()
+    void navigate({ to: "/" })
   }
 
   return (

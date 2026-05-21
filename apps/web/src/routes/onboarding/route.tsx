@@ -88,92 +88,98 @@ function Onboarding() {
     }
   }
 
+  // Implicit submit: Enter on the soft keyboard (or the on-screen "Go" key)
+  // fires this and advances, so number-input steps don't require dismissing
+  // the keyboard first and then tapping Continue.
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!isStepValid(step, draft) || isSubmitting) return
+    if (step === 6) void submit()
+    else goNext()
+  }
+
   return (
     <Shell>
-      <header className="flex items-center gap-3">
-        <BackButton onClick={goBack} disabled={step === 1 || isSubmitting} />
-        <Dots count={6} current={step} />
-      </header>
+      <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
+        <header className="flex items-center gap-3">
+          <BackButton onClick={goBack} disabled={step === 1 || isSubmitting} />
+          <Dots count={6} current={step} />
+        </header>
 
-      <main className="mt-8 flex-1">
-        {step === 1 && (
-          <StepSex
-            value={draft.sex}
-            onChange={(v) => {
-              update("sex", v)
-              goNext()
-            }}
-          />
-        )}
-        {step === 2 && (
-          <StepBirthday
-            value={draft.birthday}
-            onChange={(v) => update("birthday", v)}
-          />
-        )}
-        {step === 3 && (
-          <StepHeight
-            heightCm={draft.heightCm}
-            unit={draft.displayHeightUnit}
-            onHeightChange={(cm) => update("heightCm", cm)}
-            onUnitChange={(u) => update("displayHeightUnit", u)}
-          />
-        )}
-        {step === 4 && (
-          <StepWeight
-            weightKg={draft.weightKg}
-            unit={draft.displayWeightUnit}
-            onWeightChange={(kg) => {
-              update("weightKg", kg)
-              // Keep goal weight in sync with current weight until the
-              // Member explicitly moves the slider in step 6. Without this,
-              // typing "93.5" intermediate-fires onWeightChange(93) which
-              // pinned goalWeightKg=93 while weightKg later became 93.5 —
-              // a stuck-at-intermediate misalignment.
-              update("goalWeightKg", kg)
-            }}
-            onUnitChange={(u) => update("displayWeightUnit", u)}
-          />
-        )}
-        {step === 5 && (
-          <StepActivity
-            value={draft.activityLevel}
-            onChange={(v) => update("activityLevel", v)}
-          />
-        )}
-        {step === 6 && (
-          <StepGoal
-            draft={draft}
-            onGoalWeightChange={(kg) => update("goalWeightKg", kg)}
-            onRateChange={(r) => update("weeklyRateKg", r)}
-          />
-        )}
-      </main>
-
-      {step !== 1 && (
-        <footer className="mt-6 flex flex-col gap-2">
-          {submitError && (
-            <p className="text-sm text-destructive">{submitError}</p>
+        <main className="mt-8 flex-1">
+          {step === 1 && (
+            <StepSex
+              value={draft.sex}
+              onChange={(v) => {
+                update("sex", v)
+                goNext()
+              }}
+            />
           )}
-          {step === 6 ? (
+          {step === 2 && (
+            <StepBirthday
+              value={draft.birthday}
+              onChange={(v) => update("birthday", v)}
+            />
+          )}
+          {step === 3 && (
+            <StepHeight
+              heightCm={draft.heightCm}
+              unit={draft.displayHeightUnit}
+              onHeightChange={(cm) => update("heightCm", cm)}
+              onUnitChange={(u) => update("displayHeightUnit", u)}
+            />
+          )}
+          {step === 4 && (
+            <StepWeight
+              weightKg={draft.weightKg}
+              unit={draft.displayWeightUnit}
+              onWeightChange={(kg) => {
+                update("weightKg", kg)
+                // Keep goal weight in sync with current weight until the
+                // Member explicitly moves the slider in step 6. Without this,
+                // typing "93.5" intermediate-fires onWeightChange(93) which
+                // pinned goalWeightKg=93 while weightKg later became 93.5 —
+                // a stuck-at-intermediate misalignment.
+                update("goalWeightKg", kg)
+              }}
+              onUnitChange={(u) => update("displayWeightUnit", u)}
+            />
+          )}
+          {step === 5 && (
+            <StepActivity
+              value={draft.activityLevel}
+              onChange={(v) => update("activityLevel", v)}
+            />
+          )}
+          {step === 6 && (
+            <StepGoal
+              draft={draft}
+              onGoalWeightChange={(kg) => update("goalWeightKg", kg)}
+              onRateChange={(r) => update("weeklyRateKg", r)}
+            />
+          )}
+        </main>
+
+        {step !== 1 && (
+          <footer className="mt-6 flex flex-col gap-2">
+            {submitError && (
+              <p className="text-sm text-destructive">{submitError}</p>
+            )}
             <Button
+              type="submit"
               size="lg"
               disabled={!isStepValid(step, draft) || isSubmitting}
-              onClick={submit}
             >
-              {isSubmitting ? "Saving…" : "Finish"}
+              {step === 6
+                ? isSubmitting
+                  ? "Saving…"
+                  : "Finish"
+                : "Continue"}
             </Button>
-          ) : (
-            <Button
-              size="lg"
-              disabled={!isStepValid(step, draft)}
-              onClick={goNext}
-            >
-              Continue
-            </Button>
-          )}
-        </footer>
-      )}
+          </footer>
+        )}
+      </form>
     </Shell>
   )
 }
