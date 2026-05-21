@@ -160,9 +160,15 @@ export const meal = sqliteTable(
       .$type<MealAnalysis>()
       .notNull(),
     override: text("override", { mode: "json" }).$type<MealOverride>(),
+    // Nullable timestamp marker — non-null ⇒ saved for re-log (see ADR 0008).
+    // No separate `saved_meal` table; one column is the truth.
+    savedAt: integer("saved_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   },
-  (t) => [index("meal_user_captured_idx").on(t.userId, t.capturedAt)]
+  (t) => [
+    index("meal_user_captured_idx").on(t.userId, t.capturedAt),
+    index("meal_user_saved_idx").on(t.userId, t.savedAt),
+  ]
 )
 
 export const appSettings = sqliteTable(

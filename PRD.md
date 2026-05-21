@@ -172,11 +172,24 @@ Internally, the estimate decomposes into two components: food identification and
 
 ### 6.5 Saved meals
 
-**Explicit match only.** Any logged meal can be marked as saved. To re-log it, the user taps "Log a saved meal" before capture and picks from their list; the system copies the saved meal's `aiAnalysis` and any prior override into a new meal entry timestamped now. Bypasses inference entirely.
+**Saving is a marker on the existing Meal row, not a separate copy.** Members tap a bookmark in the Meal detail page header to flag a Meal as saved; tap again to unsave. MealCard itself carries no bookmark glyph in v1 — saved-status is communicated by filtering (Profile / picker sheet) and is invisible on the Day view list. The state lives in `meal.saved_at` (nullable timestamp). One column, one truth, one edit surface. See **ADR 0008** for the full rationale.
 
-The AI never sees the user's saved meals — saved-meal matching is a pure data-layer concern, not a prompt-injection one. (Earlier draft had an "implicit match" where the model was given saved meal names and would suggest them mid-analysis; dropped because it added prompt cost forever and produced non-deterministic suggestions that were hard to debug and easy to disagree with.)
+**Editing a Saved Meal IS editing the source Meal.** Members navigate from the Profile's Saved Meals section into the existing `/meals/:id` page — same UI, same `PATCH /api/meals/:id/override` and `POST /api/meals/:id/refine` endpoints. This means correcting a Saved Meal's Estimate or Override **retroactively updates the Day on which it was originally logged**. Per-Meal totals were always derived per-read (ADR 0003), so the change propagates naturally. Past Day Targets stay sealed (ADR 0002 — `profile_log` is untouched).
 
-Saved meal values are always shown with a "≈" prefix — real portions vary.
+**Re-logging clones the source Meal in full** (the e-commerce basket pattern): a brand-new `meal` row is inserted with `ai_analysis` and `override` copied from the source, `captured_at = now` (or the selected Day), and the source's photo R2 object copied to a new key under the new Meal. Clone and source are independent thereafter — deleting either does not affect the other. The cloned Meal starts unsaved (no inherited `saved_at`). Bypasses AI inference.
+
+**Refinement on a cloned Meal works** without special-casing: the clone has its own R2 photo bytes, so the existing `meals.refine()` flow runs against them like any other Meal.
+
+**The AI never sees Saved Meals** — matching is a pure data-layer concern, not a prompt-injection one. (Earlier draft had implicit matching where the model was given saved meal names mid-analysis; dropped because it added prompt cost forever and produced non-deterministic suggestions that were hard to debug.)
+
+**No custom names in v1.** Saved Meals display `aiAnalysis.dishName`. Rename is deferred to v2 — keeping the bookmark a single tap was load-bearing for the "log a usual meal in 2 seconds" goal.
+
+**Cloned Meals are indistinguishable from freshly-photographed Meals in the UI** — same universal `~` kcal prefix every MealCard already carries, no special marker, no back-link to the source row. Once cloned, the new Meal IS a regular Meal log; there is no lineage tracking ("show all clones of this Meal" is not a v1 query path).
+
+**Endpoints:**
+- `GET /api/meals/saved` — list filtered by `saved_at IS NOT NULL`, ordered DESC.
+- `PATCH /api/meals/:id/saved` — toggle (server flips current state).
+- `POST /api/meals/clone` — body `{ sourceMealId, capturedAt? }` → new MealDetail.
 
 ### 6.6 Day view + Week strip + Day summary panel
 
@@ -185,7 +198,7 @@ Day view defaults to today, swipeable to prior days. "Today" follows the user's 
 1. **Date header** with prev/next navigation.
 2. **Week strip** — 7 dots showing recent days. Green = within target (including under), Yellow = 0–15% over, Red = >15% over. Trajectory at a glance.
 3. **Day summary panel** — see below.
-4. **Meals list** — today's meals, each tappable to refine or edit.
+4. **Meals list** — the day's meals, each tappable to refine or edit. The **first row of the list is an inline "Add" control** — two side-by-side buttons: 📷 Take photo (camera capture, existing flow) and 🔖 From saved (opens a bottom sheet listing the Member's saved Meals as MealCards; tapping one clones it instantly onto this Day per §6.5 and dismisses the sheet). Both buttons are always rendered, even when the Member has zero saved Meals — in that state, tapping From-saved opens a sheet with empty-state copy teaching the bookmark concept ("No saved meals yet. Tap the bookmark on any meal to save it for quick re-logging."). The inline position replaces the global FAB — adds are scoped to the *selected* Day, which is obvious from where the control sits. The Add control is visible on past Days too; backfilling a Meal to yesterday is a legitimate use, and the inline position makes "adding to *this* Day" self-evident.
 
 **Day summary panel** sits between the week strip and the meals list. Two-zone layout:
 
@@ -245,17 +258,18 @@ Multi-language UI is **deferred to v2.** v1 ships English-only.
 
 ### 6.11 Profile + "How does this work?" explainer
 
-**Profile page** is the per-Member surface for body metrics, goal, and account. Accessed via the middle tab in the bottom nav (between Today and Admin). Universal — every signed-in account sees it. Sections, top to bottom:
+**Profile page** is the per-Member surface for body metrics, goal, account, and saved Meals. Universal — every signed-in account sees it. Sections, top to bottom:
 
-- **About you** — sex (chip), birthday (date), height (number + unit), weight (number + unit), activity level (radio). **All editable.** Saving a weight change also inserts a `weight_log` entry; saving any other field triggers a recompute of maintenance/target.
-- **Goal** — current goal label + rate (e.g. "Lose moderately · ~0.5 kg/week"). A "Change" button opens a sheet showing the same 4 chips from Onboarding's last screen; picking a new chip updates the goal + rate + recomputes target.
-- **Your numbers** (read-only) — Daily target, Protein, Carbs, Fat. Macros derived live from `target_kcal × {0.25, 0.50, 0.25}`. **Live preview**: any edit above this section updates these numbers in real time before the Member hits Save, with a small "was X" annotation next to changed values.
+- **About you** — sex (chip), birthday (date), height (number + unit), activity level (radio). **All editable** via the iOS-Settings sheet pattern. Weight is logged through the shared Log Weight sheet (also reachable from Progress); see PRD §6.7 + ADR 0007.
+- **Goal** — current goal label + rate (e.g. "Lose moderately · ~0.5 kg/week"). A "Change" button opens a sheet with the goal-weight slider + rate chips (mirrors Onboarding's last screen).
+- **Your numbers** (read-only) — Daily target, Protein, Carbs, Fat. Macros derived live from `target_kcal × {0.25, 0.50, 0.25}`.
 - **How does this work? →** link to `/how-it-works`.
-- **Account** — Username (read-only), Sign out button.
+- **Account** — Username (read-only). Sign Out is *not* here in v1 (see below).
+- **Saved Meals** — at the very end of the page. Renders the Member's saved Meals as MealCards (reuses `<MealCard>` from the Day view, filtered by `saved_at IS NOT NULL`). Tapping a card navigates to `/meals/:id` — there is no separate saved-meal edit surface. See §6.5 + ADR 0008.
 
 **No customization of target or macros in v1.** Members cannot manually override the computed target or per-macro grams. This was a deliberate design choice: editable derived values create coupling problems (changing weight should ripple to target should ripple to macros — but if any of those are locked, the propagation breaks confusingly). v1 keeps a single direction of flow: inputs → derived numbers, always. See §10 for the v2 "user intent is sacred" customization model.
 
-**Sign-out moved from Day view header to Profile.** Previously the Day view's top-right corner had a sign-out button next to the date navigation; this was visual debt (nobody signs out of their food app daily, and putting it in the chrome is loud). Profile is the natural home for account actions.
+**Sign-out lives in the Profile header's top-right corner** (icon button). This is a deliberate reversal of an earlier rule that put Sign-Out in the Account section body. The reason is the Saved Meals section: as a Member accumulates saves, the section grows and pushes any body-anchored Sign-Out off-screen. Keeping Sign-Out in the header keeps it reachable at one tap regardless of how many saved Meals the Member has. The earlier concern ("nobody signs out of their food app daily, putting it in chrome is loud") is acknowledged — but the day-view-header version was the louder placement; a small icon in a Profile header (a page that already concerns account state) is a tolerable cost for the always-reachable property.
 
 **"How does this work?" explainer page** at `/how-it-works` — a single static route, accessible from Profile and from the ⓘ on the Day summary panel. Explains, in plain English with citations:
 
@@ -410,9 +424,17 @@ Camera capture (or library fallback). Photo upload to R2 via signed URL. Worker 
 Tap confidence chip → clarification view → model-generated questions → user answers → re-inference → updated estimate. Original photo and clarification history retained on meal detail.
 _Exit:_ end user can refine an inaccurate estimate by answering 1–3 questions.
 
-**M5 — Saved meals & weight tracking (Day 6)**
-Save logged meal as named template. Log-from-saved flow (skips inference). Prompt includes saved meal names for implicit matching. Weight log + trend chart. Maintenance refinement logic (≥4 weeks data) surfaces suggestion.
-_Exit:_ end user can save/re-log a usual meal and log weight to see trend.
+**M5 — Saved meals (next)**
+Saved meals shipped via the marker-on-existing-Meal model (no separate `saved_meal` table) and the basket-clone re-log pattern. See §6.5 and **ADR 0008** for the full data + UI shape. Concretely:
+- Schema: add `meal.saved_at integer mode timestamp` (nullable).
+- Backend: `GET /api/meals/saved`, `PATCH /api/meals/:id/saved`, `POST /api/meals/clone` (copies row + R2 photo to new key).
+- SPA: bookmark glyph on MealCard + bookmark toggle in Meal detail header. Day view replaces the FAB with an inline "Add" control at the top of the meal list (two options: photo / from saved meal — the latter opens a bottom-sheet picker rendering MealCards). Profile gets a Saved Meals section at the very end (reuses MealCard). Sign Out moves to the Profile header's top-right (PRD §6.11 — reversal of the prior placement, see that section for the reason).
+- Re-log endpoint behaviour: clone is independent of source — deleting either does not affect the other. Cloned Meal starts unsaved.
+- Custom names deferred to v2.
+
+_Exit:_ Member can bookmark a Meal, see it in Profile, and re-log it from the Day view in two taps.
+
+**Weight tracking + Progress (LANDED ahead of M5)** — see §6.7 + the M5/M6 entry below. Shipped during the Progress-tab work.
 
 **M6 — History, polish, deploy docs (Day 7)**
 History view (past days, week/month chart). Admin polish (model selection, cost view, Members CRUD complete — all landed). README with deploy guide and "About the name" section. Add-to-Home-Screen prompt and instructions. Error states, skeletons, basic offline handling.

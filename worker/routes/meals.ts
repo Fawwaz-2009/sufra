@@ -81,6 +81,43 @@ export const mealsRouter = new Hono<AppEnvCtx>()
     }
   )
 
+  .get("/saved", async (c) => {
+    const meals = createMealsModule(c.env)
+    const items = await meals.listSaved({
+      memberId: c.var.session.user.id,
+    })
+    return c.json({ meals: items })
+  })
+
+  .post(
+    "/clone",
+    zValidator(
+      "json",
+      z.object({
+        sourceMealId: z.string().min(1),
+        capturedAt: z.iso
+          .datetime()
+          .refine(
+            (s) => Date.parse(s) <= Date.now(),
+            ERROR_CODES.CAPTURED_AT_IN_FUTURE
+          )
+          .optional(),
+      }),
+      onInvalidInput
+    ),
+    async (c) => {
+      const { sourceMealId, capturedAt } = c.req.valid("json")
+      const meals = createMealsModule(c.env)
+      const result = await meals.clone({
+        memberId: c.var.session.user.id,
+        sourceMealId,
+        capturedAt,
+      })
+      if (result.ok) return c.json(result.meal)
+      return apiError(c, 404, result.error)
+    }
+  )
+
   .get("/:id", async (c) => {
     const meals = createMealsModule(c.env)
     const item = await meals.get({
@@ -89,6 +126,16 @@ export const mealsRouter = new Hono<AppEnvCtx>()
     })
     if (!item) return apiError(c, 404, ERROR_CODES.NOT_FOUND)
     return c.json(item)
+  })
+
+  .patch("/:id/saved", async (c) => {
+    const meals = createMealsModule(c.env)
+    const result = await meals.toggleSaved({
+      id: c.req.param("id"),
+      memberId: c.var.session.user.id,
+    })
+    if (result.ok) return c.json({ ok: true, savedAt: result.meal.savedAt })
+    return apiError(c, 404, result.error)
   })
 
   .post(

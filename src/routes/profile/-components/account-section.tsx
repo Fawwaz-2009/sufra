@@ -1,26 +1,14 @@
-import { useNavigate } from "@tanstack/react-router"
-
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/lib/auth-context"
 import { SectionCard } from "./section-card"
 
+// Sign Out moved to the Profile header's top-right corner — the Saved Meals
+// section below would otherwise push body-anchored Sign-Out off-screen as
+// the Member accumulates bookmarks. See PRD §6.11 + ADR 0008.
 export function AccountSection({ username }: { username: string }) {
-  const auth = useAuth()
-  const navigate = useNavigate()
-  const handleSignOut = async () => {
-    await auth.signOut()
-    void navigate({ to: "/login" })
-  }
   return (
     <SectionCard label="Account">
       <div className="flex items-center justify-between px-4 py-3">
         <span className="text-sm text-muted-foreground">Username</span>
         <span className="text-sm">{username}</span>
-      </div>
-      <div className="px-4 py-3">
-        <Button variant="outline" onClick={handleSignOut} className="w-full">
-          Sign out
-        </Button>
       </div>
     </SectionCard>
   )

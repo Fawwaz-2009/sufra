@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import type { Confidence } from "../../../../worker/meals/estimator/schema"
 import { resolveTotals } from "../../../../worker/meals/isomorphic/totals"
 import { AiBreakdown } from "./-components/ai-breakdown"
+import { BookmarkButton } from "./-components/bookmark-button"
 import { DetailShell } from "./-components/detail-shell"
 import { MealDetailError } from "./-components/error"
 import { MealNotFound } from "./-components/not-found"
@@ -70,14 +71,17 @@ function MealDetail() {
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">{time}</p>
           </div>
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
-              CONFIDENCE_STYLES[ai.overallConfidence]
-            )}
-          >
-            {ai.overallConfidence}
-          </span>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
+                CONFIDENCE_STYLES[ai.overallConfidence]
+              )}
+            >
+              {ai.overallConfidence}
+            </span>
+          </div>
         </div>
 
         <OverrideEditor meal={meal} aiSum={aiSum} onSaved={onSaved} />

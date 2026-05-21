@@ -208,15 +208,10 @@ See PRD §10. Specifically active before further UX work:
   - Sex enum collapsed to `male | female` (no `unspecified`/"Other"). Mifflin's gendered constants don't have a neutral middle; the UI keeps it as a pragmatic two-choice question without elaborating "assigned at birth" — the ⓘ → /how-it-works carries the explanation.
   - `/how-it-works` is auth-optional and listed in the root onboarding-gate exclude list so the wizard's ⓘ links can deep-link into it.
 
-- **M5 + M6 (Progress tab, weight logging UI, history charts)** — **NEXT**. Architecturally most of the work is done in M2:
-  - `weight_log` is already populated on every onboarding and every Profile weight edit.
-  - `profile_log` already captures historical weight per day, so past-day target reads are honest.
-  - **What needs building:**
-    - `GET /api/weights?from&to` and `POST /api/weights` — the POST does the same atomic move as `PATCH /api/profile` when weight changes (insert weight_log row + insert profile_log row at `effective_from = tomorrow`). **No special-case "applies today" rule** — the new surface is measurement-oriented but the plan-update is still forward-looking, per ADR 0002.
-    - `/progress` route with a weight trend chart. `pnpm dlx shadcn@latest add chart` brings in Recharts (currently not installed); shadcn's chart wrapper gives the theming.
-    - Bottom nav 3 → 4 tabs (Today / Progress / Profile / Admin).
-    - Optional FAB or row for "Log weight" on `/progress` — handier than going through Profile.
-  - **Maintenance refinement (PRD §6.7, v1.5+):** after ~4 weeks of data, suggest an updated maintenance. Defer to v1.5 — explicit confirmation required, never silent.
+- **Progress tab (M5/M6 weight + intake)** — **landed**. `/progress` route co-located per ADR 0006. Weight chart is custom SVG (no Recharts) — raw `weight_log` points with tap-a-dot delete (see **ADR 0007** — `weight_log` rows are user-correctable, `profile_log` rows remain sealed). Calorie history is server-aggregated via `GET /api/calorie-history?from&to&bucket&tz` returning per-bucket avg kcal + historical Target via `snapshotFor` + color (green/yellow/red against historical per-day Target — same thresholds as the Day view's week strip). BMI card uses universal WHO bands with height-personalized kg axis. Bottom nav went 3 → 4 tabs (Today / Progress / Profile / Admin). Weight sheet promoted to `src/components/log-weight-sheet.tsx` and shared by Profile + Progress; `POST /api/weights` is the sole writer (`PATCH /api/profile` dropped `weightKg` handling). Maintenance refinement deferred to v1.5.
+
+- **M5 Saved Meals — NEXT.** Design fully grilled, captured in **ADR 0008** + PRD §6.5 + CONTEXT.md "Saved Meal". Implementation is intentionally small: one schema column (`meal.saved_at`), three endpoints (`GET /api/meals/saved`, `PATCH /api/meals/:id/saved`, `POST /api/meals/clone`), bookmark glyph on MealCard + bookmark toggle in Meal detail header, inline "Add" control on the Day view (replaces the FAB; two options — photo / from-saved), Profile gets a Saved Meals section at the very end (reuses `<MealCard>`), Sign Out moves to Profile header top-right (PRD §6.11 was updated to reflect this — reasoning is the saved-meals list would otherwise push body-anchored Sign-Out off-screen). Custom names deferred to v2 — bookmark is a pure toggle.
+  - **Critical for a fresh session:** there is **no separate `saved_meal` table**, no parallel edit surface, no naming sheet. The Saved Meal IS the source `meal` row; editing it goes through `/meals/:id`; re-logging clones in full (ai_analysis, override, and the R2 photo via server-side copy to a new key) so source + clone have independent lifecycles. Read ADR 0008 before touching anything in this area.
 
 ## M2 — what shipped (vs original design intent)
 
@@ -269,6 +264,10 @@ These captured architectural decisions deviate from the original mockup images a
 - **"Last login" / "Never signed in" labels from earlier admin drafts are not displayed** — minimum-UI principle.
 - **Pending invite rows look identical to active Member rows.** No "Pending" pill, no expanded "Awaiting first sign-in" card. The 🔑 icon does the same action regardless of state (generate Password link).
 - **The clipboard fallback** (`document.execCommand("copy")`) is intentionally retained alongside the modern `navigator.clipboard` API so dev-server-on-LAN-IP testing works. Don't strip it (see PRD §10 #17).
+- **Charts are custom SVG, not Recharts.** Day Summary ring, Weight chart on Progress, Calories bars on Progress, BMI band strip — all hand-rolled. Recharts was deliberately not added (PWA bundle size). When building more charts, mirror the existing SVG pattern.
+- **Saved Meals is a marker on `meal`, not a separate table.** `meal.saved_at` is the truth; no parallel CRUD; editing a saved Meal navigates to `/meals/:id`; re-logging clones via `POST /api/meals/clone` (copies row + R2 photo). Bookmark is a pure toggle — no naming sheet in v1, rename deferred to v2. See **ADR 0008** + PRD §6.5.
+- **Day view FAB will be removed in M5.** Replaced by an inline "Add" control at the top of the meals list with two options: photo / from-saved. Inline position makes adding to past Days self-evident (it sits inside the list of the selected Day).
+- **Sign Out lives in Profile's header top-right** (post-M5). The earlier PRD line ("nobody signs out daily, don't put it in chrome") was reversed because the growing Saved Meals list would push body-anchored Sign-Out off-screen. See PRD §6.11.
 
 ## Pointers
 

@@ -31,7 +31,10 @@ export type Meal = typeof meal.$inferSelect
 
 // Response projection for GET /api/meals. Each item carries the resolved
 // Totals (override-first, see ADR 0003) and the user-facing dishName /
-// overallConfidence lifted out of the AI analysis JSON.
+// overallConfidence lifted out of the AI analysis JSON. `savedAt` is
+// deliberately NOT included — MealCard does not render saved-state and the
+// saved-meals surfaces (Profile / picker) are filtered by definition.
+// See ADR 0008.
 export type MealListItem = Pick<
   Meal,
   "id" | "capturedAt" | "photoR2Key"
@@ -44,9 +47,12 @@ export type MealListItem = Pick<
 // Response projection for GET /api/meals/:id. The full AI analysis ships so
 // the detail view can render per-food breakdowns and clarifications; the
 // override (if any) ships alongside so the editor can show prior values.
+// `savedAt` ships so the detail-page header bookmark toggle can render filled
+// or outline (the only place saved-state surfaces in the UI — see ADR 0008).
 export type MealDetail = Pick<Meal, "id" | "capturedAt"> & {
   aiAnalysis: MealAnalysis
   override: MealOverride | null
+  savedAt: string | null
 }
 
 // PATCH /api/meals/:id/override body. Each macro field is independently

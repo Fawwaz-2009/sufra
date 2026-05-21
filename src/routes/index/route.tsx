@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent } from "react"
+import { useRef, useState, type ChangeEvent } from "react"
 import {
   useMutation,
   useQuery,
@@ -23,7 +23,7 @@ import {
 } from "@/lib/date"
 import { snapshotFor } from "../../../worker/profile/isomorphic/derive"
 import type { MealListItem } from "../../../worker/meals/schema"
-import { CaptureFab } from "./-components/capture-fab"
+import { AddMealRow } from "./-components/add-meal-row"
 import { DayHeader } from "./-components/day-header"
 import { DayShell } from "./-components/day-shell"
 import { DayStrip } from "./-components/day-strip"
@@ -31,6 +31,7 @@ import { EmptyState } from "./-components/empty-state"
 import { DayViewError } from "./-components/error"
 import { MealsSkeleton } from "./-components/meals-skeleton"
 import { DayViewPending } from "./-components/pending"
+import { SavedMealsSheet } from "./-components/saved-meals-sheet"
 import { weekMealsQueryOptions } from "./-queries"
 import { indexSearchSchema, resolveSelectedDay } from "./-search"
 
@@ -59,6 +60,7 @@ function Home() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [savedSheetOpen, setSavedSheetOpen] = useState(false)
 
   const today = todayLocal()
   const selectedDay = resolveSelectedDay(search)
@@ -142,17 +144,26 @@ function Home() {
         />
       )}
 
-      <main className="flex-1 px-5 pb-40">
+      <main className="flex-1 px-5 pb-24">
         <section>
           <h2 className="mt-6 mb-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
             Meals
           </h2>
+          <AddMealRow
+            uploading={uploadMutation.isPending}
+            onTakePhoto={() => fileInputRef.current?.click()}
+            onPickSaved={() => setSavedSheetOpen(true)}
+          />
           {isLoading ? (
-            <MealsSkeleton />
+            <div className="mt-3">
+              <MealsSkeleton />
+            </div>
           ) : mealsForSelectedDay.length === 0 ? (
-            <EmptyState isToday={isViewingToday} />
+            <div className="mt-3">
+              <EmptyState isToday={isViewingToday} />
+            </div>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="mt-3 flex flex-col gap-3">
               {mealsForSelectedDay.map((meal) => (
                 <li key={meal.id}>
                   <Link
@@ -183,10 +194,12 @@ function Home() {
         onChange={handleFileChange}
       />
 
-      <CaptureFab
-        disabled={uploadMutation.isPending}
-        label={uploadMutation.isPending ? "Uploading…" : "Log a meal"}
-        onClick={() => fileInputRef.current?.click()}
+      <SavedMealsSheet
+        open={savedSheetOpen}
+        onOpenChange={setSavedSheetOpen}
+        capturedAt={
+          isViewingToday ? undefined : localDateForCapture(selectedDay)
+        }
       />
       <BottomNav />
     </DayShell>

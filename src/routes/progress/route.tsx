@@ -1,11 +1,8 @@
-import { useRef, type ChangeEvent } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { BottomNav } from "@/components/bottom-nav"
 import { useAuth } from "@/lib/auth-context"
 import type { ProfileSnapshot } from "../../../worker/profile/schema"
-import { CaptureFab } from "../index/-components/capture-fab"
 import { BmiCard } from "./-components/bmi-card"
 import { CaloriesCard } from "./-components/calories-card"
 import { WeightCard } from "./-components/weight-card"
@@ -43,11 +40,7 @@ function ProgressView() {
   const auth = useAuth()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // The onboarding gate guarantees a profile exists by the time we reach
-  // this route — same invariant as the Profile page.
   const latest = auth.profiles[0] as ProfileSnapshot | undefined
   const wp = search.wp ?? DEFAULT_WEIGHT_PERIOD
   const cp = search.cp ?? DEFAULT_CALORIE_PERIOD
@@ -57,31 +50,10 @@ function ProgressView() {
   const setCp = (p: CaloriePeriod) =>
     navigate({ search: { ...search, cp: p }, replace: true })
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData()
-      formData.append("photo", file)
-      const res = await fetch("/api/meals", { method: "POST", body: formData })
-      if (!res.ok) throw new Error("upload_failed")
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meals"] })
-      queryClient.invalidateQueries({ queryKey: ["calorie-history"] })
-    },
-  })
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    uploadMutation.mutate(file)
-    e.target.value = ""
-  }
-
   if (!latest) return null
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background pb-40">
+    <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background pb-24">
       <header className="px-6 pt-6 pb-4">
         <h1 className="font-heading text-2xl font-semibold">Progress</h1>
         <p className="text-sm text-muted-foreground">
@@ -95,20 +67,6 @@ function ProgressView() {
         <BmiCard profile={latest} />
       </main>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-
-      <CaptureFab
-        disabled={uploadMutation.isPending}
-        label={uploadMutation.isPending ? "Uploading…" : "Log a meal"}
-        onClick={() => fileInputRef.current?.click()}
-      />
       <BottomNav />
     </div>
   )

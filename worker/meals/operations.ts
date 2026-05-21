@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lt } from "drizzle-orm"
+import { and, desc, eq, gte, isNotNull, lt } from "drizzle-orm"
 
 import { createDb } from "../db"
 import { appSettings, inferenceRun, meal } from "../db/schema"
@@ -157,6 +157,73 @@ export function createMealsModule(env: MealsEnv) {
       const updated = await fetchOwned(db, args.id, args.memberId)
       return { ok: true as const, meal: toDetail(updated!) }
     },
+
+    async listSaved(args: { memberId: string }) {
+      const rows = await db
+        .select()
+        .from(meal)
+        .where(
+          and(eq(meal.userId, args.memberId), isNotNull(meal.savedAt))
+        )
+        .orderBy(desc(meal.savedAt))
+      return rows.map(toSummary)
+    },
+
+    async toggleSaved(args: { id: string; memberId: string }) {
+      const row = await fetchOwned(db, args.id, args.memberId)
+      if (!row) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
+
+      const next = row.savedAt ? null : new Date()
+      await db
+        .update(meal)
+        .set({ savedAt: next })
+        .where(eq(meal.id, args.id))
+
+      const updated = await fetchOwned(db, args.id, args.memberId)
+      return { ok: true as const, meal: toDetail(updated!) }
+    },
+
+    // Re-log a Saved Meal: a brand-new `meal` row that clones the source's
+    // ai_analysis + override + photo bytes (basket pattern — ADR 0008).
+    // Independent lifecycle thereafter: deleting either source or clone does
+    // not affect the other. The clone never inherits the source's saved_at.
+    async clone(args: {
+      memberId: string
+      sourceMealId: string
+      capturedAt?: string
+    }) {
+      const src = await fetchOwned(db, args.sourceMealId, args.memberId)
+      if (!src) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
+
+      const srcObj = await env.BUCKET.get(src.photoR2Key)
+      if (!srcObj) {
+        return { ok: false as const, error: ERROR_CODES.PHOTO_MISSING }
+      }
+      const photoBytes = await srcObj.arrayBuffer()
+
+      const id = crypto.randomUUID()
+      const photoKey = `meals/${args.memberId}/${id}.jpg`
+      const now = new Date()
+      const capturedAt = args.capturedAt ?? now.toISOString()
+
+      await env.BUCKET.put(photoKey, photoBytes, {
+        httpMetadata: srcObj.httpMetadata,
+      })
+
+      await db.insert(meal).values({
+        id,
+        userId: args.memberId,
+        capturedAt,
+        photoR2Key: photoKey,
+        aiAnalysis: src.aiAnalysis,
+        override: src.override,
+        savedAt: null,
+        createdAt: now,
+      })
+
+      const inserted = await fetchOwned(db, id, args.memberId)
+      return { ok: true as const, meal: toDetail(inserted!) }
+    },
   }
 }
 
@@ -243,5 +310,6 @@ function toDetail(row: typeof meal.$inferSelect): MealDetail {
     capturedAt: row.capturedAt,
     aiAnalysis: row.aiAnalysis,
     override: row.override,
+    savedAt: row.savedAt ? row.savedAt.toISOString() : null,
   }
 }
