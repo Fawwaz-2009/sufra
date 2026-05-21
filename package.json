@@ -17,9 +17,12 @@
     "db:migrate:remote": "pnpm --filter @sufra/web run db:migrate:remote",
     "db:migrate:staging": "pnpm --filter @sufra/web run db:migrate:staging",
     "eval": "pnpm --filter @sufra/evals run eval",
-    "eval:view": "pnpm --filter @sufra/evals run eval:view"
+    "eval:view": "pnpm --filter @sufra/evals run eval:view",
+    "bootstrap": "node ./scripts/bootstrap.mjs"
   },
   "devDependencies": {
+    "@clack/prompts": "^1.4.0",
+    "jsonc-parser": "^3.3.1",
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -35,7 +38,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "sharp",
       "workerd",
       "better-sqlite3"
     ],
