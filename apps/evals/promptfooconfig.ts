@@ -4,7 +4,7 @@ import { dirname, join } from "node:path"
 import {
   getSystemPrompt,
   MODELS,
-} from "../worker/meals/estimator/index.js"
+} from "../web/worker/meals/estimator/index.js"
 import { DISHES } from "./dishes.js"
 import type { UnifiedConfig } from "promptfoo"
 

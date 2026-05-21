@@ -1,7 +1,11 @@
-node_modules/
-coverage/
+**/node_modules/
+**/coverage/
 .pnpm-store/
 pnpm-lock.yaml
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
+**/dist/
+.turbo/
+apps/web/src/routeTree.gen.ts
+apps/web/worker-configuration.d.ts
+apps/web/worker/db/migrations/

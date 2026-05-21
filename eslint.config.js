@@ -7,10 +7,12 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
   globalIgnores([
-    'dist',
-    'src/routeTree.gen.ts',
-    'worker-configuration.d.ts',
-    'worker/db/migrations/**',
+    '**/dist',
+    '**/node_modules',
+    'apps/web/src/routeTree.gen.ts',
+    'apps/web/worker-configuration.d.ts',
+    'apps/web/worker/db/migrations/**',
+    '.turbo',
   ]),
   {
     files: ['**/*.{ts,tsx}'],
@@ -29,7 +31,7 @@ export default defineConfig([
     // TanStack Router route files export `Route` alongside the inline route
     // component. Fast Refresh can't preserve state for locally-defined route
     // components, but a full route reload is acceptable here.
-    files: ['src/routes/**/*.{ts,tsx}'],
+    files: ['apps/web/src/routes/**/*.{ts,tsx}'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },
@@ -38,11 +40,11 @@ export default defineConfig([
     // ADR 0005 — physical isomorphism boundary.
     //
     // Two surfaces share one rule: any file that gets compiled into the SPA
-    // bundle (`src/**`) AND any file that may also be imported from the SPA
-    // (`worker/**/isomorphic/**`) must not value-import from worker-runtime
-    // modules. Doing so would pull drizzle / drizzle-zod / Hono / the AI SDK
-    // into the client bundle. Type imports remain free under
-    // `verbatimModuleSyntax: true`.
+    // bundle (`apps/web/src/**`) AND any file that may also be imported from
+    // the SPA (`apps/web/worker/**/isomorphic/**`) must not value-import from
+    // worker-runtime modules. Doing so would pull drizzle / drizzle-zod /
+    // Hono / the AI SDK into the client bundle. Type imports remain free
+    // under `verbatimModuleSyntax: true`.
     //
     // The ban list enumerates the worker-runtime files explicitly because
     // ESLint v9's no-restricted-imports uses gitignore-style matching where
@@ -50,7 +52,10 @@ export default defineConfig([
     // under `worker/<domain>/isomorphic/**` and `worker/meals/estimator/schema`
     // (the zod-only `MealAnalysis` schema) stay freely value-importable
     // because they are NOT in the ban list.
-    files: ['src/**/*.{ts,tsx}', 'worker/**/isomorphic/**/*.{ts,tsx}'],
+    files: [
+      'apps/web/src/**/*.{ts,tsx}',
+      'apps/web/worker/**/isomorphic/**/*.{ts,tsx}',
+    ],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{

@@ -8,7 +8,7 @@ import type {
 import {
   estimateMeal,
   type Locale,
-} from "../worker/meals/estimator/index.js"
+} from "../web/worker/meals/estimator/index.js"
 
 // Promptfoo custom provider that exercises the production estimator function
 // directly. Every test variant in the matrix calls estimateMeal(env, photo, opts)
