@@ -19,6 +19,7 @@ export const ERROR_CODES = {
   CAPTURED_AT_IN_FUTURE: "captured_at_in_future",
   MISSING_USER_TEXT: "missing_user_text",
   ALREADY_ONBOARDED: "already_onboarded",
+  TOO_MANY_REQUESTS: "too_many_requests",
 } as const
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES]

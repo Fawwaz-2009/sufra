@@ -3,15 +3,32 @@ import { Hono } from "hono"
 import { z } from "zod"
 
 import { requireMember } from "../auth/middleware"
+import { AI_DAILY_LIMIT, DAY_MS, incrementRateLimit } from "../auth/rate-limit"
+import { createDb } from "../db"
 import { apiError, ERROR_CODES, onInvalidInput } from "../errors"
 import { createMealsModule, MAX_IMAGE_BYTES } from "../meals"
-import {
-  mealOverridePatchSchema,
-  mealRefineSchema,
-} from "../meals/schema"
+import { mealOverridePatchSchema, mealRefineSchema } from "../meals/schema"
 import type { AppEnvCtx } from "../types"
 
 const MAX_RANGE_MS = 31 * 24 * 60 * 60 * 1000
+
+// Inference is the only Host-paid expense in the app; cap per-Member daily
+// AI calls to bound the OpenRouter bill if a Member's account is misused.
+// Counts estimate + refine together (both hit the same vendor).
+async function checkAiQuota(
+  env: AppEnvCtx["Bindings"],
+  memberId: string
+): Promise<{ ok: true } | { ok: false; resetAt: number }> {
+  const db = createDb(env.DB)
+  const result = await incrementRateLimit({
+    db,
+    scope: "ai",
+    identifier: memberId,
+    limit: AI_DAILY_LIMIT,
+    windowMs: DAY_MS,
+  })
+  return result.allowed ? { ok: true } : { ok: false, resetAt: result.resetAt }
+}
 
 export const mealsRouter = new Hono<AppEnvCtx>()
   .use("*", requireMember)
@@ -69,10 +86,15 @@ export const mealsRouter = new Hono<AppEnvCtx>()
       onInvalidInput
     ),
     async (c) => {
+      const memberId = c.var.session.user.id
+      const quota = await checkAiQuota(c.env, memberId)
+      if (!quota.ok) {
+        return apiError(c, 429, ERROR_CODES.TOO_MANY_REQUESTS)
+      }
       const { photo, capturedAt } = c.req.valid("form")
       const meals = createMealsModule(c.env)
       const created = await meals.create({
-        memberId: c.var.session.user.id,
+        memberId,
         photo: new Uint8Array(await photo.arrayBuffer()),
         contentType: photo.type || "image/jpeg",
         capturedAt,
@@ -142,11 +164,16 @@ export const mealsRouter = new Hono<AppEnvCtx>()
     "/:id/refine",
     zValidator("json", mealRefineSchema, onInvalidInput),
     async (c) => {
+      const memberId = c.var.session.user.id
+      const quota = await checkAiQuota(c.env, memberId)
+      if (!quota.ok) {
+        return apiError(c, 429, ERROR_CODES.TOO_MANY_REQUESTS)
+      }
       const { userText } = c.req.valid("json")
       const meals = createMealsModule(c.env)
       const result = await meals.refine({
         id: c.req.param("id"),
-        memberId: c.var.session.user.id,
+        memberId,
         userText,
       })
       if (result.ok)

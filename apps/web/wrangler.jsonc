@@ -27,6 +27,19 @@
       "bucket_name": "sufra-photos",
     },
   ],
+  // Brute-force throttle on `/api/auth/sign-in/*` — five attempts per IP per
+  // minute. Edge-native, free, zero provisioning; `namespace_id` is just an
+  // account-unique integer (no Cloudflare resource to create). Counter is
+  // tracked per Cloudflare colo, which is fine here — scrypt-hashed passwords
+  // make even unthrottled brute-force impractical; this just kills credential
+  // stuffing dead.
+  "ratelimits": [
+    {
+      "name": "LOGIN_RATE_LIMITER",
+      "namespace_id": "5001",
+      "simple": { "limit": 5, "period": 60 },
+    },
+  ],
   // Staging environment — deploys a SEPARATE Worker (`sufra-staging`) with its
   // own D1 and R2. Secrets must be set separately via `wrangler secret put ...
   // --env staging`. Promote validated builds to prod via `wrangler deploy`
@@ -46,6 +59,13 @@
         {
           "binding": "BUCKET",
           "bucket_name": "sufra-photos-staging",
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "LOGIN_RATE_LIMITER",
+          "namespace_id": "5002",
+          "simple": { "limit": 5, "period": 60 },
         },
       ],
     },

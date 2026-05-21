@@ -126,10 +126,7 @@ export const profileLog = sqliteTable(
     // UNIQUE(user_id, effective_from): a Member editing twice on the same day
     // both target the same `tomorrow` row; second write overwrites via
     // ON CONFLICT UPDATE.
-    uniqueIndex("profile_log_user_effective_idx").on(
-      t.userId,
-      t.effectiveFrom
-    ),
+    uniqueIndex("profile_log_user_effective_idx").on(t.userId, t.effectiveFrom),
   ]
 )
 
@@ -214,6 +211,22 @@ export const passwordLink = sqliteTable("password_link", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
 })
+
+// Fixed-window rate-limit counters. Bucket key encodes scope + identifier +
+// window start (`<scope>:<identifier>:<windowStartMs>`); one row per active
+// window. Used for the daily AI-call cap per Member — login throttling rides
+// the Workers Rate Limiting binding instead (declared in wrangler.jsonc).
+// Stale rows are left to accumulate; volume is bounded (a few rows per
+// Member per day) and a future cron can prune by `expires_at`.
+export const rateLimit = sqliteTable(
+  "rate_limit",
+  {
+    bucketKey: text("bucket_key").primaryKey(),
+    count: integer("count").notNull().default(0),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("rate_limit_expires_idx").on(t.expiresAt)]
+)
 
 // Append-only audit log of every estimateMeal() invocation. Decoupled from
 // meals and users on purpose — the bill is ground truth, deleting a meal or

@@ -17,8 +17,3 @@ export const healthRouter = new Hono<AppEnvCtx>()
       .where(eq(user.role, "host"))
     return c.json({ needsSetup: (row?.hosts ?? 0) === 0 })
   })
-  .get("/_dev/db-check", async (c) => {
-    const db = createDb(c.env.DB)
-    const [row] = await db.select({ users: count() }).from(user)
-    return c.json({ users: row?.users ?? 0 })
-  })
