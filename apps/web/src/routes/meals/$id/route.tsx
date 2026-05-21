@@ -1,8 +1,6 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router"
 
-import { cn } from "@/lib/utils"
-import type { Confidence } from "../../../../worker/meals/estimator/schema"
 import { resolveTotals } from "../../../../worker/meals/isomorphic/totals"
 import { AiBreakdown } from "./-components/ai-breakdown"
 import { BookmarkButton } from "./-components/bookmark-button"
@@ -12,14 +10,7 @@ import { MealNotFound } from "./-components/not-found"
 import { OverrideEditor } from "./-components/override-editor"
 import { MealDetailPending } from "./-components/pending"
 import { PhotoHero } from "./-components/photo-hero"
-import { RefineSection } from "./-components/refine-section"
 import { mealDetailKey, mealQueryOptions } from "./-queries"
-
-const CONFIDENCE_STYLES: Record<Confidence, string> = {
-  high: "bg-primary/15 text-primary",
-  medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  low: "bg-destructive/15 text-destructive",
-}
 
 export const Route = createFileRoute("/meals/$id")({
   beforeLoad: ({ context }) => {
@@ -71,28 +62,17 @@ function MealDetail() {
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">{time}</p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
-                CONFIDENCE_STYLES[ai.overallConfidence]
-              )}
-            >
-              {ai.overallConfidence}
-            </span>
-          </div>
+          <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
         </div>
 
         <OverrideEditor meal={meal} aiSum={aiSum} onSaved={onSaved} />
 
-        <RefineSection
+        <AiBreakdown
           mealId={meal.id}
-          clarifications={ai.clarifications}
+          aiAnalysis={ai}
+          lastRefinementText={meal.lastRefinementText}
           onRefined={onSaved}
         />
-
-        <AiBreakdown foods={ai.foods} />
       </div>
     </DetailShell>
   )

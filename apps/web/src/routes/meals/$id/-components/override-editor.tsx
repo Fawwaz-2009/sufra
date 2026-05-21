@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import type {
   MealDetail,
   MealOverride,
+  MealOverridePatchInput,
 } from "../../../../../worker/meals/schema"
 import {
   resolveTotals,
@@ -26,25 +27,24 @@ export function OverrideEditor({
   )
 
   const mutation = useMutation({
-    mutationFn: async (next: MealOverride) => {
+    mutationFn: async (patch: MealOverridePatchInput) => {
       const res = await fetch(`/api/meals/${meal.id}/override`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(next),
+        body: JSON.stringify(patch),
       })
       if (!res.ok) throw new Error("save_failed")
       return res.json()
     },
-    onSuccess: (_data, saved) => {
-      setDraft(overrideToInputs(saved))
+    onSuccess: (_data, patch) => {
+      setDraft(patchToInputs(patch))
       onSaved()
     },
   })
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    const next = inputsToOverride(draft)
-    mutation.mutate(next)
+    mutation.mutate(inputsToPatch(draft))
   }
 
   const resolved = resolveTotals(meal.aiAnalysis, meal.override)
@@ -130,15 +130,33 @@ function overrideToInputs(
   }
 }
 
-function inputsToOverride(
+// Build the PATCH body from the editor inputs. Empty input → explicit `null`
+// so the server clears that field. (Server PATCH semantics: absent key is
+// "leave alone"; null is "clear" — see worker/meals/operations.ts setOverride.
+// Skipping empty fields here would silently preserve a prior override.)
+function inputsToPatch(
   draft: Record<keyof MealOverride, string>
-): MealOverride {
-  const out: MealOverride = {}
+): MealOverridePatchInput {
+  const out: MealOverridePatchInput = {}
   for (const k of ["kcal", "proteinG", "carbsG", "fatG"] as const) {
     const raw = draft[k].trim()
-    if (raw === "") continue
+    if (raw === "") {
+      out[k] = null
+      continue
+    }
     const n = Number(raw)
     if (Number.isFinite(n) && n >= 0) out[k] = n
   }
   return out
+}
+
+function patchToInputs(
+  patch: MealOverridePatchInput
+): Record<keyof MealOverride, string> {
+  return {
+    kcal: typeof patch.kcal === "number" ? String(patch.kcal) : "",
+    proteinG: typeof patch.proteinG === "number" ? String(patch.proteinG) : "",
+    carbsG: typeof patch.carbsG === "number" ? String(patch.carbsG) : "",
+    fatG: typeof patch.fatG === "number" ? String(patch.fatG) : "",
+  }
 }

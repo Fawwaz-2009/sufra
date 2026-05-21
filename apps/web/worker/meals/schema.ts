@@ -53,6 +53,9 @@ export type MealDetail = Pick<Meal, "id" | "capturedAt"> & {
   aiAnalysis: MealAnalysis
   override: MealOverride | null
   savedAt: string | null
+  // The Member's most recent /refine text — prefilled into the Improve
+  // estimate sheet so they can see + amend what they previously told the AI.
+  lastRefinementText: string | null
 }
 
 // PATCH /api/meals/:id/override body. Each macro field is independently

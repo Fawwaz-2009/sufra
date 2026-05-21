@@ -151,7 +151,10 @@ export function createMealsModule(env: MealsEnv) {
       })
       await db
         .update(meal)
-        .set({ aiAnalysis: result.analysis })
+        .set({
+          aiAnalysis: result.analysis,
+          lastRefinementText: args.userText,
+        })
         .where(eq(meal.id, args.id))
 
       const updated = await fetchOwned(db, args.id, args.memberId)
@@ -311,5 +314,6 @@ function toDetail(row: typeof meal.$inferSelect): MealDetail {
     aiAnalysis: row.aiAnalysis,
     override: row.override,
     savedAt: row.savedAt ? row.savedAt.toISOString() : null,
+    lastRefinementText: row.lastRefinementText,
   }
 }

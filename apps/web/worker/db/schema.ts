@@ -160,6 +160,12 @@ export const meal = sqliteTable(
       .$type<MealAnalysis>()
       .notNull(),
     override: text("override", { mode: "json" }).$type<MealOverride>(),
+    // The Member's last refinement note (free-text context passed to the AI
+    // on the most recent /refine call). Prefilled into the Improve estimate
+    // sheet so the Member can see what they previously told the AI and amend
+    // it. Latest replaces latest — no history (matches Refinement's "replace
+    // in place" semantics from CONTEXT.md).
+    lastRefinementText: text("last_refinement_text"),
     // Nullable timestamp marker — non-null ⇒ saved for re-log (see ADR 0008).
     // No separate `saved_meal` table; one column is the truth.
     savedAt: integer("saved_at", { mode: "timestamp" }),
