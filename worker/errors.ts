@@ -18,6 +18,7 @@ export const ERROR_CODES = {
   PHOTO_TOO_LARGE: "photo_too_large",
   CAPTURED_AT_IN_FUTURE: "captured_at_in_future",
   MISSING_USER_TEXT: "missing_user_text",
+  ALREADY_ONBOARDED: "already_onboarded",
 } as const
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES]

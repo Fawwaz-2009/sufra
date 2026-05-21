@@ -135,14 +135,22 @@ Shared login form, role-based routing after authentication. Same URL for both ro
 
 ### 6.2 Onboarding (Member, first launch)
 
-Four screens, ~60 seconds for a motivated Member. Universal — runs once per account including the Host. Triggered when the account has no `user_profile` row.
+Six screens, one question each, ~60 seconds for a motivated Member. Universal — runs once per account including the Host. Triggered when the account has no `user_profile` row. **Step-by-step is deliberate**: mobile-first, one focused tap per screen, no dense forms; matches modern onboarding patterns (Cal AI, MacroFactor, Cronometer).
 
-- **Welcome.** "This app helps you understand what you eat. Take photos, get calorie estimates, see your trend over time."
-- **About you.** Sex, age, height, current weight, activity level (sedentary / light / moderate / active — four buttons with inline definitions, not a slider).
-- **Your goal.** Lose / maintain / gain weight. If lose or gain, an optional weekly rate (default 0.5 kg/week).
-- **Your numbers.** Computed maintenance via Mifflin-St Jeor × activity multiplier, presented with framing: "Based on what you told us, you burn about 2,200 kcal/day. To lose 0.5 kg/week, eat about 1,700 kcal/day. We'll refine these as you log — the first estimate is a starting point." User can adjust manually; aggressive deficits get a one-line warning but aren't blocked.
+The screens, in order:
+
+1. **Sex** — three chips (Male / Female / Other). Used in the Mifflin-St Jeor formula.
+2. **Birthday** — date input (`YYYY-MM-DD`). **Not "age"** — we store the birthday and recompute age dynamically each time we run the BMR formula, so the Member's numbers stay correct as years pass without anyone needing to edit a profile field.
+3. **Height** — number input, default cm. Display unit toggle (cm / ft+in) lives on the profile; storage is always cm.
+4. **Weight** — number input, default kg. This is the Member's starting weight; saving also creates the first `weight_log` entry.
+5. **Activity level** — four-option radio with inline definitions (Sedentary, Light 1-3 days/week, Moderate 3-5, Active 6-7). Maps directly to Mifflin's activity multipliers (1.2 / 1.375 / 1.55 / 1.725).
+6. **Your goal** — chip-based selector. Each chip shows a goal direction (Lose moderately / Lose slowly / Maintain / Gain slowly), its weekly rate (~0.5 / ~0.25 / 0 / ~0.25 kg/week), AND the computed daily target it produces. Member picks the chip that matches their intent; the kcal target is derived, never directly entered.
+
+**Why chip-based goal selection (not direct kcal input):** during this design phase we explored letting Members type a target kcal directly — rejected because (a) most non-technical Members don't know what number to pick, (b) the math should be a single direction of flow (inputs in, derived numbers out), (c) having both a chip selector AND a kcal override creates UI complexity around override states that the household audience doesn't need. See "user intent is sacred" architectural intent in §10 for the v2 customization model.
 
 After the last step the Member lands in Day view, empty state, with a prominent capture button.
+
+**Persisted on completion**: `user_profile` row with sex/birthday/heightCm/weightKg/activityLevel/goal/weeklyRateKg/maintenanceKcal/targetKcal/onboardedAt. First `weight_log` entry. `maintenanceKcal` and `targetKcal` are denormalized caches — the source of truth is the input fields + the formula. Any input change recomputes both.
 
 The language picker that was Step 0 of this flow is **deferred to v2** (see §6.10 and §10).
 
@@ -170,20 +178,36 @@ The AI never sees the user's saved meals — saved-meal matching is a pure data-
 
 Saved meal values are always shown with a "≈" prefix — real portions vary.
 
-### 6.6 Day view + Week strip
+### 6.6 Day view + Week strip + Day summary panel
 
-Day view defaults to today, swipeable to prior days. "Today" follows the user's current location — when they travel, the day boundaries shift with them. Shows:
+Day view defaults to today, swipeable to prior days. "Today" follows the user's current location — when they travel, the day boundaries shift with them. Structure top-to-bottom:
 
-- Calories remaining (primary number, prominently displayed)
-- Macro breakdown (protein/carbs/fat visual)
-- Key nutrients (small, secondary)
-- List of today's meals, each tappable to refine or edit
+1. **Date header** with prev/next navigation.
+2. **Week strip** — 7 dots showing recent days. Green = within target (including under), Yellow = 0–15% over, Red = >15% over. Trajectory at a glance.
+3. **Day summary panel** — see below.
+4. **Meals list** — today's meals, each tappable to refine or edit.
 
-Week strip at the top: 7 dots showing recent days. Green = within target (including under), Yellow = 0–15% over, Red = >15% over. Trajectory at a glance.
+**Day summary panel** sits between the week strip and the meals list. Two-zone layout:
+
+- **Left zone — calorie ring** showing kcal remaining as the default reading (`Target − sum(today's resolved kcal Totals)`). **Tap to toggle** to "consumed" view (`sum(today's resolved kcal Totals)`); choice persists in `localStorage`.
+- **Right zone — three macro bars** (protein, carbs, fat) with `eaten / goal` labels and visual fill. Goal values derive from `daily_target × {0.25, 0.50, 0.25}`. Source: U.S. Dietary Reference Intakes — Acceptable Macronutrient Distribution Ranges (Institute of Medicine, 2005); the 25/50/25 split sits mid-range across all three macros. See §6.11 for the in-app explainer.
+
+The panel exposes a small ⓘ that links to `/how-it-works`.
+
+**Key nutrients (fiber, sugar, sat fat, sodium) are NOT displayed in v1.** The original mockup ([deviation note]) had a card showing fiber/sugar/sodium values; this is deferred to v2 alongside the `MealAnalysis` schema extension that adds these per-food values and the eval pass verifying model accuracy on them. Per §6.3, calorie + macro accuracy is the v1 priority.
+
+**Macro display targets are derived, never persisted.** When the Member edits any input that affects their daily target (weight, activity, goal, etc.), the macros update automatically because they're recomputed from `target_kcal × split` at every read. No background recalc job, no stale cache. See §6.11 for the propagation model.
 
 ### 6.7 Weight tracking + maintenance refinement
 
-Dedicated weight screen. User can log a weight any time; suggested cadence is weekly. Trend line in history. After ~4 weeks of weight + intake data, the app surfaces a maintenance refinement suggestion: "Based on your logging, your actual maintenance looks closer to 2,050 kcal than the 2,200 we estimated. Update?" Refinement requires user confirmation — we don't silently move the target.
+**Weight is captured two ways**, both writing to the `weight_log` table:
+
+1. **Profile edit.** Updating the Weight field in Profile saves the new value AND inserts a `weight_log` entry timestamped now. Profile's Weight always shows the latest `weight_log` value — it's a convenience surface for the most-recent entry, not a separate field.
+2. **Dedicated weight screen** (v1.5+). User can log a weight any time without going through Profile. Trend line in history. Suggested cadence weekly.
+
+**Weight changes propagate automatically.** Saving a new weight (via either path) recomputes `maintenanceKcal` and `targetKcal` server-side, which in turn re-derive the displayed macro goals on next read. Member doesn't need to touch their goal — the formula self-corrects as the input drifts. This is **load-bearing for honest framing**: the Member should never be eating against a stale target because the system forgot to update.
+
+**Maintenance refinement loop (v1.5+).** After ~4 weeks of weight + intake data, the app surfaces a maintenance refinement suggestion: "Based on your logging, your actual maintenance looks closer to 2,050 kcal than the 2,200 we estimated. Update?" Refinement requires user confirmation — we don't silently move the target. The Mifflin formula is a *starting point*; the Member's actual data is the truth, and the refinement loop closes that gap. See §6.11 for the in-app framing.
 
 ### 6.8 History and trends
 
@@ -218,6 +242,32 @@ Multi-language UI is **deferred to v2.** v1 ships English-only.
 - Eastern Arabic numerals as a per-Member toggle
 
 **The name stays.** Sufra remains an Arabic word; the "About the name" section is intact; the icon language and cuisine recognition carry the cultural framing in v1.
+
+### 6.11 Profile + "How does this work?" explainer
+
+**Profile page** is the per-Member surface for body metrics, goal, and account. Accessed via the middle tab in the bottom nav (between Today and Admin). Universal — every signed-in account sees it. Sections, top to bottom:
+
+- **About you** — sex (chip), birthday (date), height (number + unit), weight (number + unit), activity level (radio). **All editable.** Saving a weight change also inserts a `weight_log` entry; saving any other field triggers a recompute of maintenance/target.
+- **Goal** — current goal label + rate (e.g. "Lose moderately · ~0.5 kg/week"). A "Change" button opens a sheet showing the same 4 chips from Onboarding's last screen; picking a new chip updates the goal + rate + recomputes target.
+- **Your numbers** (read-only) — Daily target, Protein, Carbs, Fat. Macros derived live from `target_kcal × {0.25, 0.50, 0.25}`. **Live preview**: any edit above this section updates these numbers in real time before the Member hits Save, with a small "was X" annotation next to changed values.
+- **How does this work? →** link to `/how-it-works`.
+- **Account** — Username (read-only), Sign out button.
+
+**No customization of target or macros in v1.** Members cannot manually override the computed target or per-macro grams. This was a deliberate design choice: editable derived values create coupling problems (changing weight should ripple to target should ripple to macros — but if any of those are locked, the propagation breaks confusingly). v1 keeps a single direction of flow: inputs → derived numbers, always. See §10 for the v2 "user intent is sacred" customization model.
+
+**Sign-out moved from Day view header to Profile.** Previously the Day view's top-right corner had a sign-out button next to the date navigation; this was visual debt (nobody signs out of their food app daily, and putting it in the chrome is loud). Profile is the natural home for account actions.
+
+**"How does this work?" explainer page** at `/how-it-works` — a single static route, accessible from Profile and from the ⓘ on the Day summary panel. Explains, in plain English with citations:
+
+1. **BMR (Mifflin-St Jeor formula).** Why we use it, the equation, the activity multipliers. Citation: Mifflin, M.D. et al. (1990). _A new predictive equation for resting energy expenditure in healthy individuals._ American Journal of Clinical Nutrition, 51(2), 241–247.
+2. **Target kcal.** How we derive it from maintenance and the chosen rate. The "1 kg fat ≈ 7,700 kcal" approximation.
+3. **Macro split.** 25% protein / 50% carbs / 25% fat as a middle-of-the-window pick within the Acceptable Macronutrient Distribution Ranges. Citation: Institute of Medicine (2005). _Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids._
+4. **When numbers change.** Whenever an input changes, everything downstream recomputes. The math stays consistent; there's no parallel state to drift.
+5. **Calibration over time (v1.5+).** The Mifflin formula is a starting point; after ~4 weeks of weight + intake data, Sufra compares predicted vs actual progress and suggests an updated maintenance number if reality diverges.
+
+Closing copy carries the honest framing: "For specific goals or medical conditions, talk to a registered dietitian. Sufra makes choices legible — it doesn't make recommendations."
+
+**Why no smoothing / adaptive targets in v1** (Cal AI / MacroFactor pattern): apps that adjust the daily target based on prior-days' actuals create opacity ("why is my target 1,700 today and 2,000 tomorrow?") that contradicts Sufra's honest-framing principle. The Member should know what they're aiming for each day. If a Member wants adaptive smoothing in v2, it'll be an explicit opt-in with a "How is today's target derived?" tooltip on the Day view — not silent app behavior.
 
 ---
 
@@ -336,13 +386,25 @@ _Exit:_ host can clone repo, deploy, create admin account, log in.
 **AI evaluation harness (out of milestone order) — LANDED**
 `evals/` (promptfoo + Nutrition5K measured ground truth) imports from the shared `worker/meal-analysis/` module. Tests bare vs with-portion-hints variants × multiple models. Key findings: Gemini 3 Flash leads at ~78% kcal accuracy bare / ~96% with portion hints; portion is the dominant error source across all models (~50% accuracy on bare photos vs ~85%+ identification). Model rankings, prompts, and the Zod schema are now under continuous regression testing — any prompt/schema change re-runs through the eval before shipping. See `evals/RESULTS.md`.
 
-**M2 — Onboarding & Day view shell (Day 2)**
-Admin can create end-user accounts. End user can log in, complete onboarding, see Day view with target and empty meal list. Week strip renders gray.
-_Exit:_ end user can be provisioned and reach empty Day view with target visible.
+**M2 — Onboarding & Day view shell (Day 2) — LANDED**
 
-**M3 — Meal capture & analysis (Days 3–4)**
-Camera capture (or library fallback). Photo upload to R2 via signed URL. Worker calls `worker/meal-analysis/` to analyze; analysis returned for confirmation before persistence. Meal saved to D1 with both the immutable AI estimate and optional user override (§6.3). Meal card in Day view with confidence chip. Totals update; week dot updates.
-_Exit:_ end user can photograph a meal, confirm or override totals, and see it logged.
+What landed and how the shape diverged from this PRD section's original intent (formal record in `docs/adr/`):
+
+- **Bottom nav 2 → 3 tabs** (Today / Profile / Admin). Sign-out moved from Day header to Profile.
+- **Onboarding wizard** — 6-step flow (sex / birthday / height / weight / activity / goal). Step 6 uses a **slider** for `goal_weight_kg` plus rate chips (Slowly 0.25 kg/wk / Moderately 0.5 kg/wk), not the original chip-only design. Slider range is asymmetric: `currentWeight − 60` to `+30` kg.
+- **`profile_log` replaces `user_profile`** (ADR 0001). Append-only history table; "current profile" = latest row by `effective_from`. No separate current-state table.
+- **Profile edits apply starting next local midnight** (ADR 0002). Today's plan is sealed from the moment the day begins — no mid-day target shifts. Uniform rule: applies to weight changes too. Onboarding is the only same-day write (Member is bootstrapping; nothing to seal).
+- **Derived fields are not stored** (ADR 0003). `meal.kcal_total`, `maintenance_kcal`, `target_kcal` all dropped from the schema. `worker/profile/derive.ts` is the single isomorphic formula module computing Mifflin → Maintenance → Target → macro grams at every read; `worker/meals/totals.ts` resolves per-meal kcal/macros via `override.field ?? sum(foods.field)`.
+- **Profile page** — per-field bottom sheets (iOS Settings pattern, mobile-first). Each row → sheet → in-sheet live preview using the shared formula module → save → toast "Starts tomorrow."
+- **Day summary panel** — kcal ring (custom SVG, Remaining default, tap-to-toggle to Consumed via `sufra:ring-mode` localStorage) + 3 CSS macro bars (P/C/F as eaten/goal). No key nutrients (v2). Past-day-aware via `snapshotFor(profiles, day)`.
+- **`/how-it-works`** — static page, Mifflin (1990) + IOM AMDR (2005) + Wishnofsky citations. Excluded from onboarding gate so wizard ⓘ icons can deep-link.
+- **Sex enum collapsed to `male | female`** — Mifflin's gendered constants don't have a neutral middle. ⓘ → /how-it-works carries the explanation; no "assigned at birth" framing in the UI itself.
+- **No safety-deficit floor** in v1; see §10 #6 (deferred to v1.5).
+
+_Exit met:_ Member can complete onboarding from a Password link, land on Day view with their target visible, edit their profile, see numbers recompute live across past days via `profile_log` snapshots.
+
+**M3 — Meal capture & analysis (Days 3–4) — LANDED**
+Camera capture (or library fallback). Photo upload to R2 via signed URL. Worker calls `worker/meals/estimator/` to analyze; analysis returned for confirmation before persistence. Meal saved to D1 with both the immutable AI estimate and optional user override (§6.3). Meal card in Day view with confidence chip. Totals update; week dot updates.
 
 **M4 — Clarification flow (Day 5)**
 Tap confidence chip → clarification view → model-generated questions → user answers → re-inference → updated estimate. Original photo and clarification history retained on meal detail.
@@ -367,7 +429,7 @@ _Exit:_ shippable in English. Another host could deploy a fresh Sufra instance f
 3. **Photo preprocessing.** Client-side resize to max 1024px long edge, JPEG q85 before upload — confirm?
 4. **Vision model default.** Resolved — eval-driven. Gemini 3 Flash preview leads at ~78% kcal bare / ~96% with portion hints. `DEFAULT_VISION_MODEL_ID = "google/gemini-3-flash-preview"`, single source of truth in `worker/meals/estimator/models.ts`. Schema column default dropped; Setup wizard inserts the const explicitly. Arabic-output quality verification deferred to v2 alongside the translation pass.
 5. **Maintenance refinement window.** Default 4 weeks of logging data before surfacing suggestion. Host-configurable, or fixed? Right window length?
-6. **Safety floor on deficits.** Soft warning above 25% deficit, no hard block. Confirm or push back?
+6. **Safety floor on deficits — deferred to v1.5.** Not shipped in M2. Audience is family + open source; not a v1 blocker. Members are adults, the math runs as input → derived. If dogfooding surfaces members hitting a steep deficit unawares, revisit: soft warning above 25% deficit (Academy of Nutrition and Dietetics general guidance) + absolute floor at 1200/1500 kcal (female/male). Always soft, never a hard block — "user intent is sacred" (§10 #15).
 7. **Eastern Arabic numerals as default for Arabic?** _Deferred to v2_ alongside the translation pass (§6.10). Currently planning Western (0-9) as default with Eastern as toggle. Revisit with Arabic-speaking Members once v2 lands.
 8. **Domain.** `sufra.app` availability check needed. If taken, fallbacks: `sufra.dev`, `sufra.food`, `getsufra.com`.
 9. **Day cutoff setting.** Default day boundary is local midnight. Some users (late-night eaters) want a configurable cutoff (e.g., 4am). Deferred to post-v1 unless real users ask; flag it here so we don't forget.
@@ -390,6 +452,12 @@ _Exit:_ shippable in English. Another host could deploy a fresh Sufra instance f
 13. **Locale-aware first-day-of-week.** v1 hardcodes Monday-start for the Day view's week strip — matches the mockup and ISO convention, simple, consistent across Members. The right v2 answer is locale-derived via `Intl.Locale.prototype.getWeekInfo()` (en-GB → Mon, en-US → Sun, ar-SA → Sat), possibly with a Member-level override stored on `user_profile`. Per §8.5, this is a pure client change — no server work and no schema migration unless a profile override is added. Revisit once Arabic Members adopt or when onboarding (M2) lands and we have a natural place to plumb the preference. If shipped, the week strip helper signature (`weekStart(date, firstDay: 1–7)`) is already parameterized for this swap.
 
 14. **Multi-language UI (Arabic + RTL).** Cut from v1, deferred to v2. v2 work: react-i18next setup with lazy-loaded JSON locale files, Arabic translation pass, RTL verification on a real device, language picker as Onboarding Step 0, activation of dead schema columns (`userProfile.language`, `userProfile.numeralSystem`, `app_settings.default_language`), Arabic-quality LLM eval. v1's logical CSS habit (`ms-*` / `me-*` / `text-start`) was kept specifically to make this a stylesheet flip rather than a sweep. See §6.10.
+
+15. **Nutrition customization for v2 — "user intent is sacred" architectural intent.** v1 ships with no manual override of `target_kcal` or per-macro grams: inputs flow one way into derived numbers, no locks, no `is_custom` flags. v2 will introduce customization (per-macro grams, optionally a goal-weight slider as alternative target-input mode) with a strict architectural requirement: **derived values recompute automatically when their inputs change; explicit user overrides are tagged and preserved across recomputes.** Concretely: changing weight in Profile updates maintenance (always); updates target *unless* target was explicitly locked; updates protein/carbs/fat goals *unless* one of them was explicitly locked. The schema add is three nullable columns on `user_profile` (`target_kcal_locked: boolean`, optional `protein_g_override / fat_g_override / carbs_g_override`); NULL = derived, non-null = locked. Reset-to-default UI removes the lock. The principle echoes the v1 Override vs Estimate distinction (CONTEXT.md): once the Member has made a deliberate choice, the system never silently overwrites it.
+
+16. **Adaptive daily targets — explicitly opt-in only, with transparency, never in v1.** Some competitor apps (Cal AI, MacroFactor flavors) silently adjust the daily kcal target based on prior-days' actuals — "weekly calorie banking" — which produces values like 1700/2000/1800 against a stated 2000 goal. This is opaque from the Member's perspective and contradicts Sufra's honest-framing principle. **v1 ships a fixed daily target.** If v2 adds smoothing or HealthKit-style activity adjustments, it must be: (a) explicit opt-in in Profile, (b) accompanied by a "How is today's target derived?" tooltip on the Day view showing the math, (c) toggleable off without losing historical data.
+
+17. **Dev-server clipboard fallback.** The modern `navigator.clipboard.writeText` API requires a secure context (HTTPS / localhost / 127.0.0.1). Production over Cloudflare is always HTTPS — no issue. Local dev served over LAN IP (e.g. `10.x.x.x:5173` for mobile testing) is plain HTTP and the modern API throws. The Members section uses a `document.execCommand("copy")` legacy fallback so the password-link copy works during phone-on-LAN dogfooding. Note: `execCommand` is deprecated; if it's removed by browsers in the future, the alternative is to run dev with the Vite Cloudflare tunnel (`t + enter`) which is HTTPS, or set up local HTTPS certs. Not a v1 blocker.
 
 ### Risks
 

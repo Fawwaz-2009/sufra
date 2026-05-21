@@ -6,15 +6,17 @@ import {
   useQueryClient,
 } from "@tanstack/react-query"
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
-import { CaretLeft, CaretRight, Camera, SignOut } from "@phosphor-icons/react"
+import { CaretLeft, CaretRight, Camera } from "@phosphor-icons/react"
 
 import { z } from "zod"
 
 import { BottomNav } from "@/components/bottom-nav"
+import { DaySummaryPanel } from "@/components/day-summary-panel"
 import { MealCard, type MealCardData } from "@/components/meal-card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
+import { snapshotFor } from "../../worker/profile/derive"
 import {
   addDays,
   diffInLocalDays,
@@ -69,7 +71,6 @@ export const Route = createFileRoute("/")({
 function Home() {
   const auth = useAuth()
   const queryClient = useQueryClient()
-  const { session } = Route.useRouteContext()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -83,6 +84,13 @@ function Home() {
   const allMeals = (data?.meals ?? []) as MealCardData[]
   const mealsForSelectedDay = allMeals.filter((m) =>
     isSameLocalDay(new Date(m.capturedAt), selectedDay)
+  )
+
+  // Past-day-aware profile lookup: each day reads the snapshot that was
+  // active for it. See ADR 0002.
+  const profileForDay = snapshotFor(
+    auth.profiles,
+    formatLocalDate(selectedDay)
   )
 
   const isViewingToday = isSameLocalDay(selectedDay, today)
@@ -127,15 +135,9 @@ function Home() {
     e.target.value = ""
   }
 
-  const signOut = async () => {
-    await auth.signOut()
-  }
-
   return (
     <DayShell>
       <DayHeader
-        username={session.user.username ?? ""}
-        onSignOut={signOut}
         label={selectedDayLabel(selectedDay, today)}
         onPrev={goPrevWeek}
         onNext={goNextWeek}
@@ -147,6 +149,13 @@ function Home() {
         today={today}
         onSelect={selectDay}
       />
+
+      {profileForDay && (
+        <DaySummaryPanel
+          meals={mealsForSelectedDay}
+          profile={profileForDay}
+        />
+      )}
 
       <main className="flex-1 px-5 pb-40">
         <section>
@@ -222,15 +231,11 @@ function DayShell({ children }: { children: React.ReactNode }) {
 }
 
 function DayHeader({
-  username,
-  onSignOut,
   label,
   onPrev,
   onNext,
   canGoNext,
 }: {
-  username: string
-  onSignOut: () => void
   label: string
   onPrev: () => void
   onNext: () => void
@@ -247,25 +252,15 @@ function DayHeader({
         <CaretLeft className="size-5" weight="bold" />
       </Button>
       <h1 className="font-heading text-base font-semibold">{label}</h1>
-      <div className="flex items-center gap-0.5">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onNext}
-          disabled={!canGoNext}
-          aria-label="Next week"
-        >
-          <CaretRight className="size-5" weight="bold" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onSignOut}
-          aria-label={`Sign out ${username}`}
-        >
-          <SignOut className="size-5" />
-        </Button>
-      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onNext}
+        disabled={!canGoNext}
+        aria-label="Next week"
+      >
+        <CaretRight className="size-5" weight="bold" />
+      </Button>
     </header>
   )
 }

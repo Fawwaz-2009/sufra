@@ -45,8 +45,20 @@ A `[local midnight, next local midnight)` window resolved in the Member's *curre
 _Avoid_: 24-hour period, calendar day, server day.
 
 **Target**:
-The Member's daily kcal goal — what they should eat to achieve their lose/maintain/gain objective. The Day view surfaces it as "calories remaining" = `Target − sum(today's Meal Totals)`. kcal only; no macro Targets in v1.
+The Member's daily kcal goal — what they should eat to achieve their lose/maintain/gain objective. The Day view surfaces it as "calories remaining" = `Target − sum(today's Meal Totals)`. kcal only; no macro Targets in v1. Derived, not stored: read from the active Profile snapshot's inputs at request time via `Target = Maintenance + direction × weekly_rate_kg × 1100`, where `direction = sign(goal_weight_kg − weight_kg)`.
 _Avoid_: Goal, daily calories, calorie budget, allowance.
+
+**Maintenance**:
+The Member's daily kcal expenditure at homeostasis — the rate at which they'd eat to neither gain nor lose weight. Computed as Mifflin-St Jeor BMR × Activity Level multiplier from the current Profile snapshot's inputs, on demand. Derived, not stored. Forms the floor of the Target derivation.
+_Avoid_: TDEE (close but standard TDEE adds exercise/NEAT multipliers we don't model), BMR (BMR is a component, not the whole thing).
+
+**Activity level**:
+A Member's typical movement band, picked from four options during Onboarding: `sedentary` (multiplier 1.2), `light` (1.375, exercise 1–3 days/wk), `moderate` (1.55, 3–5 days/wk), `active` (1.725, 6–7 days/wk). The multiplier is the only thing it does — gets factored into Maintenance. Editable from Profile.
+_Avoid_: Activity, exercise level.
+
+**Goal weight**:
+The Member's target body weight in kilograms, set via slider during Onboarding (defaults to their current Weight, i.e. Maintain) and editable on Profile. Combined with `weekly_rate_kg`, drives the Target's deficit/surplus direction: Goal weight below current Weight = lose, equal = maintain, above = gain. No separate `goal` enum is stored — direction is derived from `sign(goal_weight − weight)`.
+_Avoid_: Goal, target weight, weight goal.
 
 **Saved Meal**:
 A Member-saved template derived from a previously-logged Meal. Lives in its own list, separate from the Meal log. Re-logging a Saved Meal creates a brand-new Meal (the Saved Meal itself is unchanged), copying the original Estimate + any Override forward, timestamped now — bypasses AI inference entirely. Name defaults to the original Estimate's dish name and is editable by the Member. Values are displayed with a "≈" prefix because real portions vary across re-logs.
@@ -65,8 +77,12 @@ A single-use, Host-issued URL token that lets the recipient set a password on a 
 _Avoid_: Invite, magic link, reset link, invitation, signup token.
 
 **Onboarding**:
-The one-time, per-account flow that produces a Member's profile (sex, age, height, current weight, activity level, goal) and computes their initial Target. Universal — every account goes through it once, including the Host (because Hosts eat too). Triggered when the account has no `user_profile` row. Distinct from Setup: Setup is host-creates-themselves; Onboarding is profile-creation.
+The one-time, per-account flow that produces a Member's first Profile snapshot (sex, birthday, height, current weight, activity level, goal weight, weekly rate). Universal — every account goes through it once, including the Host (because Hosts eat too). Triggered when the account has no `profile_log` row. Distinct from Setup: Setup is host-creates-themselves; Onboarding is profile-creation. Onboarding's snapshot is the only Profile edit that takes effect immediately (same-day); subsequent edits apply starting next local midnight.
 _Avoid_: Signup, registration, intro flow, welcome.
+
+**Profile snapshot**:
+A row in `profile_log` capturing a Member's full set of inputs (sex, birthday, height, weight, activity level, goal weight, weekly rate) plus an `effective_from` local date marking when this snapshot starts applying. Created on Onboarding (`effective_from = today`) and on every Profile edit (`effective_from = tomorrow`, so today's plan stays sealed). Day-summary calculations resolve a day's Target by finding the snapshot whose `effective_from` is the latest date `≤` the day in question. There is no separate "current profile" table — the latest snapshot serves as current state.
+_Avoid_: Profile, profile row, user profile, current profile.
 
 **Analysis Status**:
 A Meal's AI-lifecycle state: `pending` (capture happened, AI background call hasn't completed), `analyzed` (AI returned a valid Estimate, fully usable), or `failed` (AI call errored). One-way: `pending → analyzed | failed`. Refinement does NOT cycle a Meal back to `pending` — it's synchronous, replacing the Estimate in place while the Meal stays `analyzed`. No retry path out of `failed` in v1 (see PRD §10 #12).

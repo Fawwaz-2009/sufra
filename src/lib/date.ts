@@ -92,3 +92,9 @@ export function formatMealTime(iso: string) {
     minute: "2-digit",
   })
 }
+
+// Member's local-TZ tomorrow as YYYY-MM-DD. Used by PATCH /api/profile callers
+// to set `effective_from` per the "starts tomorrow" rule (ADR 0002).
+export function tomorrowLocalDate(now: Date = new Date()): string {
+  return formatLocalDate(addDays(todayLocal(now), 1))
+}

@@ -13,8 +13,8 @@ import {
   MAX_IMAGE_BYTES,
   VisionError,
   type EstimateMealResult,
-  type MealAnalysis,
 } from "./estimator"
+import { resolveTotals } from "./totals"
 
 type MealsEnv = {
   DB: D1Database
@@ -93,7 +93,6 @@ export function createMealsModule(env: MealsEnv) {
         capturedAt,
         photoR2Key: photoKey,
         aiAnalysis: result.analysis,
-        kcalTotal: sumKcal(result.analysis),
         createdAt: now,
       })
 
@@ -122,11 +121,10 @@ export function createMealsModule(env: MealsEnv) {
         else next[k] = v
       }
       const cleaned = Object.keys(next).length > 0 ? next : null
-      const newKcalTotal = cleaned?.kcal ?? sumKcal(row.aiAnalysis)
 
       await db
         .update(meal)
-        .set({ override: cleaned, kcalTotal: newKcalTotal })
+        .set({ override: cleaned })
         .where(eq(meal.id, args.id))
 
       const updated = await fetchOwned(db, args.id, args.memberId)
@@ -151,11 +149,9 @@ export function createMealsModule(env: MealsEnv) {
         run: () =>
           estimateMeal(env, photo, { modelId, userText: args.userText }),
       })
-      const newKcalTotal = row.override?.kcal ?? sumKcal(result.analysis)
-
       await db
         .update(meal)
-        .set({ aiAnalysis: result.analysis, kcalTotal: newKcalTotal })
+        .set({ aiAnalysis: result.analysis })
         .where(eq(meal.id, args.id))
 
       const updated = await fetchOwned(db, args.id, args.memberId)
@@ -228,27 +224,6 @@ async function fetchOwned(db: Db, id: string, memberId: string) {
   const [row] = await db.select().from(meal).where(eq(meal.id, id))
   if (!row || row.userId !== memberId) return null
   return row
-}
-
-function sumKcal(analysis: MealAnalysis): number {
-  return analysis.foods.reduce((acc, f) => acc + f.estimatedKcal, 0)
-}
-
-function resolveTotals(analysis: MealAnalysis, override: MealOverride | null) {
-  const sum = (
-    k:
-      | "estimatedKcal"
-      | "estimatedProteinG"
-      | "estimatedCarbsG"
-      | "estimatedFatG"
-  ) => analysis.foods.reduce((acc, f) => acc + f[k], 0)
-  const o = override ?? {}
-  return {
-    kcal: o.kcal ?? sum("estimatedKcal"),
-    proteinG: o.proteinG ?? sum("estimatedProteinG"),
-    carbsG: o.carbsG ?? sum("estimatedCarbsG"),
-    fatG: o.fatG ?? sum("estimatedFatG"),
-  }
 }
 
 function toSummary(row: typeof meal.$inferSelect) {

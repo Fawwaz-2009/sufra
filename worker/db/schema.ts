@@ -6,6 +6,7 @@ import {
   real,
   sqliteTable,
   text,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core"
 
 import type { MealAnalysis } from "../meals/estimator/schema"
@@ -81,40 +82,50 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updatedAt", { mode: "timestamp" }),
 })
 
-export const userProfile = sqliteTable("user_profile", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  // language + numeralSystem retained as schema-level columns but deferred to v2;
-  // translation is cut from v1, no rows reference these yet. Defaults applied
-  // by SQLite if a v1 row is somehow created.
-  language: text("language", { enum: ["en", "ar"] })
-    .notNull()
-    .default("en"),
-  numeralSystem: text("numeral_system", { enum: ["western", "eastern"] })
-    .notNull()
-    .default("western"),
-  sex: text("sex", { enum: ["male", "female", "unspecified"] }).notNull(),
-  age: integer("age").notNull(),
-  heightCm: integer("height_cm").notNull(),
-  displayHeightUnit: text("display_height_unit", { enum: ["cm", "imperial"] })
-    .notNull()
-    .default("cm"),
-  weightKg: real("weight_kg").notNull(),
-  displayWeightUnit: text("display_weight_unit", { enum: ["kg", "lb"] })
-    .notNull()
-    .default("kg"),
-  activityLevel: text("activity_level", {
-    enum: ["sedentary", "light", "moderate", "active"],
-  }).notNull(),
-  goal: text("goal", { enum: ["lose", "maintain", "gain"] }).notNull(),
-  weeklyRateKg: real("weekly_rate_kg"),
-  maintenanceKcal: integer("maintenance_kcal").notNull(),
-  targetKcal: integer("target_kcal").notNull(),
-  onboardedAt: integer("onboarded_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-})
+// Append-only history of each Member's profile inputs. Every Onboarding and
+// every Profile edit inserts a new row; `effective_from` (Member's local date)
+// determines which row is active for any given day. Onboarding inserts a row
+// with effective_from = today; subsequent edits insert with
+// effective_from = tomorrow (today's plan stays sealed — see ADR 0002).
+// There is no separate "current profile" table — the latest row by
+// effective_from IS the current state (see ADR 0001).
+// Derived values (Maintenance, Target, macro grams) are computed on demand
+// from these inputs by the shared formula module (see ADR 0003).
+export const profileLog = sqliteTable(
+  "profile_log",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    effectiveFrom: text("effective_from").notNull(), // YYYY-MM-DD, Member's local TZ
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    sex: text("sex", { enum: ["male", "female"] }).notNull(),
+    birthday: text("birthday").notNull(), // YYYY-MM-DD
+    heightCm: integer("height_cm").notNull(),
+    displayHeightUnit: text("display_height_unit", { enum: ["cm", "imperial"] })
+      .notNull()
+      .default("cm"),
+    weightKg: real("weight_kg").notNull(),
+    displayWeightUnit: text("display_weight_unit", { enum: ["kg", "lb"] })
+      .notNull()
+      .default("kg"),
+    activityLevel: text("activity_level", {
+      enum: ["sedentary", "light", "moderate", "active"],
+    }).notNull(),
+    goalWeightKg: real("goal_weight_kg").notNull(),
+    weeklyRateKg: real("weekly_rate_kg").notNull().default(0),
+  },
+  (t) => [
+    // UNIQUE(user_id, effective_from): a Member editing twice on the same day
+    // both target the same `tomorrow` row; second write overwrites via
+    // ON CONFLICT UPDATE.
+    uniqueIndex("profile_log_user_effective_idx").on(
+      t.userId,
+      t.effectiveFrom
+    ),
+  ]
+)
 
 export const weightLog = sqliteTable(
   "weight_log",
@@ -143,7 +154,6 @@ export const meal = sqliteTable(
       .$type<MealAnalysis>()
       .notNull(),
     override: text("override", { mode: "json" }).$type<MealOverride>(),
-    kcalTotal: real("kcal_total").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   },
   (t) => [index("meal_user_captured_idx").on(t.userId, t.capturedAt)]

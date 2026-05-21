@@ -50,6 +50,20 @@
       "when": 1779277938248,
       "tag": "0006_wonderful_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1779278000000,
+      "tag": "0007_replace_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1779325130688,
+      "tag": "0008_lucky_ozymandias",
+      "breakpoints": true
     }
   ]
 }
