@@ -65,8 +65,12 @@ A Member-saved template derived from a previously-logged Meal. Lives in its own 
 _Avoid_: Template, favorite, quick-add, recipe.
 
 **Weight**:
-One logged bodyweight measurement by a Member, stored canonically in kilograms. One row in `weight_log` per Weight. Listed as "Weights" (plural) in the history view. The Member's display unit (kg or lb) is a profile setting, not part of the Weight itself. After ~4 weeks of Weights + Meal data, the trend feeds Target calibration (deferred logic; see PRD §6.7).
+One logged bodyweight measurement by a Member, stored canonically in kilograms. One row in `weight_log` per Weight. Listed as "Weights" (plural) in the history view. The Member's display unit (kg or lb) is a profile setting, not part of the Weight itself. After ~4 weeks of Weights + Meal data, the trend feeds Target calibration (deferred logic; see PRD §6.7). A Member can delete a Weight from the Progress chart; deletion affects only `weight_log` and never the historical `profile_log` snapshots that may have been driven by it — past plans are sealed (ADR 0002, ADR 0007).
 _Avoid_: Weigh-in, weighing, weight entry, weight log (the table, not the row).
+
+**Progress**:
+The multi-Day rollup view a Member visits to see their Weight trend over time, their daily Total intake pattern relative to Target, and their current BMI snapshot. Three cards top-to-bottom: Weight chart (raw `weight_log` points, period-filterable 1M/3M/6M/1Y, no aggregation — every weigh-in is a real data point), Calorie history (bars colored against historical per-day Target using `snapshotFor`: 🟢 ≤Target, 🟡 0–15% over, 🔴 >15% over — same thresholds as the Day view's week strip; period-aggregated 7D daily / 30D daily / 90D weekly avg / 1Y monthly avg), BMI panel (universal bands rendered against kg axis computed from the Member's current height). Distinct from the Day view, which scopes to a single Day's Meals + Target. Also the canonical surface for logging Weights and for correcting wrong dots (delete-only; see ADR 0007). Tab in the bottom nav between Today and Profile.
+_Avoid_: History, Trends, Stats, Insights.
 
 **Setup**:
 The one-time, per-deploy wizard that creates the Host account. Triggered automatically when the deploy has zero Hosts; suppressed forever after. Produces the `user` row with `role = 'host'` and initializes the `app_settings` singleton. Host-only.

@@ -137,6 +137,21 @@ target = maintenance + direction × weekly_rate × 1100`}
           </p>
         </Section>
 
+        <Section id="weight-corrections" title="Correcting a wrong weight">
+          <p>
+            On the Progress tab, tap any dot on the weight chart to delete
+            that entry — useful if you typed the wrong number. Deleting a dot
+            removes it from the chart only.
+          </p>
+          <p className="mt-2">
+            If the deleted weight was the latest one you logged, your future
+            plan corrects itself automatically the next time you log a weight.
+            But past daily targets stay as they were — you were aiming at
+            that number on that day, even if the input was wrong. We don't
+            rewrite history; we let you fix what's still in motion.
+          </p>
+        </Section>
+
         <Section id="calibration-over-time" title="Calibration over time (coming soon)">
           <p>
             The Mifflin-St Jeor formula is a strong starting point, but real

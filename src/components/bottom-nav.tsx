@@ -1,5 +1,5 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ComponentType } from "react"
-import { House, Shield, User } from "@phosphor-icons/react"
+import { ChartLineUp, House, Shield, User } from "@phosphor-icons/react"
 import { createLink } from "@tanstack/react-router"
 
 import { useAuth } from "@/lib/auth-context"
@@ -49,6 +49,12 @@ export function BottomNav() {
           activeProps={{ active: true }}
           icon={House}
           label="Today"
+        />
+        <NavItem
+          to="/progress"
+          activeProps={{ active: true }}
+          icon={ChartLineUp}
+          label="Progress"
         />
         <NavItem
           to="/profile"

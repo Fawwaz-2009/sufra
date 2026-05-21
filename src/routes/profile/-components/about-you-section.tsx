@@ -1,5 +1,6 @@
 import { useState } from "react"
 
+import { LogWeightSheet } from "@/components/log-weight-sheet"
 import { cmToImperial, kgToLb } from "@/lib/units"
 import { ageFromBirthday } from "../../../../worker/profile/isomorphic/derive"
 import type { ProfileSnapshot } from "../../../../worker/profile/schema"
@@ -9,7 +10,6 @@ import { BirthdaySheet } from "./birthday-sheet"
 import { HeightSheet } from "./height-sheet"
 import { Row, SectionCard } from "./section-card"
 import { SexSheet } from "./sex-sheet"
-import { WeightSheet } from "./weight-sheet"
 
 type OpenSheet = "sex" | "birthday" | "height" | "weight" | "activity"
 
@@ -59,7 +59,7 @@ export function AboutYouSection({ profile }: { profile: ProfileSnapshot }) {
         onOpenChange={(v) => setOpen(v ? "height" : null)}
         profile={profile}
       />
-      <WeightSheet
+      <LogWeightSheet
         open={open === "weight"}
         onOpenChange={(v) => setOpen(v ? "weight" : null)}
         profile={profile}

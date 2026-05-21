@@ -83,9 +83,12 @@ export function createProfileModule(env: ProfileEnv) {
 
     // Profile edit. Inserts a new profile_log row with effective_from chosen
     // by the client (Member's tomorrow in their current TZ, per ADR 0002).
-    // Unchanged fields are inherited from the latest snapshot. If `weightKg`
-    // is present AND differs from the latest snapshot's weight, also appends a
-    // weight_log row at logged_at = now (measurement record, ADR 0002).
+    // Unchanged fields are inherited from the latest snapshot.
+    //
+    // Weight changes flow exclusively through POST /api/weights (see ADR 0007)
+    // — this handler accepts `weightKg` in the body for forward-compat with
+    // the schema but ignores it. Callers should send weight via the weights
+    // endpoint instead.
     //
     // UNIQUE(user_id, effective_from) + ON CONFLICT UPDATE handles "edited
     // twice in one day" — both writes target the same tomorrow row; the
@@ -104,7 +107,7 @@ export function createProfileModule(env: ProfileEnv) {
         birthday: body.birthday ?? latest.birthday,
         heightCm: body.heightCm ?? latest.heightCm,
         displayHeightUnit: body.displayHeightUnit ?? latest.displayHeightUnit,
-        weightKg: body.weightKg ?? latest.weightKg,
+        weightKg: latest.weightKg,
         displayWeightUnit: body.displayWeightUnit ?? latest.displayWeightUnit,
         activityLevel: body.activityLevel ?? latest.activityLevel,
         goalWeightKg: body.goalWeightKg ?? latest.goalWeightKg,
@@ -125,15 +128,6 @@ export function createProfileModule(env: ProfileEnv) {
           target: [profileLog.userId, profileLog.effectiveFrom],
           set: { ...merged, createdAt: now },
         })
-
-      if (body.weightKg !== undefined && body.weightKg !== latest.weightKg) {
-        await db.insert(weightLog).values({
-          userId: memberId,
-          weightKg: body.weightKg,
-          loggedAt: now.toISOString(),
-          createdAt: now,
-        })
-      }
 
       const [row] = await db
         .select()
