@@ -18,13 +18,15 @@ import { useAuth } from "@/lib/auth-context"
 import { tomorrowLocalDate } from "@/lib/date"
 import { cmToImperial, imperialToCm, kgToLb, lbToKg } from "@/lib/units"
 import { cn } from "@/lib/utils"
+import type {
+  ActivityLevel,
+  Sex,
+} from "../../worker/profile/isomorphic/constants"
 import {
   ageFromBirthday,
   deriveProfile,
-  type ActivityLevel,
-  type ProfileSnapshot,
-  type Sex,
-} from "../../worker/profile/derive"
+} from "../../worker/profile/isomorphic/derive"
+import type { ProfileSnapshot } from "../../worker/profile/schema"
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: ({ context }) => {

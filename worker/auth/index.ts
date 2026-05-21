@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { admin, username } from "better-auth/plugins"
 
 import { createDb } from "../db"
-import { ac, host, user } from "./permissions"
+import { ac, host, user } from "./isomorphic/permissions"
 
 export type AuthEnv = {
   DB: D1Database

@@ -3,21 +3,10 @@ import { Camera } from "@phosphor-icons/react"
 
 import { formatMealTime } from "@/lib/date"
 import { cn } from "@/lib/utils"
+import type { Confidence } from "../../worker/meals/estimator/schema"
+import type { MealListItem } from "../../worker/meals/schema"
 
-export type MealCardData = {
-  id: string
-  capturedAt: string
-  dishName: string
-  overallConfidence: "high" | "medium" | "low"
-  totals: {
-    kcal: number
-    proteinG: number
-    carbsG: number
-    fatG: number
-  }
-}
-
-export function MealCard({ meal }: { meal: MealCardData }) {
+export function MealCard({ meal }: { meal: MealListItem }) {
   const kcal = Math.round(meal.totals.kcal)
   const p = Math.round(meal.totals.proteinG)
   const c = Math.round(meal.totals.carbsG)
@@ -55,13 +44,13 @@ export function MealCard({ meal }: { meal: MealCardData }) {
   )
 }
 
-const CONFIDENCE_STYLES: Record<"high" | "medium" | "low", string> = {
+const CONFIDENCE_STYLES: Record<Confidence, string> = {
   high: "bg-primary/15 text-primary",
   medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   low: "bg-destructive/15 text-destructive",
 }
 
-const CONFIDENCE_LABELS: Record<"high" | "medium" | "low", string> = {
+const CONFIDENCE_LABELS: Record<Confidence, string> = {
   high: "High",
   medium: "Medium",
   low: "Low",

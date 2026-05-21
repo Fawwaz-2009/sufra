@@ -3,39 +3,13 @@ import { and, desc, eq } from "drizzle-orm"
 import { createDb } from "../db"
 import { profileLog, weightLog } from "../db/schema"
 import { ERROR_CODES } from "../errors"
+import type {
+  ProfileEditInput,
+  ProfileOnboardInput,
+  ProfileSnapshot,
+} from "./schema"
 
 type ProfileEnv = { DB: D1Database }
-
-type Sex = "male" | "female"
-type ActivityLevel = "sedentary" | "light" | "moderate" | "active"
-type HeightUnit = "cm" | "imperial"
-type WeightUnit = "kg" | "lb"
-
-export type OnboardInput = {
-  sex: Sex
-  birthday: string
-  heightCm: number
-  displayHeightUnit: HeightUnit
-  weightKg: number
-  displayWeightUnit: WeightUnit
-  activityLevel: ActivityLevel
-  goalWeightKg: number
-  weeklyRateKg: number
-  todayLocalDate: string
-}
-
-export type EditInput = {
-  sex?: Sex
-  birthday?: string
-  heightCm?: number
-  displayHeightUnit?: HeightUnit
-  weightKg?: number
-  displayWeightUnit?: WeightUnit
-  activityLevel?: ActivityLevel
-  goalWeightKg?: number
-  weeklyRateKg?: number
-  effectiveFrom: string
-}
 
 export function createProfileModule(env: ProfileEnv) {
   const db = createDb(env.DB)
@@ -53,7 +27,10 @@ export function createProfileModule(env: ProfileEnv) {
         .from(profileLog)
         .where(eq(profileLog.userId, memberId))
         .orderBy(desc(profileLog.effectiveFrom))
-      return { profiles: rows, isOnboarded: rows.length > 0 }
+      return {
+        profiles: rows.map(toSnapshot),
+        isOnboarded: rows.length > 0,
+      }
     },
 
     // Append a Member's initial Profile snapshot. The first row in profile_log
@@ -61,7 +38,7 @@ export function createProfileModule(env: ProfileEnv) {
     // the one Profile write that doesn't follow the "starts tomorrow" rule
     // (ADR 0002). Idempotent guard: if a row already exists, return
     // ALREADY_ONBOARDED — Onboarding is one-shot.
-    async onboard(memberId: string, body: OnboardInput) {
+    async onboard(memberId: string, body: ProfileOnboardInput) {
       const [existing] = await db
         .select({ id: profileLog.id })
         .from(profileLog)
@@ -101,7 +78,7 @@ export function createProfileModule(env: ProfileEnv) {
         .select()
         .from(profileLog)
         .where(eq(profileLog.id, id))
-      return { ok: true as const, profile: row! }
+      return { ok: true as const, profile: toSnapshot(row!) }
     },
 
     // Profile edit. Inserts a new profile_log row with effective_from chosen
@@ -113,7 +90,7 @@ export function createProfileModule(env: ProfileEnv) {
     // UNIQUE(user_id, effective_from) + ON CONFLICT UPDATE handles "edited
     // twice in one day" — both writes target the same tomorrow row; the
     // second overwrites.
-    async edit(memberId: string, body: EditInput) {
+    async edit(memberId: string, body: ProfileEditInput) {
       const [latest] = await db
         .select()
         .from(profileLog)
@@ -167,9 +144,16 @@ export function createProfileModule(env: ProfileEnv) {
             eq(profileLog.effectiveFrom, body.effectiveFrom)
           )
         )
-      return { ok: true as const, profile: row! }
+      return { ok: true as const, profile: toSnapshot(row!) }
     },
   }
 }
 
 export type ProfileModule = ReturnType<typeof createProfileModule>
+
+// Seam mapping: drizzle's `$inferSelect` returns `createdAt: Date` for
+// timestamp columns; the wire / SPA expects an ISO string. ProfileSnapshot
+// is defined as the post-serialization shape (see schema.ts).
+function toSnapshot(row: typeof profileLog.$inferSelect): ProfileSnapshot {
+  return { ...row, createdAt: row.createdAt.toISOString() }
+}

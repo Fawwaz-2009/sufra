@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 
-import type { ProfileSnapshot } from "../../worker/profile/derive"
+import type { ProfileSnapshot } from "../../worker/profile/schema"
 import type { Session } from "./auth-client"
 
 export type AuthValue = {

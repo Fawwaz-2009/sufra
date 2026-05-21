@@ -5,7 +5,7 @@ import {
   usernameClient,
 } from "better-auth/client/plugins"
 
-import { ac, host, user } from "../../worker/auth/permissions"
+import { ac, host, user } from "../../worker/auth/isomorphic/permissions"
 import type { createAuth } from "../../worker/auth"
 
 export const authClient = createAuthClient({

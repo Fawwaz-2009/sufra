@@ -2,7 +2,7 @@ import { generateText, Output } from "ai"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 
 import { MAX_IMAGE_BYTES, VisionError, type VisionUsage } from "./errors.js"
-import { computeCost, DEFAULT_VISION_MODEL_ID, getModel } from "./models.js"
+import { computeCost, DEFAULT_VISION_MODEL_ID, getModel } from "../isomorphic/models.js"
 import { buildUserPromptText, getSystemPrompt, type Locale } from "./prompts.js"
 import { MealAnalysis } from "./schema.js"
 
@@ -117,7 +117,7 @@ export {
   getModel,
   computeCost,
   type ModelInfo,
-} from "./models.js"
+} from "../isomorphic/models.js"
 export {
   getSystemPrompt,
   buildUserPromptText,

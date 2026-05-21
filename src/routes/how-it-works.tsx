@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { ArrowLeft } from "@phosphor-icons/react"
 
 import { BottomNav } from "@/components/bottom-nav"
-import { ACTIVITY_MULTIPLIERS } from "../../worker/profile/derive"
+import { ACTIVITY_MULTIPLIERS } from "../../worker/profile/isomorphic/derive"
 
 // Static methodology page. Excluded from the onboarding gate (see __root.tsx)
 // so it can be linked from the wizard's ⓘ icons and from anywhere a Member

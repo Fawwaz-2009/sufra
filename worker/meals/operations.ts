@@ -1,7 +1,6 @@
 import { and, desc, eq, gte, lt } from "drizzle-orm"
 
 import { createDb } from "../db"
-import type { MealOverride } from "../db/schema"
 import { appSettings, inferenceRun, meal } from "../db/schema"
 import { ERROR_CODES } from "../errors"
 
@@ -14,7 +13,13 @@ import {
   VisionError,
   type EstimateMealResult,
 } from "./estimator"
-import { resolveTotals } from "./totals"
+import type {
+  MealDetail,
+  MealListItem,
+  MealOverride,
+  MealOverridePatchInput,
+} from "./schema"
+import { resolveTotals } from "./isomorphic/totals"
 
 type MealsEnv = {
   DB: D1Database
@@ -103,12 +108,7 @@ export function createMealsModule(env: MealsEnv) {
     async setOverride(args: {
       id: string
       memberId: string
-      patch: {
-        kcal?: number | null
-        proteinG?: number | null
-        carbsG?: number | null
-        fatG?: number | null
-      }
+      patch: MealOverridePatchInput
     }) {
       const row = await fetchOwned(db, args.id, args.memberId)
       if (!row) return { ok: false as const, error: ERROR_CODES.NOT_FOUND }
@@ -226,7 +226,7 @@ async function fetchOwned(db: Db, id: string, memberId: string) {
   return row
 }
 
-function toSummary(row: typeof meal.$inferSelect) {
+function toSummary(row: typeof meal.$inferSelect): MealListItem {
   return {
     id: row.id,
     capturedAt: row.capturedAt,
@@ -237,7 +237,7 @@ function toSummary(row: typeof meal.$inferSelect) {
   }
 }
 
-function toDetail(row: typeof meal.$inferSelect) {
+function toDetail(row: typeof meal.$inferSelect): MealDetail {
   return {
     id: row.id,
     capturedAt: row.capturedAt,

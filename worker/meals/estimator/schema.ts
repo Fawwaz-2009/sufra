@@ -10,7 +10,8 @@ import { z } from "zod"
 //   - notAnalyzableReason
 // Everything else (units, numeric values, IDs) stays locale-neutral.
 
-const Confidence = z.enum(["high", "medium", "low"])
+export const Confidence = z.enum(["high", "medium", "low"])
+export type Confidence = z.infer<typeof Confidence>
 
 const Food = z.object({
   name: z.string(),

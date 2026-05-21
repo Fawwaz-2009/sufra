@@ -12,11 +12,12 @@ import { z } from "zod"
 
 import { BottomNav } from "@/components/bottom-nav"
 import { DaySummaryPanel } from "@/components/day-summary-panel"
-import { MealCard, type MealCardData } from "@/components/meal-card"
+import { MealCard } from "@/components/meal-card"
+import type { MealListItem } from "../../worker/meals/schema"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
-import { snapshotFor } from "../../worker/profile/derive"
+import { snapshotFor } from "../../worker/profile/isomorphic/derive"
 import {
   addDays,
   diffInLocalDays,
@@ -81,7 +82,7 @@ function Home() {
   const ws = weekStart(selectedDay)
   const { data, isLoading } = useQuery(weekMealsQueryOptions(ws))
 
-  const allMeals = (data?.meals ?? []) as MealCardData[]
+  const allMeals = (data?.meals ?? []) as MealListItem[]
   const mealsForSelectedDay = allMeals.filter((m) =>
     isSameLocalDay(new Date(m.capturedAt), selectedDay)
   )

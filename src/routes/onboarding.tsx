@@ -15,12 +15,14 @@ import {
   lbToKg,
 } from "@/lib/units"
 import { cn } from "@/lib/utils"
+import type {
+  ActivityLevel,
+  Sex,
+} from "../../worker/profile/isomorphic/constants"
 import {
   ACTIVITY_MULTIPLIERS,
   deriveProfile,
-  type ActivityLevel,
-  type Sex,
-} from "../../worker/profile/derive"
+} from "../../worker/profile/isomorphic/derive"
 
 type Draft = {
   sex: Sex | null

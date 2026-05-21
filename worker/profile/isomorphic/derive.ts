@@ -1,32 +1,33 @@
-// Shared isomorphic formula module. Pure functions, no runtime deps. Imported
-// by both the worker (server-side reads for Day Summary's Target) and the SPA
-// (in-sheet live preview when the Member edits a Profile field, and the
-// onboarding goal step's per-chip target previews). See ADR 0003.
+// Isomorphic formula module (ADR 0005). Pure functions; no runtime deps on
+// drizzle / Hono / R2. Imported by both the worker (server-side reads for
+// Day Summary's Target) and the SPA (in-sheet live preview when the Member
+// edits a Profile field, and the onboarding goal step's per-chip target
+// previews). See ADR 0003 (derive at read) and ADR 0005 (physical
+// isomorphism boundary).
 
-export type Sex = "male" | "female"
-export type ActivityLevel = "sedentary" | "light" | "moderate" | "active"
+import type { ActivityLevel, Sex } from "./constants"
+import type { ProfileSnapshot } from "../schema"
 
-export type ProfileInputs = {
-  sex: Sex
-  birthday: string // YYYY-MM-DD
-  heightCm: number
-  weightKg: number
-  activityLevel: ActivityLevel
-  goalWeightKg: number
-  weeklyRateKg: number
-}
+export type { ActivityLevel, Sex }
 
-// Full profile_log row shape, JSON-serialized. Display units don't affect any
-// formula but ride along with every snapshot; co-locating them here keeps the
-// shared "what's in a snapshot" type in one place.
-export type ProfileSnapshot = ProfileInputs & {
-  id: string
-  userId: string
-  effectiveFrom: string // YYYY-MM-DD
-  createdAt: string // ISO Z timestamp
-  displayHeightUnit: "cm" | "imperial"
-  displayWeightUnit: "kg" | "lb"
-}
+// Sub-type derived structurally from the canonical Profile snapshot —
+// the formula consumes only the inputs that feed the Mifflin-St Jeor
+// derivation. Per ADR 0004: derive when structural.
+export type ProfileInputs = Pick<
+  ProfileSnapshot,
+  | "sex"
+  | "birthday"
+  | "heightCm"
+  | "weightKg"
+  | "activityLevel"
+  | "goalWeightKg"
+  | "weeklyRateKg"
+>
+
+// Re-export ProfileSnapshot so existing callers that import from this leaf
+// keep working. New code should import the canonical type from
+// `worker/profile/schema` directly.
+export type { ProfileSnapshot }
 
 export type ProfileDerived = {
   ageYears: number

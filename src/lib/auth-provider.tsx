@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react"
 
-import type { ProfileSnapshot } from "../../worker/profile/derive"
+import type { ProfileSnapshot } from "../../worker/profile/schema"
 import { api } from "./api"
 import { authClient, type Session } from "./auth-client"
 import { AuthContext, type AuthValue } from "./auth-context"

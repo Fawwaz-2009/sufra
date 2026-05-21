@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import { MODELS } from "../../worker/meals/estimator/models"
+import { MODELS } from "../../worker/meals/isomorphic/models"
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: ({ context }) => {

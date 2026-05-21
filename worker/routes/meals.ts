@@ -5,6 +5,10 @@ import { z } from "zod"
 import { requireMember } from "../auth/middleware"
 import { apiError, ERROR_CODES, onInvalidInput } from "../errors"
 import { createMealsModule, MAX_IMAGE_BYTES } from "../meals"
+import {
+  mealOverridePatchSchema,
+  mealRefineSchema,
+} from "../meals/schema"
 import type { AppEnvCtx } from "../types"
 
 const MAX_RANGE_MS = 31 * 24 * 60 * 60 * 1000
@@ -89,13 +93,7 @@ export const mealsRouter = new Hono<AppEnvCtx>()
 
   .post(
     "/:id/refine",
-    zValidator(
-      "json",
-      z.object({
-        userText: z.string().trim().min(1, ERROR_CODES.MISSING_USER_TEXT),
-      }),
-      onInvalidInput
-    ),
+    zValidator("json", mealRefineSchema, onInvalidInput),
     async (c) => {
       const { userText } = c.req.valid("json")
       const meals = createMealsModule(c.env)
@@ -112,16 +110,7 @@ export const mealsRouter = new Hono<AppEnvCtx>()
 
   .patch(
     "/:id/override",
-    zValidator(
-      "json",
-      z.object({
-        kcal: z.number().nonnegative().nullable().optional(),
-        proteinG: z.number().nonnegative().nullable().optional(),
-        carbsG: z.number().nonnegative().nullable().optional(),
-        fatG: z.number().nonnegative().nullable().optional(),
-      }),
-      onInvalidInput
-    ),
+    zValidator("json", mealOverridePatchSchema, onInvalidInput),
     async (c) => {
       const patch = c.req.valid("json")
       const meals = createMealsModule(c.env)

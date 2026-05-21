@@ -1,10 +1,13 @@
 import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
-import { z } from "zod"
 
 import { requireMember } from "../auth/middleware"
 import { apiError, onInvalidInput } from "../errors"
 import { createProfileModule } from "../profile/operations"
+import {
+  profileEditSchema,
+  profileOnboardSchema,
+} from "../profile/schema"
 import type { AppEnvCtx } from "../types"
 
 export const profileRouter = new Hono<AppEnvCtx>()
@@ -22,22 +25,7 @@ export const profileRouter = new Hono<AppEnvCtx>()
 
   .post(
     "/onboarding",
-    zValidator(
-      "json",
-      z.object({
-        sex: z.enum(["male", "female"]),
-        birthday: z.iso.date(),
-        heightCm: z.number().int().min(100).max(250),
-        displayHeightUnit: z.enum(["cm", "imperial"]).default("cm"),
-        weightKg: z.number().min(30).max(300),
-        displayWeightUnit: z.enum(["kg", "lb"]).default("kg"),
-        activityLevel: z.enum(["sedentary", "light", "moderate", "active"]),
-        goalWeightKg: z.number().min(30).max(300),
-        weeklyRateKg: z.number().min(0).max(2),
-        todayLocalDate: z.iso.date(),
-      }),
-      onInvalidInput
-    ),
+    zValidator("json", profileOnboardSchema, onInvalidInput),
     async (c) => {
       const profile = createProfileModule(c.env)
       const result = await profile.onboard(
@@ -51,24 +39,7 @@ export const profileRouter = new Hono<AppEnvCtx>()
 
   .patch(
     "/profile",
-    zValidator(
-      "json",
-      z.object({
-        sex: z.enum(["male", "female"]).optional(),
-        birthday: z.iso.date().optional(),
-        heightCm: z.number().int().min(100).max(250).optional(),
-        displayHeightUnit: z.enum(["cm", "imperial"]).optional(),
-        weightKg: z.number().min(30).max(300).optional(),
-        displayWeightUnit: z.enum(["kg", "lb"]).optional(),
-        activityLevel: z
-          .enum(["sedentary", "light", "moderate", "active"])
-          .optional(),
-        goalWeightKg: z.number().min(30).max(300).optional(),
-        weeklyRateKg: z.number().min(0).max(2).optional(),
-        effectiveFrom: z.iso.date(),
-      }),
-      onInvalidInput
-    ),
+    zValidator("json", profileEditSchema, onInvalidInput),
     async (c) => {
       const profile = createProfileModule(c.env)
       const result = await profile.edit(

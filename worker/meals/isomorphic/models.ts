@@ -1,8 +1,7 @@
-// ISOMORPHIC MODULE — imported from both worker AND src/. Must remain
-// runnable in the browser bundle: do NOT add runtime imports (no AI SDK,
-// no OpenRouter, no Cloudflare runtime types beyond `type`-only). Type-only
-// imports are fine. If this file ever needs runtime dependencies, extract
-// MODELS to a sibling isomorphic file and import that from the SPA instead.
+// Isomorphic per ADR 0005 — imported as a value from the worker (estimator,
+// admin route) and the SPA (admin UI dropdown). Must stay runtime-free of
+// drizzle, Hono, AI SDK, OpenRouter, and Cloudflare bindings. Type-only
+// imports are fine.
 
 export type ModelInfo = {
   id: string

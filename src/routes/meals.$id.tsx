@@ -18,42 +18,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import type { Confidence } from "../../worker/meals/estimator/schema"
+import type { MealDetail, MealOverride } from "../../worker/meals/schema"
+import {
+  resolveTotals,
+  type ResolvedTotals,
+} from "../../worker/meals/isomorphic/totals"
 
-type Override = {
-  kcal?: number
-  proteinG?: number
-  carbsG?: number
-  fatG?: number
-}
-
-type MealDetailData = {
-  id: string
-  capturedAt: string
-  aiAnalysis: {
-    dishName: string
-    foods: Array<{
-      name: string
-      portionGrams: number
-      portionEstimate: number
-      portionUnit: string
-      estimatedKcal: number
-      estimatedProteinG: number
-      estimatedCarbsG: number
-      estimatedFatG: number
-      confidence: "high" | "medium" | "low"
-    }>
-    clarifications: Array<{
-      id: string
-      question: string
-      type: "binary" | "choice" | "scale"
-      options: string[]
-    }>
-    overallConfidence: "high" | "medium" | "low"
-  }
-  override: Override | null
-}
-
-const CONFIDENCE_STYLES: Record<"high" | "medium" | "low", string> = {
+const CONFIDENCE_STYLES: Record<Confidence, string> = {
   high: "bg-primary/15 text-primary",
   medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   low: "bg-destructive/15 text-destructive",
@@ -99,11 +71,11 @@ function MealDetail() {
 function mealQueryOptions(id: string) {
   return queryOptions({
     queryKey: ["meal", id] as const,
-    queryFn: async (): Promise<MealDetailData | null> => {
+    queryFn: async (): Promise<MealDetail | null> => {
       const res = await api.api.meals[":id"].$get({ param: { id } })
       if (res.status === 404) return null
       if (!res.ok) throw new Error("failed_to_load_meal")
-      return (await res.json()) as MealDetailData
+      return (await res.json()) as MealDetail
     },
   })
 }
@@ -149,7 +121,7 @@ function DetailBody({
   meal,
   onSaved,
 }: {
-  meal: MealDetailData
+  meal: MealDetail
   onSaved: () => void
 }) {
   const ai = meal.aiAnalysis
@@ -160,7 +132,7 @@ function DetailBody({
     hour: "numeric",
     minute: "2-digit",
   })
-  const aiSum = sumFoods(ai.foods)
+  const aiSum = resolveTotals(ai, null)
 
   return (
     <div className="flex flex-col gap-6 px-5 pt-4 pb-12">
@@ -201,16 +173,16 @@ function OverrideEditor({
   aiSum,
   onSaved,
 }: {
-  meal: MealDetailData
-  aiSum: Totals
+  meal: MealDetail
+  aiSum: ResolvedTotals
   onSaved: () => void
 }) {
-  const [draft, setDraft] = useState<Record<keyof Override, string>>(() =>
+  const [draft, setDraft] = useState<Record<keyof MealOverride, string>>(() =>
     overrideToInputs(meal.override)
   )
 
   const mutation = useMutation({
-    mutationFn: async (next: Override) => {
+    mutationFn: async (next: MealOverride) => {
       const res = await fetch(`/api/meals/${meal.id}/override`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -231,12 +203,7 @@ function OverrideEditor({
     mutation.mutate(next)
   }
 
-  const resolved: Totals = {
-    kcal: meal.override?.kcal ?? aiSum.kcal,
-    proteinG: meal.override?.proteinG ?? aiSum.proteinG,
-    carbsG: meal.override?.carbsG ?? aiSum.carbsG,
-    fatG: meal.override?.fatG ?? aiSum.fatG,
-  }
+  const resolved = resolveTotals(meal.aiAnalysis, meal.override)
 
   return (
     <form
@@ -352,7 +319,7 @@ function RefineSection({
   onRefined,
 }: {
   mealId: string
-  clarifications: NonNullable<MealDetailData["aiAnalysis"]>["clarifications"]
+  clarifications: NonNullable<MealDetail["aiAnalysis"]>["clarifications"]
   onRefined: () => void
 }) {
   const [text, setText] = useState("")
@@ -441,7 +408,7 @@ function RefineSection({
 function AiBreakdown({
   foods,
 }: {
-  foods: NonNullable<MealDetailData["aiAnalysis"]>["foods"]
+  foods: NonNullable<MealDetail["aiAnalysis"]>["foods"]
 }) {
   return (
     <section
@@ -517,25 +484,9 @@ function MealDetailError({ error }: { error: Error }) {
   )
 }
 
-type Totals = { kcal: number; proteinG: number; carbsG: number; fatG: number }
-
-function sumFoods(
-  foods: NonNullable<MealDetailData["aiAnalysis"]>["foods"]
-): Totals {
-  return foods.reduce<Totals>(
-    (acc, f) => ({
-      kcal: acc.kcal + f.estimatedKcal,
-      proteinG: acc.proteinG + f.estimatedProteinG,
-      carbsG: acc.carbsG + f.estimatedCarbsG,
-      fatG: acc.fatG + f.estimatedFatG,
-    }),
-    { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }
-  )
-}
-
 function overrideToInputs(
-  override: Override | null
-): Record<keyof Override, string> {
+  override: MealOverride | null
+): Record<keyof MealOverride, string> {
   return {
     kcal: override?.kcal != null ? String(override.kcal) : "",
     proteinG: override?.proteinG != null ? String(override.proteinG) : "",
@@ -545,9 +496,9 @@ function overrideToInputs(
 }
 
 function inputsToOverride(
-  draft: Record<keyof Override, string>
-): Override {
-  const out: Override = {}
+  draft: Record<keyof MealOverride, string>
+): MealOverride {
+  const out: MealOverride = {}
   for (const k of ["kcal", "proteinG", "carbsG", "fatG"] as const) {
     const raw = draft[k].trim()
     if (raw === "") continue

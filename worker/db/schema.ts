@@ -10,6 +10,12 @@ import {
 } from "drizzle-orm/sqlite-core"
 
 import type { MealAnalysis } from "../meals/estimator/schema"
+import {
+  ACTIVITY_LEVELS,
+  HEIGHT_UNITS,
+  SEX_VALUES,
+  WEIGHT_UNITS,
+} from "../profile/isomorphic/constants"
 
 export type MealOverride = {
   kcal?: number
@@ -100,18 +106,18 @@ export const profileLog = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     effectiveFrom: text("effective_from").notNull(), // YYYY-MM-DD, Member's local TZ
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    sex: text("sex", { enum: ["male", "female"] }).notNull(),
+    sex: text("sex", { enum: SEX_VALUES }).notNull(),
     birthday: text("birthday").notNull(), // YYYY-MM-DD
     heightCm: integer("height_cm").notNull(),
-    displayHeightUnit: text("display_height_unit", { enum: ["cm", "imperial"] })
+    displayHeightUnit: text("display_height_unit", { enum: HEIGHT_UNITS })
       .notNull()
       .default("cm"),
     weightKg: real("weight_kg").notNull(),
-    displayWeightUnit: text("display_weight_unit", { enum: ["kg", "lb"] })
+    displayWeightUnit: text("display_weight_unit", { enum: WEIGHT_UNITS })
       .notNull()
       .default("kg"),
     activityLevel: text("activity_level", {
-      enum: ["sedentary", "light", "moderate", "active"],
+      enum: ACTIVITY_LEVELS,
     }).notNull(),
     goalWeightKg: real("goal_weight_kg").notNull(),
     weeklyRateKg: real("weekly_rate_kg").notNull().default(0),

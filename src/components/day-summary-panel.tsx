@@ -3,11 +3,9 @@ import { Info } from "@phosphor-icons/react"
 import { Link } from "@tanstack/react-router"
 
 import { cn } from "@/lib/utils"
-import type { MealCardData } from "@/components/meal-card"
-import {
-  deriveProfile,
-  type ProfileSnapshot,
-} from "../../worker/profile/derive"
+import type { MealListItem } from "../../worker/meals/schema"
+import { deriveProfile } from "../../worker/profile/isomorphic/derive"
+import type { ProfileSnapshot } from "../../worker/profile/schema"
 
 type Mode = "remaining" | "consumed"
 const LS_KEY = "sufra:ring-mode"
@@ -20,7 +18,7 @@ export function DaySummaryPanel({
   meals,
   profile,
 }: {
-  meals: MealCardData[]
+  meals: MealListItem[]
   profile: ProfileSnapshot
 }) {
   const [mode, setMode] = useRingMode()
