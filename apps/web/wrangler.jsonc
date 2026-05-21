@@ -27,4 +27,27 @@
       "bucket_name": "sufra-photos",
     },
   ],
+  // Staging environment — deploys a SEPARATE Worker (`sufra-staging`) with its
+  // own D1 and R2. Secrets must be set separately via `wrangler secret put ...
+  // --env staging`. Promote validated builds to prod via `wrangler deploy`
+  // (no --env). See PRD §… (Operations / deploys).
+  "env": {
+    "staging": {
+      "name": "sufra-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "sufra-staging",
+          "database_id": "651361e9-b025-4c46-a83b-3ec4763eddfa",
+          "migrations_dir": "./worker/db/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "sufra-photos-staging",
+        },
+      ],
+    },
+  },
 }

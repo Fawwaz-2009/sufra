@@ -10,10 +10,12 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "deploy": "turbo run deploy --filter=@sufra/web",
+    "deploy:staging": "pnpm --filter @sufra/web run deploy:staging",
     "cf-typegen": "pnpm --filter @sufra/web run cf-typegen",
     "db:generate": "pnpm --filter @sufra/web run db:generate",
     "db:migrate:local": "pnpm --filter @sufra/web run db:migrate:local",
     "db:migrate:remote": "pnpm --filter @sufra/web run db:migrate:remote",
+    "db:migrate:staging": "pnpm --filter @sufra/web run db:migrate:staging",
     "eval": "pnpm --filter @sufra/evals run eval",
     "eval:view": "pnpm --filter @sufra/evals run eval:view"
   },
