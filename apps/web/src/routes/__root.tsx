@@ -4,10 +4,13 @@ import {
   createRootRouteWithContext,
   Outlet,
   redirect,
+  useLocation,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 
+import { InstallGate } from "@/components/install-gate"
 import type { AuthValue } from "@/lib/auth-context"
+import { isDevBypass, isMobile, isStandalone } from "@/lib/standalone"
 
 interface RouterContext {
   queryClient: QueryClient
@@ -31,6 +34,29 @@ function isOnboardingExempt(pathname: string): boolean {
   // /set-password/<token> — token in path, so check prefix.
   if (pathname.startsWith("/set-password/")) return true
   return false
+}
+
+// Paths where the install gate is suppressed. The bootstrap touchpoints —
+// first-time host Setup, password-link redemption, the public how-it-works
+// page — must remain reachable in a browser because that's where a fresh
+// member or host actually starts. Everything else (Day view, Profile,
+// /admin, /login, /meals/...) is hidden behind the gate on mobile.
+const INSTALL_GATE_EXEMPT_PATHS = new Set(["/setup", "/how-it-works"])
+
+function isInstallGateExempt(pathname: string): boolean {
+  if (INSTALL_GATE_EXEMPT_PATHS.has(pathname)) return true
+  if (pathname.startsWith("/set-password/")) return true
+  return false
+}
+
+function shouldShowInstallGate(pathname: string): boolean {
+  // Don't render on the server — the detection APIs are window-only.
+  if (typeof window === "undefined") return false
+  if (isStandalone()) return false
+  if (!isMobile()) return false
+  if (isDevBypass()) return false
+  if (isInstallGateExempt(pathname)) return false
+  return true
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -60,6 +86,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootLayout() {
+  const location = useLocation()
+
+  if (shouldShowInstallGate(location.pathname)) {
+    return <InstallGate />
+  }
+
   return (
     <>
       <Outlet />

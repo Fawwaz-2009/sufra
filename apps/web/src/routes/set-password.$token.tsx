@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
+import { InstallGate } from "@/components/install-gate"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
+import {
+  isDevBypass,
+  isMobile,
+  isStandalone,
+  setUsernameHint,
+} from "@/lib/standalone"
 
 type LoaderData = { username: string; familyName: string }
 
@@ -31,6 +38,7 @@ function SetPassword() {
   const [confirm, setConfirm] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [didSet, setDidSet] = useState(false)
   const { token } = Route.useParams()
 
   // The link page is opened in a browser; we don't want search engines or
@@ -44,6 +52,21 @@ function SetPassword() {
       document.head.removeChild(tag)
     }
   }, [])
+
+  // Post-set handoff: on mobile in browser, show the install gate as a
+  // success screen so the Member's path of least resistance is "install the
+  // app, then sign in" — not "stay in Chrome forever". Desktop and dev
+  // bypass routes fall through to / as before.
+  if (didSet) {
+    const goesThroughInstallGate =
+      isMobile() && !isStandalone() && !isDevBypass()
+    if (goesThroughInstallGate) {
+      return <InstallGate postSetupUsername={data.username} />
+    }
+    // Already standalone, or on desktop, or dev-bypassed — straight to app.
+    window.location.assign("/")
+    return null
+  }
 
   const validate = (): string | null => {
     if (password.length < 6) return "Password must be at least 6 characters."
@@ -68,9 +91,11 @@ function SetPassword() {
         setSubmitError("Couldn't set your password. Try again.")
         return
       }
-      // Cookie was set by the worker — refresh auth context, then navigate.
+      // Cookie was set by the worker — refresh auth context. Stash the
+      // username so /login can pre-fill it in the PWA after install.
+      setUsernameHint(data.username)
       await auth.refresh()
-      window.location.assign("/")
+      setDidSet(true)
     } finally {
       setIsSubmitting(false)
     }

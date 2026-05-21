@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { useAuth } from "@/lib/auth-context"
+import { clearUsernameHint, readUsernameHint } from "@/lib/standalone"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -34,12 +35,24 @@ function LoginPage() {
   const auth = useAuth()
   const navigate = useNavigate()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Pre-fill the username if it survived from a recent password-link
+  // redemption. Best-effort: localStorage may not carry from browser to
+  // installed PWA on iOS, in which case the field renders empty.
+  const [usernameHint] = useState<string | null>(() => readUsernameHint())
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: standardSchemaResolver(schema) })
+  } = useForm<FormValues>({
+    resolver: standardSchemaResolver(schema),
+    defaultValues: { username: usernameHint ?? "", password: "" },
+  })
+
+  useEffect(() => {
+    if (usernameHint) setValue("username", usernameHint)
+  }, [usernameHint, setValue])
 
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null)
@@ -51,6 +64,9 @@ function LoginPage() {
       setSubmitError("Username or password is incorrect.")
       return
     }
+    // Clear the hint — it's a single-use bridge across the browser → PWA
+    // handoff, not a persistent preference.
+    clearUsernameHint()
     await auth.refresh()
     void navigate({ to: "/" })
   }
