@@ -15,6 +15,7 @@ type ProviderState = {
   session: Session | null
   needsSetup: boolean
   profiles: ProfileSnapshot[]
+  isOnboarded: boolean
   isLoading: boolean
 }
 
@@ -22,6 +23,7 @@ const INITIAL_STATE: ProviderState = {
   session: null,
   needsSetup: false,
   profiles: [],
+  isOnboarded: false,
   isLoading: true,
 }
 
@@ -32,26 +34,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [setupRes, sessionRes, profileRes] = await Promise.all([
       api.api.setup.status.$get(),
       authClient.getSession(),
-      // 401 if no session — that's fine, we treat it as "no profile yet."
+      // 401 if no session — that's fine, we treat it as "not onboarded."
       api.api.profile.$get().catch(() => null),
     ])
     const { needsSetup } = await setupRes.json()
-    const profiles: ProfileSnapshot[] =
+    const profileData =
       profileRes && profileRes.ok
-        ? ((await profileRes.json()) as { profiles: ProfileSnapshot[] })
-            .profiles
-        : []
+        ? ((await profileRes.json()) as {
+            profiles: ProfileSnapshot[]
+            isOnboarded: boolean
+          })
+        : { profiles: [], isOnboarded: false }
     setState({
       session: sessionRes.data ?? null,
       needsSetup,
-      profiles,
+      profiles: profileData.profiles,
+      isOnboarded: profileData.isOnboarded,
       isLoading: false,
     })
   }, [])
 
   const signOut = useCallback(async () => {
     await authClient.signOut()
-    setState((prev) => ({ ...prev, session: null, profiles: [] }))
+    setState((prev) => ({
+      ...prev,
+      session: null,
+      profiles: [],
+      isOnboarded: false,
+    }))
   }, [])
 
   useEffect(() => {
@@ -66,10 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session: state.session,
       needsSetup: state.needsSetup,
       profiles: state.profiles,
+      isOnboarded: state.isOnboarded,
       refresh,
       signOut,
     }),
-    [state.session, state.needsSetup, state.profiles, refresh, signOut]
+    [
+      state.session,
+      state.needsSetup,
+      state.profiles,
+      state.isOnboarded,
+      refresh,
+      signOut,
+    ]
   )
 
   if (state.isLoading) {

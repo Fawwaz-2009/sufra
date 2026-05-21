@@ -49,7 +49,7 @@ const INITIAL_DRAFT: Draft = {
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: ({ context }) => {
     if (!context.auth.session) throw redirect({ to: "/login" })
-    if (context.auth.profiles.length > 0) throw redirect({ to: "/" })
+    if (context.auth.isOnboarded) throw redirect({ to: "/" })
   },
   component: Onboarding,
 })

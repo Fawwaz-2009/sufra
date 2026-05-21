@@ -44,7 +44,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     }
     if (
       context.auth.session &&
-      context.auth.profiles.length === 0 &&
+      !context.auth.isOnboarded &&
       !isOnboardingExempt(location.pathname)
     ) {
       throw redirect({ to: "/onboarding" })
@@ -53,6 +53,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       needsSetup: context.auth.needsSetup,
       session: context.auth.session,
       profiles: context.auth.profiles,
+      isOnboarded: context.auth.isOnboarded,
     }
   },
   component: RootLayout,
