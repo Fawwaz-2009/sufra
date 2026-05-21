@@ -19,7 +19,7 @@ import {
   note,
   cancel,
 } from "@clack/prompts"
-import { spawnSync } from "node:child_process"
+import { spawn } from "node:child_process"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { randomBytes } from "node:crypto"
 import { applyEdits, modify } from "jsonc-parser"
@@ -46,29 +46,44 @@ function bail() {
   process.exit(0)
 }
 
-// Invoke wrangler scoped to apps/web. Use { input } to pipe stdin (for
-// `secret put`); use { capture } to grab stdout instead of streaming it.
-function wrangler(args, { input, capture } = {}) {
-  const result = spawnSync(
-    "pnpm",
-    ["--filter", "@sufra/web", "exec", "wrangler", ...args],
-    {
-      cwd: ROOT,
-      input,
-      stdio: capture
-        ? ["pipe", "pipe", "pipe"]
-        : input
-          ? ["pipe", "inherit", "inherit"]
-          : "inherit",
-      encoding: "utf8",
-    },
-  )
-  return {
-    status: result.status ?? -1,
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-  }
+// Run a command async — returns a Promise. Critical: spawnSync blocks Node's
+// event loop, which freezes clack's spinner animation mid-frame. Async spawn
+// keeps the event loop free so the spinner stays alive during long-running
+// operations like `wrangler deploy`.
+function run(cmd, args, { input, capture = true, cwd = ROOT } = {}) {
+  return new Promise((resolveP) => {
+    const child = spawn(cmd, args, {
+      cwd,
+      stdio: capture ? ["pipe", "pipe", "pipe"] : "inherit",
+    })
+
+    let stdout = ""
+    let stderr = ""
+    if (capture) {
+      child.stdout?.on("data", (d) => {
+        stdout += d.toString()
+      })
+      child.stderr?.on("data", (d) => {
+        stderr += d.toString()
+      })
+    }
+
+    if (input !== undefined && child.stdin) {
+      child.stdin.write(input)
+      child.stdin.end()
+    }
+
+    child.on("close", (code) => {
+      resolveP({ status: code ?? -1, stdout, stderr })
+    })
+    child.on("error", (err) => {
+      resolveP({ status: -1, stdout, stderr: stderr + err.message })
+    })
+  })
 }
+
+const wrangler = (args, opts) =>
+  run("pnpm", ["--filter", "@sufra/web", "exec", "wrangler", ...args], opts)
 
 function patchJsonc(path, edits) {
   let text = readFileSync(path, "utf8")
@@ -97,7 +112,7 @@ async function preflight() {
   }
 
   // wrangler reachable + logged in
-  const who = wrangler(["whoami"], { capture: true })
+  const who = await wrangler(["whoami"])
   if (who.status !== 0) {
     s.stop("Not signed in to Cloudflare")
     note(
@@ -107,7 +122,7 @@ async function preflight() {
     process.exit(1)
   }
 
-  // pull email out of whoami output (it's the line after the account table)
+  // pull email out of whoami output
   const emailMatch = who.stdout.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/)
   const email = emailMatch ? emailMatch[0] : "your account"
 
@@ -136,11 +151,10 @@ async function chooseNames() {
 }
 
 async function provisionD1(dbName) {
-  const s = spinner()
+  const s = spinner({ indicator: "timer" })
   s.start(`Looking for a D1 database named ${accent(dbName)}`)
 
-  // Check if it already exists in this account
-  const list = wrangler(["d1", "list", "--json"], { capture: true })
+  const list = await wrangler(["d1", "list", "--json"])
   let dbId = null
   if (list.status === 0) {
     try {
@@ -156,16 +170,14 @@ async function provisionD1(dbName) {
     }
   }
 
-  // Create a new one
   s.message(`Creating D1 database ${accent(dbName)}`)
-  const create = wrangler(["d1", "create", dbName], { capture: true })
+  const create = await wrangler(["d1", "create", dbName])
   if (create.status !== 0) {
     s.stop("D1 creation failed")
     log.error(create.stderr || create.stdout)
     die("Could not create D1 database.")
   }
 
-  // Parse the UUID out of the create output
   const uuidMatch = create.stdout.match(
     /"?database_id"?\s*[:=]\s*"?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"?/i,
   )
@@ -180,19 +192,17 @@ async function provisionD1(dbName) {
 }
 
 async function provisionR2(bucketName) {
-  const s = spinner()
+  const s = spinner({ indicator: "timer" })
   s.start(`Looking for an R2 bucket named ${accent(bucketName)}`)
 
-  const list = wrangler(["r2", "bucket", "list"], { capture: true })
+  const list = await wrangler(["r2", "bucket", "list"])
   if (list.status === 0 && list.stdout.includes(`name: ${bucketName}`)) {
     s.stop(`Reusing existing R2 bucket`)
     return
   }
 
   s.message(`Creating R2 bucket ${accent(bucketName)}`)
-  const create = wrangler(["r2", "bucket", "create", bucketName], {
-    capture: true,
-  })
+  const create = await wrangler(["r2", "bucket", "create", bucketName])
   if (create.status !== 0 && !create.stderr.includes("already exists")) {
     s.stop("R2 creation failed")
     log.error(create.stderr || create.stdout)
@@ -227,15 +237,13 @@ async function setSecrets() {
   })
   if (isCancel(orKey)) bail()
 
-  // Generate auth secret silently — no copy-paste from openssl
   const authSecret = randomBytes(32).toString("base64")
 
-  const s = spinner()
+  const s = spinner({ indicator: "timer" })
 
   s.start("Setting BETTER_AUTH_SECRET (auto-generated, 32 bytes)")
-  const a = wrangler(["secret", "put", "BETTER_AUTH_SECRET"], {
+  const a = await wrangler(["secret", "put", "BETTER_AUTH_SECRET"], {
     input: authSecret,
-    capture: true,
   })
   if (a.status !== 0) {
     s.stop("Failed to set BETTER_AUTH_SECRET")
@@ -245,9 +253,8 @@ async function setSecrets() {
   s.stop("BETTER_AUTH_SECRET set")
 
   s.start("Setting OPENROUTER_API_KEY")
-  const b = wrangler(["secret", "put", "OPENROUTER_API_KEY"], {
+  const b = await wrangler(["secret", "put", "OPENROUTER_API_KEY"], {
     input: orKey,
-    capture: true,
   })
   if (b.status !== 0) {
     s.stop("Failed to set OPENROUTER_API_KEY")
@@ -257,33 +264,46 @@ async function setSecrets() {
   s.stop("OPENROUTER_API_KEY set")
 }
 
+// Three separate stages instead of one chained `pnpm run deploy`. Why:
+// (1) the user sees which stage is running and how long it's taken so far
+// via clack's timer indicator, and (2) errors surface against the right
+// step so debugging is straightforward.
 async function deploy() {
-  // The `deploy` script in apps/web/package.json chains:
-  //   pnpm run build && wrangler d1 migrations apply DB --remote && wrangler deploy
-  // So one call covers migrations + deploy.
-  const s = spinner()
-  s.start("Building, migrating, deploying")
-  const result = spawnSync("pnpm", ["--filter", "@sufra/web", "run", "deploy"], {
-    cwd: ROOT,
-    encoding: "utf8",
-    stdio: ["inherit", "pipe", "inherit"],
-  })
-  if (result.status !== 0) {
+  // Stage 1 — build (vite first, then tsc; see apps/web/package.json)
+  let s = spinner({ indicator: "timer" })
+  s.start("Building worker bundle")
+  const build = await run("pnpm", ["--filter", "@sufra/web", "run", "build"])
+  if (build.status !== 0) {
+    s.stop("Build failed")
+    log.error((build.stdout + build.stderr).trim())
+    die("Build failed. See output above.")
+  }
+  s.stop("Worker bundle built")
+
+  // Stage 2 — migrations
+  s = spinner({ indicator: "timer" })
+  s.start("Applying database migrations to D1")
+  const migrate = await wrangler(["d1", "migrations", "apply", "DB", "--remote"])
+  if (migrate.status !== 0) {
+    s.stop("Migrations failed")
+    log.error(migrate.stderr || migrate.stdout)
+    die("Migration apply failed. See output above.")
+  }
+  s.stop("Migrations applied")
+
+  // Stage 3 — deploy
+  s = spinner({ indicator: "timer" })
+  s.start("Deploying to Cloudflare")
+  const dep = await wrangler(["deploy"])
+  if (dep.status !== 0) {
     s.stop("Deploy failed")
-    log.error(result.stdout)
-    die("See the wrangler output above. Re-run `pnpm bootstrap` once fixed.")
+    log.error(dep.stderr || dep.stdout)
+    die("Deploy failed. See output above.")
   }
-  const urlMatch = result.stdout.match(/https:\/\/[a-z0-9.-]+\.workers\.dev/i)
+
+  const urlMatch = dep.stdout.match(/https:\/\/[a-z0-9.-]+\.workers\.dev/i)
   const url = urlMatch ? urlMatch[0] : null
-  if (!url) {
-    s.stop("Deployed (couldn't auto-detect URL)")
-    note(
-      `Deploy succeeded but the URL wasn't in the output.\nCheck the Cloudflare dashboard for the Worker URL.`,
-      "Almost done",
-    )
-    return null
-  }
-  s.stop(`Deployed → ${accent(url)}`)
+  s.stop(url ? `Deployed → ${accent(url)}` : "Deployed (no URL detected)")
   return url
 }
 
