@@ -14,8 +14,35 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       pwaAssets: {
-        preset: "minimal-2023",
+        // Custom preset — the default "minimal-2023" adds 30% padding around
+        // the source artwork and fills the bleed with transparent (for "any")
+        // or white (for "maskable"), which on Android renders as a white
+        // square/circle behind the icon. Our favicon.png is designed
+        // full-bleed (colored to the corners), so we set padding: 0 and let
+        // the source go edge-to-edge.
         image: "public/favicon.png",
+        preset: {
+          transparent: {
+            sizes: [64, 192, 512],
+            favicons: [[48, "favicon.ico"]],
+            padding: 0,
+            resizeOptions: { fit: "cover", background: "transparent" },
+          },
+          maskable: {
+            sizes: [512],
+            padding: 0,
+            // Android crops maskable icons to whatever shape the launcher
+            // uses (usually a circle). With padding 0, the source's own
+            // corners are what get cropped — fine because the source's
+            // edges are decorative background, not glyph content.
+            resizeOptions: { fit: "cover" },
+          },
+          apple: {
+            sizes: [180],
+            padding: 0,
+            resizeOptions: { fit: "cover" },
+          },
+        },
       },
       manifest: {
         name: "Sufra",
