@@ -211,12 +211,23 @@ pre code {
 /* --- Page shell --- */
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+}
+
+.page > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .gutter {
   padding-inline: var(--page-gutter);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .measure {
@@ -228,6 +239,8 @@ pre code {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
   padding-block: var(--space-md);
   border-bottom: var(--rule);
 }
@@ -277,16 +290,41 @@ pre code {
   border-bottom-color: var(--color-accent);
 }
 
+.nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--space-sm) var(--space-lg);
+  min-width: 0;
+}
+
+.nav__cta--primary {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-accent);
+}
+
+.nav__cta--primary:hover {
+  color: var(--color-accent);
+}
+
 /* --- Long-document article --- */
 .article {
-  max-width: 42rem;
+  width: 100%;
+  max-width: min(42rem, 100%);
   margin-inline: auto;
   padding-block: clamp(var(--space-2xl), 8vw, var(--space-3xl)) var(--space-3xl);
   font-size: var(--text-md);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .article > * + * {
   margin-top: var(--space-lg);
+}
+
+.article > section {
+  min-width: 0;
 }
 
 /* Hero — H5 Letter (padding bottom > top: hero sits into the page) */
@@ -308,13 +346,15 @@ pre code {
 .hero__lede {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(1.55rem, 2vw + 0.9rem, 2.2rem);
+  font-size: clamp(1.4rem, 1.5vw + 1rem, 2.2rem);
   font-variation-settings: 'opsz' 96;
   line-height: 1.25;
   letter-spacing: -0.015em;
   color: var(--color-ink);
   max-width: 30ch;
   overflow-wrap: anywhere;
+  word-wrap: break-word;
+  hyphens: auto;
   min-width: 0;
 }
 
@@ -364,7 +404,7 @@ pre code {
   margin-top: 0;
 }
 
-/* Single italic accent line — used between sections occasionally */
+/* Single italic accent line, used between sections occasionally */
 .aside {
   font-family: var(--font-display);
   font-style: italic;
@@ -471,6 +511,9 @@ pre code {
   line-height: 1.7;
   color: var(--color-ink);
   position: relative;
+  max-width: 100%;
+  min-width: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .code__label {
@@ -688,13 +731,21 @@ pre code {
 
 @media (max-width: 40rem) {
   .nav__cta {
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  .nav__links {
+    gap: var(--space-xs) var(--space-md);
   }
 
   .nav__glyph {
     width: 24px;
     height: 24px;
+  }
+
+  .nav__mark {
+    font-size: var(--text-md);
   }
 
   .steps > li {
@@ -707,8 +758,18 @@ pre code {
     font-size: 0.7rem;
   }
 
-  .article {
-    padding-inline: 0;
+  .code {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .hero__lede {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 24rem) {
+  .nav__cta {
+    font-size: 0.7rem;
   }
 }
 

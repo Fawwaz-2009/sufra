@@ -9,7 +9,7 @@ import appCss from '../styles.css?url'
 // docs/discovery-strategy.md for the full backlink/SEO plan.
 const SITE_URL = 'https://sufra.fawwaz.dev'
 const OG_IMAGE = `${SITE_URL}/og.png`
-const TITLE = 'Sufra — a photo-first calorie tracker for the people at your table'
+const TITLE = 'Sufra, a photo-first calorie tracker for the people at your table'
 const DESCRIPTION =
   'Open-source, photo-first calorie tracker for households. Runs on your own Cloudflare account; calls your own OpenRouter key. No SaaS, no email server, no subscriptions.'
 
@@ -65,7 +65,7 @@ export const Route = createRootRoute({
       {
         property: 'og:image:alt',
         content:
-          'Sufra — a photo-first calorie tracker for the people at your table',
+          'Sufra, a photo-first calorie tracker for the people at your table',
       },
       { property: 'og:locale', content: 'en_US' },
 
@@ -79,7 +79,9 @@ export const Route = createRootRoute({
       { rel: 'stylesheet', href: appCss },
       { rel: 'canonical', href: SITE_URL },
       { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
-      { rel: 'apple-touch-icon', href: '/logo192.png' },
+      { rel: 'icon', href: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
+      { rel: 'icon', href: '/favicon-16.png', type: 'image/png', sizes: '16x16' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
     ],
     scripts: [
       {

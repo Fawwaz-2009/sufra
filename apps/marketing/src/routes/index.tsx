@@ -7,7 +7,7 @@ function Home() {
     <main className="page">
       <header className="gutter">
         <nav className="nav reveal" style={{ ['--i' as never]: 0 }}>
-          <a href="/" className="nav__mark" aria-label="Sufra — home">
+          <a href="/" className="nav__mark" aria-label="Sufra home">
             <img
               src="/sufra-mark.png"
               alt=""
@@ -18,25 +18,27 @@ function Home() {
             />
             <span>Sufra</span>
           </a>
-          <a
-            href="https://github.com/Fawwaz-2009/sufra"
-            className="nav__cta"
-            rel="noopener"
-          >
-            Source ↗
-          </a>
+          <div className="nav__links">
+            <a href="#deploy" className="nav__cta nav__cta--primary">
+              Get started ↓
+            </a>
+            <a
+              href="https://github.com/Fawwaz-2009/sufra"
+              className="nav__cta"
+              rel="noopener"
+            >
+              Source ↗
+            </a>
+          </div>
         </nav>
       </header>
 
       <article className="article gutter">
         <section className="hero reveal" style={{ ['--i' as never]: 1 }}>
-          <p className="hero__salutation">
-            <em>Dear self-hoster,</em>
-          </p>
           <p className="hero__lede">
             A sufra is a table set for the people you love.{' '}
             <em>Sufra the app</em> is a photo-first calorie tracker for the
-            people at yours — open-source, deployed to your own Cloudflare
+            people at yours. Open-source, deployed to your own Cloudflare
             account, never phoning home.
           </p>
           <div className="hero__meta">
@@ -47,17 +49,18 @@ function Home() {
         <section className="reveal" style={{ ['--i' as never]: 2 }}>
           <h2 className="h-section h-section--first">What it does.</h2>
           <p>
-            You photograph a meal. The model recognises the dish — names it{' '}
-            <em>kabsa, fattoush, mansaf</em>, not <em>"rice with chicken"</em> —
-            and returns a calorie estimate broken down per food, with the
-            things it's unsure about written out as questions you can answer.
+            You photograph a meal. The model recognises the dish, names it{' '}
+            <em>kabsa, fattoush, mansaf</em> rather than{' '}
+            <em>"rice with chicken"</em>, and returns a calorie estimate broken
+            down per food, with the things it's unsure about written out as
+            questions you can answer.
           </p>
           <p>
             You can override the totals directly, or refine the estimate by
             telling the model what it missed (<em>the chicken was closer to
             200g, no olive oil</em>). Days bucket on your phone's current
-            timezone — when you travel, "today" travels with you. Weights graph
-            against your body, not someone else's average.
+            timezone, so when you travel, "today" travels with you. Weights
+            graph against your body, not someone else's average.
           </p>
         </section>
 
@@ -76,14 +79,14 @@ function Home() {
                 />
               </div>
               <figcaption className="screen__caption">
-                Today at a glance — what's left, what's eaten.
+                Today at a glance. What's left, what's eaten.
               </figcaption>
             </figure>
             <figure className="screen">
               <div className="screen__frame">
                 <img
                   src="/screens/meal.png"
-                  alt="Meal detail page for chocolate gelato — large photo, override fields for calories and macros."
+                  alt="Meal detail page for chocolate gelato. Large photo, override fields for calories and macros."
                   loading="lazy"
                 />
               </div>
@@ -95,7 +98,7 @@ function Home() {
               <div className="screen__frame">
                 <img
                   src="/screens/improve.png"
-                  alt="Improve this estimate bottom sheet — the AI's specific uncertainties listed as questions, plus a freeform textarea."
+                  alt="Improve this estimate bottom sheet. The AI's specific uncertainties listed as questions, plus a freeform textarea."
                   loading="lazy"
                 />
               </div>
@@ -109,14 +112,14 @@ function Home() {
         <section className="reveal" style={{ ['--i' as never]: 4 }}>
           <h2 className="h-section">Who it's for.</h2>
           <p>
-            Two people, on purpose. The <strong>Host</strong> — that's you. You
-            have a Cloudflare account and an evening. You deploy once, hold the
-            API key, and provision accounts for the people at your table. You
-            are the support team. You eat too.
+            Two people, on purpose. The <strong>Host</strong> is you. You have
+            a Cloudflare account and an evening. You deploy once, hold the API
+            key, and provision accounts for the people at your table. You are
+            the support team. You eat too.
           </p>
           <p>
-            The <strong>Members</strong> — your household. They get a URL and a
-            username. They never enter an API key, never see an admin panel.
+            The <strong>Members</strong> are your household. They get a URL and
+            a username. They never enter an API key, never see an admin panel.
             They sign in, take a photo, see a number, and put their phone down.
             Their mental model is <em>"the food app"</em>, not <em>"the LLM
             wrapper my partner deployed"</em>.
@@ -155,7 +158,7 @@ function Home() {
               <div>
                 <h3 className="steps__title">Clarify, if needed.</h3>
                 <p className="steps__body">
-                  The estimate carries a small "Improve" affordance — coloured
+                  The estimate carries a small "Improve" affordance, coloured
                   by the model's own confidence. Tap it and the model's
                   uncertainties become questions: <em>Closer to 1 cup or
                   1.5?</em> Answer the ones you know. The estimate re-runs.
@@ -188,7 +191,7 @@ function Home() {
                 <td>
                   Vite + React 19 + TanStack Router + Tailwind v4
                   <span className="muted">
-                    PWA — installable from the browser, no app store
+                    PWA. Installable from the browser, no app store.
                   </span>
                 </td>
               </tr>
@@ -215,8 +218,8 @@ function Home() {
                 <td>
                   Cloudflare R2
                   <span className="muted">
-                    Meal photos, accessed via authenticated Worker routes — no
-                    public bucket.
+                    Meal photos, accessed via authenticated Worker routes.
+                    Never a public bucket.
                   </span>
                 </td>
               </tr>
@@ -253,7 +256,11 @@ function Home() {
           </table>
         </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 7 }}>
+        <section
+          id="deploy"
+          className="reveal"
+          style={{ ['--i' as never]: 7 }}
+        >
           <h2 className="h-section">Deploy it.</h2>
           <p>
             Two things you'll need: a Cloudflare account, and an OpenRouter
@@ -264,7 +271,7 @@ function Home() {
             className="aside"
             style={{ marginTop: 'var(--space-xl)' }}
           >
-            One command walks you through the rest — provisions D1 and R2 in
+            One command walks you through the rest. It provisions D1 and R2 in
             your account, generates a session secret, applies migrations,
             deploys. About 90 seconds.
           </p>
@@ -285,7 +292,7 @@ function Home() {
           </div>
 
           <p>
-            Open the deployed URL. The Setup wizard runs once — name your
+            Open the deployed URL. The Setup wizard runs once. Name your
             Sufra, pick a username and password. From there:{' '}
             <em>admin → add Member → copy the password link → hand it to your
             household.</em> WhatsApp, iMessage, a sticky note on the fridge.
@@ -305,7 +312,7 @@ function Home() {
             </li>
             <li>Telemetry, analytics, anything that phones home.</li>
             <li>
-              Native iOS or Android apps. PWA only — Add to Home Screen and
+              Native iOS or Android apps. PWA only. Add to Home Screen and
               live there.
             </li>
             <li>Email infrastructure. Notifications. Magic links.</li>
@@ -318,26 +325,18 @@ function Home() {
         <section className="reveal" style={{ ['--i' as never]: 9 }}>
           <h2 className="h-section">About the name.</h2>
           <p>
-            <em>Sufra (سفرة)</em> is the Arabic word for the dining table — but
+            <em>Sufra (سفرة)</em> is the Arabic word for the dining table, but
             it means more than the furniture. A sufra is the spread of food
             laid out, the act of gathering, the hospitality of feeding the
             people you love.
           </p>
           <p>
             The app is named after it because it exists to help you stay{' '}
-            <em>at</em> the sufra — to keep showing up at the table, while
+            <em>at</em> the sufra: to keep showing up at the table, while
             staying aware of what you're eating. Middle Eastern cuisine is a
             first-class citizen in the food recognition, not an afterthought.
             You don't need to be Arab to have a sufra. Every household has a
             table.
-          </p>
-          <p
-            className="aside"
-            style={{ marginTop: 'var(--space-xl)' }}
-          >
-            We built this for our own kitchen. We're putting it on the
-            internet because if it's useful to one other household, that's
-            enough.
           </p>
         </section>
       </article>
@@ -346,9 +345,9 @@ function Home() {
         <div className="foot__inner">
           <p className="foot__line">
             Sufra · a photo-first calorie tracker for households. Built on
-            Cloudflare Workers, D1, and R2. Inference via OpenRouter — host's
+            Cloudflare Workers, D1, and R2. Inference via OpenRouter, host's
             key, host's bill. MIT licensed. No telemetry. No email. v0.1, in
-            dogfood. Set in Fraunces, Raleway, and JetBrains Mono. Made by{' '}
+            dogfood. Made by{' '}
             <a
               href="https://fawwaz.dev/sufra"
               className="foot__creator"
