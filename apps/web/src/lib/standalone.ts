@@ -10,6 +10,42 @@ const USERNAME_HINT_KEY = "sufra:username-hint"
 
 export type Platform = "ios" | "android" | "desktop"
 
+// On iOS, the Share button lives in different places per browser, and
+// in-app browsers (WhatsApp, Instagram, etc.) don't support installation
+// at all. This is *the* critical detection for Sufra: a Member's first
+// touch is a password link pasted into WhatsApp; tapping it opens
+// WhatsApp's in-app webview, which can't A2HS. We detect that and tell
+// the user to open in Safari/Chrome instead.
+export type IosBrowser =
+  | "safari"
+  | "chrome"
+  | "firefox"
+  | "edge"
+  | "in-app"
+  | "unknown"
+
+export function detectIosBrowser(): IosBrowser {
+  if (typeof navigator === "undefined") return "unknown"
+  const ua = navigator.userAgent
+  // In-app browsers first — these UAs often also contain Safari/Mobile
+  // markers, so we have to check them before the Safari branch.
+  if (/FB_IAB|FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger/i.test(ua)) {
+    return "in-app"
+  }
+  if (/CriOS\//.test(ua)) return "chrome"
+  if (/FxiOS\//.test(ua)) return "firefox"
+  if (/EdgiOS\//.test(ua)) return "edge"
+  // Safari proper: has Version/ + Mobile/ + Safari/, no third-party marker.
+  if (
+    /Safari\//.test(ua) &&
+    /Version\//.test(ua) &&
+    /Mobile\//.test(ua)
+  ) {
+    return "safari"
+  }
+  return "unknown"
+}
+
 // Detect whether the current page is running as an installed PWA.
 // iOS Safari uses navigator.standalone; everything else uses display-mode.
 // Both signals are checked since the platform mix is heterogeneous in 2026
