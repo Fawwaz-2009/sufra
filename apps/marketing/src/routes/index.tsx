@@ -1,6 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/')({
+  head: () => ({
+    links: [{ rel: 'canonical', href: 'https://sufra.fawwaz.dev' }],
+  }),
+  component: Home,
+})
 
 function Home() {
   return (
@@ -177,6 +182,12 @@ function Home() {
               </div>
             </li>
           </ol>
+          <p className="steps__more">
+            <Link to="/how-it-works" className="link-cta">
+              Read the methodology{' '}
+              <span className="link-cta__arrow">→</span>
+            </Link>
+          </p>
         </section>
 
         <section className="reveal" style={{ ['--i' as never]: 6 }}>

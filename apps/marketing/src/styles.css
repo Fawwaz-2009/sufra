@@ -659,6 +659,96 @@ pre code {
   text-align: center;
 }
 
+/* How-it-works page extras */
+.hiw__back {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-rule);
+  padding-bottom: 0.1em;
+  transition: color var(--dur-short) var(--ease-out),
+    border-bottom-color var(--dur-short) var(--ease-out);
+}
+
+.hiw__back:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.hiw__list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-md) 0;
+  display: grid;
+  gap: var(--space-xs);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ink-soft);
+  font-feature-settings: 'tnum';
+  max-width: 56ch;
+}
+
+.hiw__list > li {
+  padding-inline-start: var(--space-md);
+  border-inline-start: 1px solid var(--color-rule);
+}
+
+.hiw__list strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.hiw__refs {
+  margin: var(--space-md) 0 0;
+  padding-inline-start: var(--space-lg);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  max-width: 60ch;
+}
+
+.hiw__refs > li {
+  margin-block: var(--space-sm);
+  line-height: 1.55;
+}
+
+.hiw__refs > li::marker {
+  color: var(--color-mute);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.hiw__sup {
+  font-feature-settings: 'sups';
+  font-size: 0.75em;
+}
+
+.hiw__sup a {
+  color: var(--color-accent);
+  text-decoration: none;
+  margin-inline-start: 0.15em;
+}
+
+.hiw__sup a:hover {
+  color: var(--color-accent-2);
+  text-decoration: underline;
+}
+
+/* Inline "Read the methodology" link inside the home page's How it works
+   section. Quiet, sits at the end of the step list. */
+.steps__more {
+  margin-top: var(--space-lg);
+  padding-inline-start: 4rem;
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 40rem) {
+  .steps__more {
+    padding-inline-start: 3rem;
+  }
+}
+
 /* Ft4 dense colophon footer */
 .foot {
   border-top: var(--rule);
