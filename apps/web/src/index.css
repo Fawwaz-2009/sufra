@@ -123,6 +123,37 @@
     }
   body {
     @apply bg-background text-foreground;
+    /* Native-app polish — these are subtle but compound to make Sufra
+     * feel less "web tab" and more "installed app" on iOS PWA. None of
+     * them break accessibility: we preserve text selection on inputs
+     * and body text (only nuke it on interactive chrome, below), and
+     * we do NOT disable viewport zoom (low-vision users still need it).
+     *
+     * - Tap-highlight transparent: kills the gray flash iOS shows on
+     *   any tappable element. Native apps don't have this; PWAs do by
+     *   default.
+     * - Overscroll-behavior none: prevents iOS rubber-band overscroll
+     *   into adjacent contexts (e.g., the URL bar in browser mode).
+     *   Doesn't prevent legitimate inner scroll inside sheets/lists.
+     */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    }
+  /* Disable iOS long-press context menu (Save Image, Copy Link, etc.)
+   * on UI chrome — buttons, links, nav items. Native apps don't have
+   * this. Inputs and body text are exempt so the platform's standard
+   * copy/paste/dictionary still works there.
+   */
+  button, a, [role="button"], nav, header, footer {
+    -webkit-touch-callout: none;
+    }
+  /* `touch-action: manipulation` removes the 300ms double-tap-to-zoom
+   * delay on iOS for buttons and links — the OS resolves taps as
+   * single-taps immediately instead of waiting to see if it's a
+   * double-tap.
+   */
+  button, a, [role="button"], [role="tab"], [role="menuitem"] {
+    touch-action: manipulation;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;

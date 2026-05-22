@@ -41,6 +41,7 @@ function SheetOverlay({
 function SheetContent({
   className,
   children,
+  style,
   ...props
 }: DialogPrimitive.Popup.Props) {
   return (
@@ -48,10 +49,29 @@ function SheetContent({
       <SheetOverlay />
       <DialogPrimitive.Popup
         data-slot="sheet-content"
+        // `max-h-[85svh]` caps the sheet so it can never exceed the visible
+        // viewport. svh (small-viewport-height) is accurate on iOS even
+        // when the URL bar is showing or the soft keyboard is open.
+        //
+        // `overflow-y-auto` scrolls long content INSIDE the sheet instead
+        // of pushing the sheet past the screen edge — the original bug
+        // that forced users to pinch-zoom-out to find the buttons.
+        //
+        // `overscroll-contain` keeps a flick at the top of the sheet from
+        // chaining into the underlying page scroll.
+        //
+        // Bottom padding uses `max()` against `env(safe-area-inset-bottom)`
+        // so the iPhone home-indicator never overlaps the sheet's bottom
+        // buttons.
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-md flex-col rounded-t-2xl bg-popover p-5 text-popover-foreground shadow-xl ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom",
-          className
+          "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85svh] max-w-md flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-2xl bg-popover px-5 pt-5 text-popover-foreground shadow-xl ring-1 ring-foreground/10 outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom",
+          className,
         )}
+        style={{
+          paddingBottom:
+            "max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem))",
+          ...style,
+        }}
         {...props}
       >
         {children}
