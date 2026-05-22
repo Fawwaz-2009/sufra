@@ -3,6 +3,7 @@ import { SignOut } from "@phosphor-icons/react"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { BottomNav } from "@/components/bottom-nav"
+import { PoweredBy } from "@/components/powered-by"
 import { useAuth } from "@/lib/auth-context"
 import { deriveProfile } from "../../../worker/profile/isomorphic/derive"
 import type { ProfileSnapshot } from "../../../worker/profile/schema"
@@ -72,6 +73,7 @@ function Profile() {
         />
         <AccountSection username={auth.session?.user.username ?? ""} />
         <SavedMealsSection />
+        <PoweredBy />
       </main>
 
       <BottomNav />

@@ -1,3 +1,10 @@
-# https://www.robotstxt.org/robotstxt.html
+# Sufra · robots.txt
+#
+# Public marketing site — everything is fair game to crawl.
+# The deployed app instances (where actual user data lives) carry their
+# own gates and aren't reachable from here.
+
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://sufra.fawwaz.dev/sitemap.xml

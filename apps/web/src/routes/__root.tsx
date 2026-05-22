@@ -37,11 +37,11 @@ function isOnboardingExempt(pathname: string): boolean {
 }
 
 // Paths where the install gate is suppressed. The bootstrap touchpoints —
-// first-time host Setup, password-link redemption, the public how-it-works
-// page — must remain reachable in a browser because that's where a fresh
-// member or host actually starts. Everything else (Day view, Profile,
-// /admin, /login, /meals/...) is hidden behind the gate on mobile.
-const INSTALL_GATE_EXEMPT_PATHS = new Set(["/setup", "/how-it-works"])
+// first-time host Setup and password-link redemption — must remain reachable
+// in a browser because that's where a fresh member or host actually starts.
+// Everything else (Day view, Profile, /admin, /login, /meals/...,
+// /how-it-works) is hidden behind the gate on mobile.
+const INSTALL_GATE_EXEMPT_PATHS = new Set(["/setup"])
 
 function isInstallGateExempt(pathname: string): boolean {
   if (INSTALL_GATE_EXEMPT_PATHS.has(pathname)) return true

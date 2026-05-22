@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query"
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
+import { toast } from "sonner"
 
 import { BottomNav } from "@/components/bottom-nav"
 import { DaySummaryPanel } from "@/components/day-summary-panel"
@@ -113,6 +114,13 @@ function Home() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] })
     },
+    // Surface failures with a clear toast instead of silently reverting the
+    // button. Server returns the error code (see worker/errors.ts ERROR_CODES);
+    // map known codes to readable copy. Anything we don't recognize falls
+    // through to a generic message — the user can retry.
+    onError: (error: Error) => {
+      toast.error(captureErrorMessage(error.message))
+    },
   })
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -204,4 +212,24 @@ function Home() {
       <BottomNav />
     </DayShell>
   )
+}
+
+// Map server error codes (worker/errors.ts ERROR_CODES) to user-readable
+// copy for the capture toast. Keep messages calm and short — they appear
+// at top-center where they compete with the Day view for attention.
+function captureErrorMessage(code: string): string {
+  switch (code) {
+    case "photo_too_large":
+      return "Photo is too big. Try a smaller one."
+    case "captured_at_in_future":
+      return "Can't log a meal in the future."
+    case "too_many_requests":
+      return "You've reached today's AI limit. Try again tomorrow."
+    case "unauthorized":
+      return "Signed out — sign in again to continue."
+    case "photo_missing":
+      return "Couldn't read the photo. Try again."
+    default:
+      return "Couldn't save that meal. Try again in a moment."
+  }
 }

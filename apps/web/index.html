@@ -8,9 +8,44 @@
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0a09" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!--
+      `default` lets iOS reserve the status-bar slot at the top of the
+      screen, so the page content starts cleanly below the notch /
+      Dynamic Island. The previous `black-translucent` made the status
+      bar an overlay on top of web content — which only works if every
+      page wrapper carries `pt-[env(safe-area-inset-top)]`, which we
+      don't have. The day header, back arrows, and "Today" title were
+      all rendering behind the notch as a result.
+    -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Sufra" />
     <title>Sufra</title>
+
+    <!--
+      Open Graph + Twitter card.
+
+      The most-shared URL of a deployed Sufra instance is the password
+      link a Host pastes into WhatsApp/iMessage when inviting a Member.
+      Every share renders a preview using these tags — that preview is
+      the brand impression. Image is a generic Sufra card; v2 may add
+      per-Sufra personalization (family name in the image).
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sufra" />
+    <meta property="og:title" content="Sufra — a photo-first calorie tracker for the people at your table" />
+    <meta property="og:description" content="You've been invited to a Sufra. Set your password to join — open-source, host-deployed, never phones home." />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Sufra — a photo-first calorie tracker" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sufra — a photo-first calorie tracker" />
+    <meta name="twitter:description" content="Photo-first calorie tracking for the people at your table." />
+    <meta name="twitter:image" content="/og.png" />
+
+    <meta name="description" content="Sufra is an open-source, photo-first calorie tracker for households. Deployed to your own Cloudflare account; never phones home." />
   </head>
   <body>
     <div id="root"></div>

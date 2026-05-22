@@ -348,11 +348,24 @@ function Home() {
             Sufra · a photo-first calorie tracker for households. Built on
             Cloudflare Workers, D1, and R2. Inference via OpenRouter — host's
             key, host's bill. MIT licensed. No telemetry. No email. v0.1, in
-            dogfood. Set in Fraunces, Manrope, and JetBrains Mono. Made
+            dogfood. Set in Fraunces, Raleway, and JetBrains Mono. Made by{' '}
+            <a
+              href="https://fawwaz.dev/sufra"
+              className="foot__creator"
+              rel="noopener"
+            >
+              Fawwaz
+            </a>{' '}
             between meals.
           </p>
           <div className="foot__meta">
-            <span>github.com/Fawwaz-2009/sufra</span>
+            <a
+              href="https://github.com/Fawwaz-2009/sufra"
+              className="foot__github"
+              rel="noopener"
+            >
+              github.com/Fawwaz-2009/sufra
+            </a>
             <span className="dot">·</span>
             <span>MIT</span>
             <span className="dot">·</span>

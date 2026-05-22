@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
 import { InstallGate } from "@/components/install-gate"
+import { PoweredBy } from "@/components/powered-by"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -150,6 +151,7 @@ function SetPassword() {
           {isSubmitting ? "Setting…" : "Start using Sufra →"}
         </Button>
       </form>
+      <PoweredBy />
     </Shell>
   )
 }

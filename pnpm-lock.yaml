@@ -166,6 +166,9 @@ importers:
       prettier:
         specifier: ^3.8.1
         version: 3.8.3
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
       typescript:
         specifier: ^6.0.2
         version: 6.0.3

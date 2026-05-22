@@ -41,7 +41,17 @@ export function BottomNav() {
   const isHost = session?.user.role === "host"
 
   return (
-    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md justify-center px-3 pb-3">
+    // Bottom padding clears the iPhone home-indicator safe area. `pb-3`
+    // alone (12px) is too tight on devices with a home-indicator zone
+    // (~34px), so we max() against it. The same rule applies to Android
+    // gesture-bar devices that report a non-zero safe-area-inset-bottom.
+    <nav
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md justify-center px-3"
+      style={{
+        paddingBottom:
+          "max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.25rem))",
+      }}
+    >
       <div className="pointer-events-auto flex w-full items-center justify-around rounded-full bg-card/95 px-2 py-1.5 shadow-lg ring-1 ring-foreground/10 backdrop-blur">
         <NavItem
           to="/"

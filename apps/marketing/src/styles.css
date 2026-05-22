@@ -644,6 +644,7 @@ pre code {
   flex-wrap: wrap;
   gap: 0 var(--space-md);
   color: var(--color-ink-soft);
+  align-items: baseline;
 }
 
 .foot__meta span {
@@ -652,6 +653,22 @@ pre code {
 
 .foot__meta .dot {
   color: var(--color-rule);
+}
+
+.foot__creator,
+.foot__github {
+  color: var(--color-ink-soft);
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule);
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.foot__creator:hover,
+.foot__github:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
 }
 
 /* Narrow viewports */

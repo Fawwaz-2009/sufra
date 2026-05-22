@@ -131,3 +131,16 @@
     @apply font-sans;
     }
 }
+
+/* Sonner toaster — keep clear of iPhone's notch / Dynamic Island when the
+ * app runs in PWA standalone mode. The `offset`/`mobileOffset` props on the
+ * <Toaster /> handle this in code; this CSS is a belt-and-suspenders rule
+ * so the toast can never hide behind the bezel if the JS prop is dropped
+ * (e.g., on iOS PWA quirks, or future Sonner upgrades that change the API).
+ */
+[data-sonner-toaster][data-y-position="top"] {
+  top: max(env(safe-area-inset-top, 0px) + 0.5rem, 0.75rem) !important;
+}
+[data-sonner-toaster][data-y-position="bottom"] {
+  bottom: max(env(safe-area-inset-bottom, 0px) + 0.5rem, 0.75rem) !important;
+}

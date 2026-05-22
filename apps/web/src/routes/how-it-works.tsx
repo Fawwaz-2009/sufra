@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { ArrowLeft } from "@phosphor-icons/react"
 
@@ -7,6 +8,7 @@ import { ACTIVITY_MULTIPLIERS } from "../../worker/profile/isomorphic/derive"
 // Static methodology page. Excluded from the onboarding gate (see __root.tsx)
 // so it can be linked from the wizard's ⓘ icons and from anywhere a Member
 // wants to verify the math.
+const CANONICAL_URL = "https://sufra.fawwaz.dev/how-it-works"
 
 export const Route = createFileRoute("/how-it-works")({
   component: HowItWorks,
@@ -14,6 +16,18 @@ export const Route = createFileRoute("/how-it-works")({
 
 function HowItWorks() {
   const router = useRouter()
+
+  // Inject the canonical link tag for this route. Removes itself on
+  // navigation away so it doesn't leak onto other routes.
+  useEffect(() => {
+    const tag = document.createElement("link")
+    tag.rel = "canonical"
+    tag.href = CANONICAL_URL
+    document.head.appendChild(tag)
+    return () => {
+      document.head.removeChild(tag)
+    }
+  }, [])
   // Browser-history back so the destination depends on entry point —
   // Profile → How → back lands on Profile; Day Summary ⓘ → How → back
   // lands on the Day view. Falls back to / if there's no history (e.g.
@@ -189,9 +203,40 @@ target = maintenance + direction × weekly_rate × 1100`}
             recommendations.
           </p>
         </Section>
+
+        <PoweredBy />
       </main>
       <BottomNav />
     </div>
+  )
+}
+
+// Sufra attribution footer — appears only on /how-it-works (the one public
+// page per deployed instance). Each instance running this becomes a
+// soft backlink to the canonical site. Remove by deleting the <PoweredBy />
+// reference above if you'd rather not attribute.
+function PoweredBy() {
+  return (
+    <footer className="mt-4 flex flex-col items-center gap-1 border-t border-border pt-6 text-xs text-muted-foreground">
+      <p>
+        Built with{" "}
+        <a
+          href="https://sufra.fawwaz.dev"
+          rel="noopener"
+          className="text-foreground underline decoration-dotted underline-offset-2 hover:text-primary"
+        >
+          Sufra
+        </a>
+        {" · "}
+        <a
+          href="https://github.com/Fawwaz-2009/sufra"
+          rel="noopener"
+          className="underline decoration-dotted underline-offset-2 hover:text-primary"
+        >
+          source
+        </a>
+      </p>
+    </footer>
   )
 }
 
