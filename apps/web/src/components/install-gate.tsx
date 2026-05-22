@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { DotsThreeVertical, List } from "@phosphor-icons/react"
+import { EllipsisVertical, Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -342,7 +342,7 @@ function ShareIcon() {
 function FirefoxMenuIcon() {
   return (
     <span className="inline-flex size-6 items-center justify-center rounded-md border border-border bg-card text-foreground">
-      <List size={16} weight="bold" />
+      <Menu size={16} strokeWidth={2.5} />
     </span>
   )
 }
@@ -350,7 +350,7 @@ function FirefoxMenuIcon() {
 function MenuIcon() {
   return (
     <span className="inline-flex size-5 items-center justify-center rounded-md border border-border bg-card text-foreground">
-      <DotsThreeVertical size={14} weight="bold" />
+      <EllipsisVertical size={14} strokeWidth={2.5} />
     </span>
   )
 }

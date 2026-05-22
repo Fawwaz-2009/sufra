@@ -1,4 +1,4 @@
-import { CaretLeft, CaretRight } from "@phosphor-icons/react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
@@ -21,7 +21,7 @@ export function DayHeader({
         onClick={onPrev}
         aria-label="Previous week"
       >
-        <CaretLeft className="size-5" weight="bold" />
+        <ChevronLeft className="size-5" strokeWidth={2.5} />
       </Button>
       <h1 className="font-heading text-base font-semibold">{label}</h1>
       <Button
@@ -31,7 +31,7 @@ export function DayHeader({
         disabled={!canGoNext}
         aria-label="Next week"
       >
-        <CaretRight className="size-5" weight="bold" />
+        <ChevronRight className="size-5" strokeWidth={2.5} />
       </Button>
     </header>
   )

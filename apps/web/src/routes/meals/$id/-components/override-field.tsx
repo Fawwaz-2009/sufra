@@ -1,4 +1,4 @@
-import { X } from "@phosphor-icons/react"
+import { X } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,7 +31,7 @@ export function OverrideField({
             aria-label={`Clear ${label} override`}
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider transition-colors"
           >
-            <X className="size-2.5" weight="bold" />
+            <X className="size-2.5" strokeWidth={2.5} />
             edited
           </button>
         )}

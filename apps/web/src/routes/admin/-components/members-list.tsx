@@ -1,5 +1,5 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
-import { Key, Trash } from "@phosphor-icons/react"
+import { KeyRound, Trash } from "lucide-react"
 import { toast } from "sonner"
 
 import { api } from "@/lib/api"
@@ -62,7 +62,7 @@ export function MembersList({
             }
             className="rounded-full p-2 text-muted-foreground hover:bg-foreground/5 hover:text-foreground disabled:opacity-50"
           >
-            <Key className="size-5" weight="bold" />
+            <KeyRound className="size-5" strokeWidth={2.5} />
           </button>
           <button
             type="button"
@@ -70,7 +70,7 @@ export function MembersList({
             onClick={() => onDelete(m)}
             className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
-            <Trash className="size-5" weight="bold" />
+            <Trash className="size-5" strokeWidth={2.5} />
           </button>
         </li>
       ))}

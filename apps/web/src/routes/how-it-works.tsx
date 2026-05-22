@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
-import { ArrowLeft } from "@phosphor-icons/react"
+import { ArrowLeft } from "lucide-react"
 
 import { BottomNav } from "@/components/bottom-nav"
 import { ACTIVITY_MULTIPLIERS } from "../../worker/profile/isomorphic/derive"
@@ -48,7 +48,7 @@ function HowItWorks() {
           aria-label="Back"
           className="-ms-2 inline-flex size-9 items-center justify-center rounded-md hover:bg-foreground/5"
         >
-          <ArrowLeft className="size-5" weight="bold" />
+          <ArrowLeft className="size-5" strokeWidth={2.5} />
         </button>
         <h1 className="font-heading text-xl font-semibold">How does this work?</h1>
       </header>

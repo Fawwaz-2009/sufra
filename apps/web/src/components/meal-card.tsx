@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Camera } from "@phosphor-icons/react"
+import { Camera } from "lucide-react"
 
 import { formatMealTime } from "@/lib/date"
 import { cn } from "@/lib/utils"

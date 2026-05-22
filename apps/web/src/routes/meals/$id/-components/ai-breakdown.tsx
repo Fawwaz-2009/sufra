@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Sparkle, PencilSimple } from "@phosphor-icons/react"
+import { Sparkles, Pencil } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { Confidence } from "../../../../../worker/meals/estimator/schema"
@@ -38,7 +38,7 @@ export function AiBreakdown({
     >
       <div className="flex items-center justify-between gap-2">
         <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
-          <Sparkle weight="fill" className="size-3" />
+          <Sparkles className="size-3 fill-current" />
           AI estimate
         </div>
         <button
@@ -49,7 +49,7 @@ export function AiBreakdown({
             IMPROVE_BUTTON_STYLES[aiAnalysis.overallConfidence]
           )}
         >
-          <PencilSimple className="size-3" weight="bold" />
+          <Pencil className="size-3" strokeWidth={2.5} />
           Improve
         </button>
       </div>

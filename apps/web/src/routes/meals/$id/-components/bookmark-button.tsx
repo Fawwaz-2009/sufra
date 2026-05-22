@@ -1,4 +1,4 @@
-import { BookmarkSimple } from "@phosphor-icons/react"
+import { Bookmark } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -47,9 +47,11 @@ export function BookmarkButton({
         "disabled:opacity-50"
       )}
     >
-      <BookmarkSimple
-        weight={saved ? "fill" : "regular"}
-        className={cn("size-5", saved ? "text-primary" : "text-muted-foreground")}
+      <Bookmark
+        className={cn(
+          "size-5",
+          saved ? "fill-current text-primary" : "text-muted-foreground",
+        )}
       />
     </button>
   )

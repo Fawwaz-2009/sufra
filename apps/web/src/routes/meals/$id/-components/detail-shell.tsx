@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft } from "@phosphor-icons/react"
+import { ArrowLeft } from "lucide-react"
 
 // Shared chrome for the meal-detail route. Wraps the route component, the
 // pending skeleton, the not-found state, and the error state so the back

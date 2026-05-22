@@ -1,4 +1,4 @@
-import { CurrencyDollar } from "@phosphor-icons/react"
+import { DollarSign } from "lucide-react"
 
 export function CostCard({
   totalUsd,
@@ -12,7 +12,7 @@ export function CostCard({
   return (
     <div className="mb-6 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
       <div className="flex items-start gap-3">
-        <CurrencyDollar className="size-6 shrink-0" weight="bold" />
+        <DollarSign className="size-6 shrink-0" strokeWidth={2.5} />
         <div className="min-w-0 flex-1">
           <p className="text-sm text-muted-foreground">
             Inference cost this month

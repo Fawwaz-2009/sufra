@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { CaretRight } from "@phosphor-icons/react"
+import { ChevronRight } from "lucide-react"
 
 export function SectionCard({
   label,
@@ -38,7 +38,7 @@ export function Row({
       <span className="text-sm font-medium">{label}</span>
       <span className="flex items-center gap-1 text-sm text-muted-foreground">
         {value}
-        <CaretRight className="size-3.5" weight="bold" />
+        <ChevronRight className="size-3.5" strokeWidth={2.5} />
       </span>
     </button>
   )

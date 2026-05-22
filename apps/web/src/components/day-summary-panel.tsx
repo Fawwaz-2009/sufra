@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react"
-import { Info } from "@phosphor-icons/react"
+import { Info } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 
 import { cn } from "@/lib/utils"

@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { SignOut } from "@phosphor-icons/react"
+import { LogOut } from "lucide-react"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { BottomNav } from "@/components/bottom-nav"
@@ -59,7 +59,7 @@ function Profile() {
           aria-label="Sign out"
           className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <SignOut className="size-5" weight="bold" />
+          <LogOut className="size-5" strokeWidth={2.5} />
         </button>
       </header>
 

@@ -1,5 +1,5 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ComponentType } from "react"
-import { ChartLineUp, House, Shield, User } from "@phosphor-icons/react"
+import { TrendingUp, House, Shield, User } from "lucide-react"
 import { createLink } from "@tanstack/react-router"
 
 import { useAuth } from "@/lib/auth-context"
@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 
 type IconComp = ComponentType<{
   className?: string
-  weight?: "bold" | "fill"
+  strokeWidth?: number
 }>
 
 type NavItemBaseProps = ComponentPropsWithoutRef<"a"> & {
@@ -16,6 +16,9 @@ type NavItemBaseProps = ComponentPropsWithoutRef<"a"> & {
   active?: boolean
 }
 
+// Active tabs get a slightly heavier stroke + `fill-current` so the icon
+// reads as "selected" without needing a separate filled glyph. Lucide
+// doesn't ship filled variants like Phosphor did, so we lean on CSS.
 const NavItemBase = forwardRef<HTMLAnchorElement, NavItemBaseProps>(
   ({ icon: Icon, label, active, className, ...rest }, ref) => (
     <a
@@ -27,7 +30,10 @@ const NavItemBase = forwardRef<HTMLAnchorElement, NavItemBaseProps>(
       )}
       {...rest}
     >
-      <Icon className="size-5" weight={active ? "fill" : "bold"} />
+      <Icon
+        className={cn("size-5", active && "fill-current")}
+        strokeWidth={active ? 2.25 : 2}
+      />
       <span>{label}</span>
     </a>
   )
@@ -63,7 +69,7 @@ export function BottomNav() {
         <NavItem
           to="/progress"
           activeProps={{ active: true }}
-          icon={ChartLineUp}
+          icon={TrendingUp}
           label="Progress"
         />
         <NavItem

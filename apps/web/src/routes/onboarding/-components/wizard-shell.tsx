@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { CaretLeft } from "@phosphor-icons/react"
+import { ChevronLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -29,7 +29,7 @@ export function BackButton({
       className={cn(disabled && "invisible")}
       aria-label="Back"
     >
-      <CaretLeft className="size-5" weight="bold" />
+      <ChevronLeft className="size-5" strokeWidth={2.5} />
     </Button>
   )
 }

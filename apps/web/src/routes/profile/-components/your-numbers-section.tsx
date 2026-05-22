@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { Info } from "@phosphor-icons/react"
+import { Info } from "lucide-react"
 
 import { SectionCard } from "./section-card"
 

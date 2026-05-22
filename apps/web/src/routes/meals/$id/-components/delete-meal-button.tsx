@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query"
 import { useNavigate, useRouter } from "@tanstack/react-router"
-import { Trash } from "@phosphor-icons/react"
+import { Trash } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -71,7 +71,7 @@ export function DeleteMealButton({ mealId }: { mealId: string }) {
         disabled={otherMutationPending || deleteMutation.isPending}
         onClick={() => setOpen(true)}
       >
-        <Trash className="size-4" weight="bold" />
+        <Trash className="size-4" strokeWidth={2.5} />
         Delete meal
       </Button>
 

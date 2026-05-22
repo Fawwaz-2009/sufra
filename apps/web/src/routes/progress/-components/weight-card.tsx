@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { PencilSimple } from "@phosphor-icons/react"
+import { Pencil } from "lucide-react"
 
 import { LogWeightSheet } from "@/components/log-weight-sheet"
 import { formatWeight } from "@/lib/units"
@@ -41,7 +41,7 @@ export function WeightCard({
           onClick={() => setLogOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-md border border-foreground/10 px-3 py-1.5 text-xs font-medium hover:bg-foreground/5"
         >
-          <PencilSimple className="size-3.5" weight="bold" />
+          <Pencil className="size-3.5" strokeWidth={2.5} />
           Log weight
         </button>
       </div>
