@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
+import { BottomNav } from "@/components/bottom-nav"
 import { requireHost } from "@/client/gate"
 import { AddMemberForm } from "./-components/add-member-form"
 import { AdminHeader, AdminShell } from "./-components/admin-shell"
@@ -43,7 +44,7 @@ function Admin() {
     <AdminShell>
       <AdminHeader />
 
-      <main className="flex-1 px-5 pb-12">
+      <main className="flex-1 px-5 pb-24">
         <CostCard
           totalUsd={cost.totalUsd}
           perMemberAvgUsd={cost.perMemberAvgUsd}
@@ -62,6 +63,8 @@ function Admin() {
         member={memberToDelete}
         onOpenChange={(open) => !open && setMemberToDelete(null)}
       />
+
+      <BottomNav />
     </AdminShell>
   )
 }

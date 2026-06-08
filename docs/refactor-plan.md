@@ -230,11 +230,53 @@ Realizes **ADR 0009, 0011** (calorie-history as a read-model).
   `ensureQueryData` reads stale `needsSetup=true` and loops). `admin` / `setup` / `set-password` restored;
   the bottom-nav + Progress stay deferred to Slice 5 (admin is URL-reachable for now, like Profile).
 
+## Slice 5 — decisions landed (progress + cleanup)
+
+- **calorie-history read-model placement (the open follow-up): `domain/calorie-history.ts`, a read verb.**
+  `CalorieHistory.index(query)` — no writes → NOT an aggregate-with-concerns, just a read verb (the
+  `Cost.show` precedent). HTTP op `index` (`GET /calorie-history?from&to&bucket&tz`) → `Array(
+  CalorieHistoryBucketView)`, user-scoped (CurrentUser via the api-wide auth; no resource middleware, like
+  `/me` + `/weights`). It reads `MealsRepo.inRange` + `ProfileSnapshotsRepo.history`, then a PURE `rollup`
+  (the TZ-bucketing + avg-over-logged-days + adherence color, ported verbatim from the old Hono module and
+  co-located below the verb) reusing `views/meal.ts` `resolveTotals` + `views/derive.ts` `snapshotFor` /
+  `deriveProfile`. The historical per-day Target honors the ADR 0002 seal (snapshotFor per day).
+- **Estimator: `callVisionModel` extracted (`estimator/call.ts`) — the SHARED bare OpenRouter call.** The
+  re-platform turned the estimator into an Effect service (`EstimatorLive`) the evals can't call directly,
+  and the prod path is English-only — which broke the eval's "same code path / no schema-prompt drift"
+  guarantee. Fix: `callVisionModel({ apiKey, modelId, photo, locale?, userText? })` is the one place that
+  talks to OpenRouter (same model, system + user prompts, derived JSON Schema, `response_format`).
+  `EstimatorLive` delegates to it (locale "en") keeping its typed-failure + audit wrapper; the evals call it
+  directly and decode via the single-source `MealAnalysis`. The only knob the evals need that prod doesn't
+  is `locale` (the plumbing). Closes the "evals import path" follow-up.
+- **`apps/evals` repointed** to `../web/src/worker/estimator/{call,models}.ts` + `../web/src/worker/models/
+  meal-analysis.ts`. Added `effect@4.0.0-beta.74` (transitively needed by the Effect-derived `MealAnalysis`)
+  + `allowImportingTsExtensions` to the evals tsconfig; `include` drops the old worker glob (the new files
+  are pulled in transitively via the imports). Evals typecheck clean.
+- **The OLD `apps/web/worker/` is DELETED** (the two-worker-folder situation resolved — only the live
+  `apps/web/src/worker/` remains), with the orphan `tsconfig.app.json` / `tsconfig.node.json` (dangling Vite
+  scaffold, in no live build path) + the dead `drizzle.config.ts` (`drizzle-kit` isn't even installed) + the
+  now-empty `deferred-frontend/`. **eslint:** dropped the `worker/**` + `deferred-frontend/**` global
+  ignores AND the entire ADR 0005 `no-restricted-imports` "isomorphism boundary" rule — it was anchored to
+  the deleted paths; the browser-safe boundary is now STRUCTURAL (the split tsconfig: server-only
+  `src/worker/*` can't compile under the frontend's DOM scope). An explicit ESLint boundary rule for the new
+  stack is a known, deliberate gap (fawwaz-coding-style "Known gaps").
+- **Bottom-nav restored — 4 tabs (Today / Progress / Profile / Admin).** Reads `role` from `meQueryOptions`
+  (primed by the route gate on every tab — no extra fetch); the Admin tab is host-only. Wired into the Day /
+  Profile / Admin shells (Progress carries its own). **The Weight chart's `id` is now a string** (the new
+  `weights` UUID-v7 id, not the old autoincrement int); its delete goes through the typed client.
+- **`CalorieHistoryBucketView`** = `{ bucketStart, kcalAvg, targetAvg, color: "ok"|"warn"|"over"|null,
+  daysWithData }` (`views/calorie-history.ts`, browser-safe). `kcalAvg` is avg over days-WITH-data (not ÷
+  days-in-bucket — that would understate a partially-logged bucket); color thresholds match the Day view's
+  week strip (≤Target green / 0–15% over yellow / >15% red).
+- **CLAUDE.md rewritten** to the new Effect + Cloudflare architecture (the old file described the deleted
+  Hono/Drizzle/zod stack + layout). It now points to the fawwaz-coding-style skill as the conventions
+  authority and records the project-specific deltas.
+
 ## Open follow-ups (not yet decided — flag, don't invent)
 
 - **Tooling specifics** — the skill `conventions:sync` wiring, the `auth:generate` script, the `kysely@0.28.17` pin, and the split tsconfig (browser-safe vs worker) boundary.
-- **Estimator evals import path** — `evals/estimator-provider.ts` still imports the OLD zod leaf; repoint
-  it to the new Effect estimator (and its single-source `MealAnalysis`) in Slice 5.
-- **calorie-history read-model placement** — exactly where it lives; read-models are a gap in the skill.
+- ~~**Estimator evals import path**~~ — **CLOSED in Slice 5** (repointed to `callVisionModel` + single-source `MealAnalysis`).
+- ~~**calorie-history read-model placement**~~ — **CLOSED in Slice 5** (`domain/calorie-history.ts`, a read verb; the `Cost.show` precedent).
+- **The cutover (the only thing left before `main`)** — ops, needs Cloudflare creds: create prod + staging KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging D1 (no data migration), deploy, flip to `main`, delete memory `project_sufra_replatform`. See `docs/refactor-handoff-3.md §6`.
 - **The future `packages/contract` lift** — extracting browser-safe `contract`/`models`/`views` into a shared package when Expo lands.
 - **Future Member `displayName` + avatar** — the avatar via the `attachable` model; deferred.

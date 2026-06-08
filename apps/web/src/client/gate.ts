@@ -26,7 +26,9 @@ export async function requireOnboarded(queryClient: QueryClient): Promise<void> 
 /**
  * The host-only gate (the `/admin` surface). Setup tier first (no Host → `/setup`), then session (none →
  * `/login`), then role: a non-host is bounced to `/` (the client mirror of the server's HostOnly 404 — the
- * backend is the real gate, this just avoids rendering a page that would 404 its data). Does NOT prime `/me`.
+ * backend is the real gate, this just avoids rendering a page that would 404 its data). Primes `/me` so the
+ * bottom-nav (which reads `role` from it) paints the Admin tab on the FIRST frame of a cold/direct `/admin`
+ * load — without it `me` is undefined and the Host's own current tab is briefly missing.
  */
 export async function requireHost(queryClient: QueryClient): Promise<void> {
   const status = await queryClient.ensureQueryData(setupStatusQueryOptions())
@@ -34,4 +36,5 @@ export async function requireHost(queryClient: QueryClient): Promise<void> {
   const { data } = await authClient.getSession()
   if (!data) throw redirect({ to: "/login" })
   if (roleOf(data.user) !== "host") throw redirect({ to: "/" })
+  await queryClient.ensureQueryData(meQueryOptions())
 }

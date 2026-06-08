@@ -25,6 +25,7 @@ import { EstimatorLayer } from "./estimator/layers.ts"
 import { MeControllerLive } from "./controllers/me.ts"
 import { ProfileSnapshotsControllerLive } from "./controllers/profile-snapshots.ts"
 import { WeightsControllerLive } from "./controllers/weights.ts"
+import { CalorieHistoryControllerLive } from "./controllers/calorie-history.ts"
 import { MealsControllerLive } from "./controllers/meals.ts"
 import { OverrideControllerLive } from "./controllers/meals/override.ts"
 import { RefinementControllerLive } from "./controllers/meals/refinement.ts"
@@ -96,6 +97,7 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     Layer.provide(MeControllerLive),
     Layer.provide(ProfileSnapshotsControllerLive),
     Layer.provide(WeightsControllerLive),
+    Layer.provide(CalorieHistoryControllerLive),
     Layer.provide(MealsControllerLive),
     Layer.provide(OverrideControllerLive),
     Layer.provide(RefinementControllerLive),

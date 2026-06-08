@@ -1,327 +1,202 @@
 # Sufra — Agent Orientation
 
-Two docs anchor this codebase:
+Three things anchor this codebase. Read the relevant one **before** you act:
 
-- **`CONTEXT.md`** — domain glossary. Canonical terms (Meal, Estimate, Override, Refinement, Total, Confidence, Clarification, Day, Target, Host, Member, …). Read first whenever you're about to name something or describe a concept in code or docs.
-- **`PRD.md`** — product decisions, milestones, positioning, architecture intent, open questions in §10. Read before any non-trivial change.
+- **The house style — `~/.claude/skills/fawwaz-coding-style/`** (SKILL.md + `references/*.md`). Sufra's
+  backend AND frontend are built on these Effect v4 + Cloudflare conventions. **Read the relevant
+  `references/<x>.md` IN FULL before building that layer** — where a file goes, what it's called, how a
+  resource is shaped, how auth is read, how an error becomes a status are all decided there, so the
+  thinking goes to the **domain**, not the plumbing. Don't reinvent a pattern the skill already settles.
+- **`CONTEXT.md`** — the domain glossary. Canonical terms (Meal, Estimate, Override, Refinement, Total,
+  Confidence, Clarification, Day, Target, Maintenance, Host, Member, Identity, Setup, Onboarding, Profile
+  snapshot, Weight, Progress, Password link, Saved Meal, …). Read first whenever you name something.
+  **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
+- **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-This file is the short orientation; the others are the long-form. **Use the vocabulary in CONTEXT.md exactly in code, comments, commit messages, and PRs.** "Estimate" not "analysis." "Member" not "end user" in product copy (schema still says `user` — see Pending renames below).
+`docs/adr/0001–0016` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform);
+`docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
 
-A photo-first calorie tracker for households. **Host-deployed** on the Host's own Cloudflare account, **host-paid inference**, multi-user (Host provisions accounts for Members). PWA, English + Arabic, Middle Eastern cuisine as a first-class citizen.
+A photo-first calorie tracker for households. **Host-deployed** on the Host's own Cloudflare account,
+**host-paid inference**, multi-user (the Host provisions accounts for Members). PWA, English-only in v1
+(translation deferred to v2; the plumbing exists, exercised by evals), Middle Eastern cuisine as a
+first-class citizen.
 
 ## Stack
 
-- **Frontend:** Vite + React 19 + TanStack Router (file-based, loader + `useSuspenseQuery`) + TanStack Query + Tailwind v4 + shadcn
-- **Backend:** Hono on Cloudflare Workers, single Worker serving SPA assets and `/api/*`
-- **Database:** Cloudflare D1 via Drizzle ORM
-- **Storage:** Cloudflare R2 (binding `BUCKET`), accessed via authenticated Worker routes — no S3 presigned URLs
-- **Auth:** better-auth with `username` + `admin` plugins; no email anywhere
-- **PWA:** vite-plugin-pwa with workbox (autoUpdate; `/api/*` is NetworkOnly)
-- **Inference:** OpenRouter, called via `estimateMeal(env, photo, opts)` in `apps/web/worker/meals/estimator/`
-- **Dev:** `@cloudflare/vite-plugin` runs Worker inside `vite dev` against workerd
-- **Monorepo:** pnpm workspaces + Turborepo. Two apps: `apps/web` (SPA + Worker — kept together because the Cloudflare Vite plugin glues them) and `apps/evals` (promptfoo harness). Root `package.json` is a thin orchestrator.
+Backend **and** frontend run on **one Cloudflare Worker** (the Rails / 37signals tradition), in the
+**fawwaz-coding-style** (Effect v4-beta). The pre-2026 Hono + Drizzle + zod stack is gone — don't look for it.
+
+- **Backend:** an **Effect `HttpApi`** on Cloudflare Workers (no Hono). D1 via Effect's SQL stack
+  (`@effect/sql-d1` + a thin `Command` / `makeTable` layer — **no Drizzle anywhere**). One Worker serves
+  the SPA assets and `/api/*`.
+- **Auth:** **Better Auth** on the **Kysely-D1 dialect** (not Drizzle), sessions in **Cloudflare KV** via
+  `secondaryStorage`; `username` + `admin` plugins; **no email anywhere** (username + password).
+- **Frontend:** Vite + React 19 + **TanStack Router** (file-based, `beforeLoad` gate + loader +
+  `useSuspenseQuery`) + TanStack Query + Tailwind v4 + shadcn. The browser reaches the backend ONLY over
+  HTTP, through a **typed `HttpApiClient` derived from `worker/contract`** (no codegen). SPA, not SSR
+  (ADR 0015).
+- **Storage:** Cloudflare R2 (binding `BUCKET`) via a `Blobs` service; photos serve through the
+  **authenticated Worker proxy** `GET /api/meals/:id/photo`, never a public/presigned URL (ADR 0014).
+- **Inference:** OpenRouter via the AI SDK, wrapped as an **env-swapped Effect `Estimator` service**
+  (`EstimatorLive` / `EstimatorTest`). The bare model call is `estimator/call.ts` (`callVisionModel`),
+  shared by prod AND the eval harness so they never drift.
+- **Monorepo:** pnpm workspaces + Turborepo. `apps/web` (SPA + Worker, kept together — the Cloudflare
+  Vite plugin glues them) + `apps/evals` (promptfoo harness; imports the prod `callVisionModel` + the
+  single-source `MealAnalysis`).
 
 ## Run it
 
-All commands run from the repo root unless noted. Root scripts proxy through turbo / pnpm filters.
+The work loop runs **from `apps/web`** (root scripts proxy through turbo/pnpm filters):
 
 ```
-pnpm dev                    # vite + workerd in apps/web, one port
-pnpm typecheck              # turbo runs tsc -b in both packages
-pnpm build                  # turbo runs build in both packages
-pnpm lint
-pnpm db:generate            # drizzle-kit generate inside apps/web (after schema changes)
-pnpm db:migrate:local       # wrangler d1 migrations apply DB --local (against apps/web)
-pnpm db:migrate:remote      # apply migrations to prod D1
-pnpm db:migrate:staging     # apply migrations to staging D1
-pnpm cf-typegen             # regen apps/web/worker-configuration.d.ts after wrangler.jsonc edits
-pnpm deploy                 # build + wrangler deploy → sufra (prod)
-pnpm deploy:staging         # build (with CLOUDFLARE_ENV=staging) + wrangler deploy --env staging → sufra-staging
-
-pnpm eval                   # full matrix via custom EstimatorProvider (same code path as prod)
+cd apps/web
+pnpm exec tsc -p tsconfig.worker.json && pnpm exec tsc -p tsconfig.json   # typecheck (worker + frontend — two scopes)
+pnpm exec vitest run                                                      # all tests (unit + in-process request tests)
+pnpm exec wrangler d1 migrations apply DB --local                        # apply migrations to local D1
+pnpm run lint                                                            # eslint
+pnpm exec vite build                                                     # regenerates src/routeTree.gen.ts (gitignored) + proves the build
+pnpm exec wrangler types                                                 # regen worker-configuration.d.ts after wrangler.jsonc changes
+pnpm run auth:generate                                                   # regen migrations/0001_better_auth.sql after a BA upgrade/plugin
 ```
 
-Both `wrangler deploy --env staging` AND `CLOUDFLARE_ENV=staging` are required — the env var tells the Vite plugin which env to flatten into `dist/wrangler.json` at build time; the `--env` flag tells wrangler which env-namespaced Worker to deploy to. The `deploy:staging` script does both. See "Staging environment" below.
+- **Two typecheck scopes are intentional** (the browser-safe boundary, below): `tsconfig.worker.json`
+  (Worker globals, no DOM) for `src/worker` + `src/server.ts` + tests; `tsconfig.json` (DOM, no Worker
+  globals) for the frontend, which may import only the browser-safe `src/worker/{contract,models,views}`.
+- **The route tree is generated + gitignored.** After moving/adding route files, `vite build` regenerates
+  `src/routeTree.gen.ts` — until then `<Link to="/x">` / `redirect({to:"/x"})` won't typecheck. Build, then typecheck.
+- **Local D1 "table already exists":** `rm -rf apps/web/.wrangler/state`, then re-apply migrations.
+- `pnpm dev` (root) runs Vite + workerd in one port. `pnpm deploy` / `pnpm deploy:staging` build + deploy
+  (staging needs BOTH `CLOUDFLARE_ENV=staging` at build AND `--env staging` at deploy — the script does both).
 
-## Local sharp build
+## Architecture — the layered `src/worker` tree
 
-Sharp@0.34's install script runs `install/check.js`, which on machines with a Homebrew-installed `libvips` exits non-zero (version mismatch), falls back to building from source, and dies because `node-addon-api` isn't in deps. The fix: **sharp is deliberately NOT in `pnpm.onlyBuiltDependencies`** in the root `package.json`. With pnpm 9's default-secure model, that means pnpm skips sharp's install script entirely. The runtime is fine — sharp's `@img/sharp-<platform>` prebuilt binary is installed as an optional dep and loaded by sharp's entry point at runtime. `pnpm install` will print *"The following dependencies have build scripts that were ignored: sharp"* — that's the expected, working state.
-
-(The previous workaround — an `.npmrc` with `SHARP_IGNORE_GLOBAL_LIBVIPS=1` — didn't actually work. pnpm doesn't forward arbitrary `.npmrc` keys to install-script child processes, so the env var never reached check.js. Don't re-add it.)
-
-## Project layout
-
-```
-apps/
-  web/                        # @sufra/web — SPA + Cloudflare Worker
-    worker/                   # Cloudflare Worker (Hono + better-auth + Drizzle)
-      index.ts                # Hono routes; exports AppType for Hono RPC.
-                              # Protected meal routes sit behind a middleware that
-                              # attaches session to c.var. Handlers are thin —
-                              # parse → call meals module → format response.
-      auth/
-        index.ts              # createAuth(env) — better-auth instance per request
-        permissions.ts        # access controller, host + user roles
-      db/
-        index.ts              # createDb(env.DB) Drizzle factory
-        schema.ts             # all tables (auth-managed + our domain)
-        migrations/           # generated SQL, committed
-      meals/                  # Meals domain module — fat module, Rails-style.
-        index.ts              # barrel: re-exports operations + estimator
-        operations.ts         # createMealsModule(env) factory. Domain ops:
-                              # list, get, streamPhoto, create, setOverride, refine.
-                              # Owns all D1 + R2 access for meals. Sync create flow
-                              # (no DB write until estimator succeeds).
-        estimator/            # The AI module — pure function, no env coupling beyond OPENROUTER_API_KEY.
-          index.ts            # estimateMeal(env, photo, opts) — entry point + re-exports
-          schema.ts           # MealAnalysis Zod schema. NO top-level totals;
-                              # foods array is the source for kcal/macros.
-          prompts.ts          # One English system prompt + dynamic locale instruction
-                              # via getSystemPrompt(locale). LOCALE_NAMES map drives
-                              # additional languages — no per-language prompt files.
-          models.ts           # MODELS list, DEFAULT_VISION_MODEL_ID, computeCost()
-          errors.ts           # VisionError + MAX_IMAGE_BYTES (4MB defensive cap)
-    src/                      # React SPA
-      routes/                 # file-based; routeTree.gen.ts is generated, gitignored
-        __root.tsx            # auth/setup fetch happens here; results in context
-        index/                # Day view route folder
-        meals/$id/            # Meal detail route folder — Override editor,
-                              # AI Estimate w/ colored Improve button, sheet.
-        onboarding/, profile/, progress/, admin/, set-password.$token.tsx,
-        setup.tsx, login.tsx, how-it-works.tsx
-      components/
-        meal-card.tsx         # MealCard — uses /api/meals/:id/photo proxy route
-      lib/
-        api.ts                # Hono RPC client (hc<AppType>)
-        auth-client.ts        # better-auth React client
-        query-client.ts
-        date.ts               # todayRangeUtc() — client-side day bucketing
-    vite.config.ts            # vite + tanstack-router + tailwind v4 + PWA + cloudflare
-    wrangler.jsonc            # bindings: DB, BUCKET, ASSETS; env.staging block
-    worker-configuration.d.ts # generated by `wrangler types`, committed
-    drizzle.config.ts
-    tsconfig.{,app,worker,node}.json   # project references
-    .dev.vars                 # local secrets (gitignored); .dev.vars.example checked in
-  evals/                      # @sufra/evals — promptfoo harness
-    estimator-provider.ts     # Custom ApiProvider — calls estimateMeal() directly.
-                              # Imports from ../web/worker/meals/estimator/.
-                              # Eval shares the prod code path; no response_format
-                              # divergence, no thinking-mode JSON leaks.
-    promptfooconfig.ts        # MODELS-driven provider matrix
-    dishes.ts, scorers/, fixtures/
-package.json                  # workspace root — turbo + lint/prettier devDeps only
-pnpm-workspace.yaml           # packages: apps/*
-turbo.json                    # dev / build / lint / typecheck / deploy / eval pipelines
-eslint.config.js              # root config; ADR 0005 isomorphism boundary
-                              # anchored to apps/web/src/** + apps/web/worker/**/isomorphic/**
-CLAUDE.md                     # this file
-CONTEXT.md                    # Domain glossary — canonical terminology
-PRD.md                        # Product source of truth + open questions (§10)
-docs/adr/                     # 0001..0008 architecture decision records
-```
-
-## Auth model
-
-- **One auth instance per request** — `createAuth(c.env)` inside the route handler (or middleware). Don't try to memoize it at module scope (env isn't available there).
-- **No email anywhere.** better-auth requires the `email` column on `user`, so we store `<username>@sufra.local` (non-routable). Sign-in by username only.
-- **No public signup.** `disabledPaths: ["/sign-up/email"]` blocks the HTTP route. Internal `auth.api.signUpEmail()` still works — used by the setup wizard. Members are created via the admin plugin's `auth.api.createUser()`.
-- **Roles:** schema enum is `host | user`. CONTEXT.md canonicalized **Host** and **Member**, but the schema rename is still pending (see "Pending renames" below).
-- **First deploy (Setup):** `POST /api/setup` only works while zero hosts exist. Creates the host, signs them in, inits `app_settings` singleton.
-- **Protected routes:** `/api/meals/*` are covered by a Hono middleware that extracts session and 401s if missing. Handlers read `c.var.session.user.id` — no per-handler auth check duplication.
-- **Onboarding** (per-account profile + Target): not yet built. Universal across Host + Member.
-
-## Meals lifecycle
-
-The meal flow is **synchronous and atomic**. No background analysis, no `pending`/`failed` status:
-
-1. Client POSTs a multipart photo.
-2. Worker calls `meals.create()` which calls `estimateMeal(env, photo)`.
-3. **Only if the estimator succeeds**: photo goes to R2 + meal row is inserted with the analysis attached.
-4. **If the estimator throws** (network, rate limit, schema parse fail): nothing persists; the route returns an error; the client shows a toast.
-
-Consequences:
-- The `meal` table has no `analysis_status` column. A row exists ⟺ it has a valid Estimate. `ai_analysis` and `kcal_total` are NOT NULL.
-- The "loading" UX lives on the client (button spinner during the 3–5s estimator call), not in the DB.
-- No `ctx.waitUntil`, no polling, no pulsing pending cards.
-
-## Conventions
-
-- **Comments:** default to none. Only write a comment when the *why* is non-obvious (hidden constraint, surprising workaround). Never restate what the code does. Never reference PRD sections, milestones, or "current fix" in comments — that belongs in commit messages / PR descriptions.
-- **File org:** in route files, main component first; helpers, skeletons, utilities below. Don't lead with helpers — the reader wants to see the route.
-- **Type safety:** use the Hono RPC client (`api.api.*.$get()`/`$post()`) for our own routes, not raw `fetch`. Use the `authClient` for `/api/auth/*` routes.
-- **Inferred types over hand-written ones:** for modules exposing a factory + operations, return type comes from `ReturnType<typeof create…>` — don't author parallel interface declarations that have to be kept in sync.
-- **Validation:** zod v4 + `standardSchemaResolver` (from `@hookform/resolvers/standard-schema`). The older `zodResolver` is pinned to zod 3 internals and breaks.
-- **No `archive` table for users.** Cascade deletes on `user_profile` and `weight_log`. Soft-disable is via the admin plugin's `banned` flag.
-
-## Deviations from PRD worth knowing about
-
-These have been incorporated into PRD.md but are easy to miss:
-
-- **OpenRouter API key** is **not** in the admin UI. It's a Cloudflare secret (`wrangler secret put OPENROUTER_API_KEY`). Model *selection* is in `app_settings`.
-- **No forced password change** on first login. Member signs in with whatever password the Host set; they can change it from Profile later.
-- **Auth** is better-auth, not the "rolled, argon2id" plan in §8.1 — uses scrypt via Web Crypto (no WASM).
-- **R2 access is via authenticated Worker routes**, not S3 presigned URLs. The PRD's "signed URLs" language is a security stance (no public bucket exposure) which the proxy approach satisfies without S3 signing infrastructure.
-- **`captured_at` stored as UTC ISO Z**, not offset-bearing ISO. Per CONTEXT.md "Day": Day-segmentation is purely client-side based on the Member's current TZ.
-- **No top-level macros in `MealAnalysis`.** Totals are computed via `override.field ?? sum(foods[i].field)`. `meal.kcal_total` is the denormalized cache of that resolution.
-- **Override and Refinement are distinct correction paths** (CONTEXT.md). Override = manual totals correction, AI untouched. Refinement = user text → re-run AI → replace the Estimate. The Estimate itself keeps no history, but the most recent Refinement *text* is persisted on `meal.last_refinement_text` and prefilled into the Improve sheet so the Member can see + amend what they previously told the AI. Resolved as of M3.5: PRD §10 #10 + #11 — confidence chip removed, replaced by a colored Improve button beside the AI Estimate that opens a sheet with clarifications + textarea; Override visibility on the editor uses a tappable `× edited` badge plus AI-as-placeholder.
-- **`keyNutrients` deferred to v2.** Fiber / sugar / sat fat / sodium dropped from the v1 schema; calorie + macros are the v1 focus. **The day-view mockup shows these — when implementing the Day summary panel, skip the key-nutrients card.**
-- **Translation deferred to v2.** v1 ships English-only. Schema columns `userProfile.language`, `userProfile.numeralSystem`, `app_settings.default_language` are dead in v1, retained for v2. Logical CSS properties (`ms-*`, `me-*`, `text-start`) are still used everywhere so v2 RTL is a stylesheet flip.
-- **Setup wizard collects family name.** `app_settings.family_name` (required, default 'My' for backfill). Displayed as "the {family_name} Sufra" on the Password link page. Editable in Admin.
-- **Password link flow** replaces the temp-password handoff. One mechanism for both invite + reset. `password_link` table — opaque base64url token, 24h TTL, UNIQUE on userId (regenerate replaces in place), cascade on user delete. Single endpoint `/api/set-password/:token` (unauth, token IS the credential). Password set uses `auth.$context.password.hash()` + `internalAdapter.updatePassword()` to bypass the admin-middleware requirement on `setUserPassword`.
-- **inference_run audit log is decoupled.** No FK to meal, soft `userId` text column with no FK. Cost survives meal/Member deletion. The Admin cost view sums this table per UTC range.
-- **No top-level totals in `MealAnalysis`.** Schema has per-food values only; totals computed via override-first resolution.
-- **Saved meals: explicit match only.** The AI never sees saved meals. Defer to M5.
-- **One English system prompt** (hardcoded `locale: "en"` in the prod call path). Plumbing for other locales exists, exercised by evals only.
-- **The eval harness shares the prod code path.** `evals/estimator-provider.ts` is a promptfoo `ApiProvider` that calls `estimateMeal()` directly. Same prompts, same schema, same response handling.
-
-## Critical wrangler.jsonc bits
-
-File lives at `apps/web/wrangler.jsonc`. All relative paths inside are relative to that file.
-
-- `not_found_handling: "single-page-application"` — assets layer serves `index.html` for unknown paths (SPA routing).
-- `run_worker_first: ["/api/*"]` — **required for production**. Without this, the assets layer would intercept API routes via SPA fallback. Dev works without it because the Vite plugin always routes through the Worker.
-- `migrations_dir: "./worker/db/migrations"` on the DB binding (top-level + env.staging both reference the same migration files).
-- `env.staging` block — overrides `name`, `d1_databases`, `r2_buckets` for the `sufra-staging` Worker. Top-level bindings are NOT inherited by named envs; staging redeclares its own.
-
-## Staging environment
-
-Two Workers deployed from one `wrangler.jsonc`:
-
-- **`sufra`** (prod) at `https://lean-sufra.fawwaz.dev` (custom domain added via dashboard) — bindings `sufra` D1 + `sufra-photos` R2.
-- **`sufra-staging`** at `https://sufra-staging.fawwaz-dev.workers.dev` — bindings `sufra-staging` D1 + `sufra-photos-staging` R2.
-
-**Secrets are per-Worker.** `wrangler secret put X` and `wrangler secret put X --env staging` are separate writes. Staging has its own `BETTER_AUTH_SECRET`, its own `BETTER_AUTH_URL` (pointing at the workers.dev URL), and its own `OPENROUTER_API_KEY`.
-
-**Deploy requires CLOUDFLARE_ENV at build time.** Per [official Cloudflare docs](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/): _"As Cloudflare environments are applied at dev and build time, specifying `CLOUDFLARE_ENV` when running `vite preview` or `wrangler deploy` will have no effect."_ The Vite plugin flattens the chosen env into `dist/sufra/wrangler.json` at build time; `wrangler deploy --env staging` alone (without `CLOUDFLARE_ENV=staging` on the build) silently deploys to prod because the redirected config has no env block to switch. The `deploy:staging` script sets both. **Don't try to work around this with `wrangler deploy --env staging` alone — it'll overwrite prod with the wrong bindings.**
-
-## Local secrets (.dev.vars)
+**The file tree IS the architecture** (read the skill's `project-structure.md`). Organized BY LAYER, not by
+concept; a feature is found by NAME across the layers.
 
 ```
-BETTER_AUTH_SECRET="<openssl rand -base64 32>"
-BETTER_AUTH_URL="http://localhost:5173"
-OPENROUTER_API_KEY="sk-or-v1-..."
+apps/web/
+  migrations/                 wrangler-native D1 migrations (0001_better_auth from the BA CLI + hand-written domain SQL)
+  src/
+    server.ts                 entry: MAX_REQUEST_BYTES guard → serveBackend(req,env) ?? SPA assets
+    worker/                   ── THE BACKEND (Effect) ──
+      handler.ts              serveBackend: /api/auth/* → Better Auth (+ login rate-limit); the public
+                              prefixes (/api/setup, /api/password-links) → publicHandler; else /api/* → handler
+      app.ts                  getApp/getAuth: build the app + Better Auth ONCE per isolate (bindings are stable)
+      runtime.ts              assembleHandler: wires controllers + middleware + the request data layer into
+                              TWO web handlers — `handler` (authed `api`) + `publicHandler` (unauth `publicApi`)
+      env.ts  config.ts       Bindings (generated Env + secrets) · environmentOf (fail-closed) · tunables
+      contract/               ── BROWSER-SAFE ── the typed route table (HttpApiGroup/Endpoint); nests by route.
+                              api.ts (authed, .middleware(Authentication)) + public-api.ts (unauth) +
+                              middleware/{authentication,meal-scoped,host-only}.ts (declarations)
+      models/                 ── BROWSER-SAFE ── Model.Class shapes, the single source of truth; flat by concept
+      views/                  ── BROWSER-SAFE ── response schemas + serializers (plain JSON) + derive.ts (Mifflin, browser-safe)
+      db/                     ── server ── one repo per table (Command/makeTable) + sql.ts + table.ts
+      domain/                 ── server ── the AGGREGATE per concept (+ a concern subfolder, e.g. domain/user/{snapshots,weights,members})
+      controllers/ middleware/ support/  ── server ── thin handlers · scoping/auth gates · small combinators
+      auth/                   ── server ── Better Auth instance (Kysely-D1 + KV) + permissions (ac/roles)
+      estimator/ blobs/       ── server ── the env-swapped AI service · the R2 blob seam
+    client/                   browser transport: api-client.ts (getClient + getPublicClient + run), auth-client.ts, gate.ts, me.ts, setup.ts
+    routes/                   ── THE FRONTEND ── TanStack file routes (index, meals/$id, onboarding, profile, progress, admin, setup, set-password, login, how-it-works)
+    components/ lib/          shared UI (bottom-nav, day-summary-panel, log-weight-sheet, meal-card) · cn() · date/units
+                              (the SVG charts are route-co-located under routes/progress/-components/)
+  test/                       in-process request tests over real local D1 + KV (miniflare); support/harness.ts
+  auth.cli.ts                 GENERATION-ONLY Better Auth config (mirrors instance.ts plugins) → migrations/0001_better_auth.sql
 ```
 
-File lives at `apps/web/.dev.vars` (gitignored). `apps/web/.dev.vars.example` is checked in.
+**Browser-safe set is exactly `worker/{contract, models, views}`** — the frontend's only window into the
+backend (the typed client derives from `contract`). The split tsconfig enforces it: server-only `worker/*`
+can't compile under the frontend's DOM scope. (The old ADR 0005 "isomorphism" eslint rule is gone — the
+boundary is now structural.)
 
-In production, set the OpenRouter key via `pnpm --filter @sufra/web exec wrangler secret put OPENROUTER_API_KEY` and `BETTER_AUTH_URL` to the deployed origin via the same pattern. Without `BETTER_AUTH_URL`, better-auth logs a `Base URL could not be determined` WARN on every request — functionally OK for cookie sessions but noisy.
+### The two-API split (a Sufra decision the skill doesn't cover — recorded in refactor-plan.md Slice 4)
 
-## Pending renames / migrations
+The api-wide `Authentication` middleware means every endpoint on `api` needs a session. The **unauth
+bootstrap** — Setup (runs before any Host) + Password-link redemption (the token IS the credential) — can't
+sit there. So there are **two `HttpApi`s**: `contract/api.ts` (authed) and `contract/public-api.ts` (no
+middleware), built as two separate `toWebHandler`s in `runtime.ts` and dispatched by path prefix in
+`handler.ts`. The frontend reaches the public one via a second typed client, `getPublicClient`.
 
-These are decisions that landed in CONTEXT.md or PRD but haven't been swept through the code yet:
+## Auth model (ADR 0010)
 
-- **`user` → `member` for the non-host role.** Schema enum, better-auth `defaultRole`, all PRD/code uses. CONTEXT.md uses **Member** as canonical. Pending; small migration + sweep.
-- The current schema retains `role: ["host", "user"]`. better-auth doesn't fight the rename — `roles: { ... }` keys are arbitrary strings.
-- **Dead language columns** (`app_settings.default_language`). Drizzle-kit's interactive-rename-detection blocks dropping these in a non-TTY shell; live with them for v1, sweep in a dedicated migration when v2 starts populating them.
-- **Drizzle meta snapshot resync was handled via 0008 no-op.** The 0007 migration was hand-rolled because drizzle-kit's interactive rename-detection blocks in non-TTY shells (see ADR 0001/0003). To get the snapshot back in sync without re-applying 0007's work, we ran `pnpm db:generate` (picking "+ create" on every rename prompt — drizzle-kit's heuristic will incorrectly propose renames like `target_kcal → goal_weight_kg` or `user_profile → profile_log`, which are NOT renames), then replaced the generated `0008_lucky_ozymandias.sql` with a `SELECT 1;` no-op so the migration runner records it as applied without re-doing 0007's drops/creates. **If you make further schema changes, run `db:generate` normally — diffs are now against the 0008 snapshot, which reflects the real state.**
+- **Identity vs person.** Better Auth's credential table is renamed **`identities`** (`username`, `role`,
+  `banned`); the app owns a separate **`users`** person/aggregate-root table sharing the SAME primary key
+  (the universal `userId` anchor). `role`/`username` live on `identities`, read live via an inline-projection
+  JOIN, never mirrored onto `users`. Provisioned by a `user.create.after` hook (`INSERT OR IGNORE`).
+- **`CurrentUser = { id, username, role }`**, provided by the `Authentication` middleware. Roles: **`host`
+  | `member`** (the schema value is `member`, not `user`).
+- **No email.** Username + password; `<username>@sufra.local` satisfies BA's email column. `minPasswordLength: 6`.
+- **Authorization is uniform 404 scoping (ADR 0013) — no 403 anywhere.** Ownership scoping (`WHERE userId =
+  CurrentUser.id`, the `<Resource>Scoped` middleware) AND the role gate (`HostOnly`, a pure gate over
+  `role === "host"`) both 404 on a miss. A non-host gets the same 404 a non-owner gets.
+- **Build-once per isolate**, cached at module scope (env bindings are stable). The role-flip at Setup, the
+  password set at redeem, and the credential delete at member-removal use `auth.$context.internalAdapter`
+  (no admin session needed). Member provisioning uses `signUpEmail` with an unreachable placeholder password.
+- **Password link (ADR 0016)** is an app-domain aggregate (`domain/password-link.ts`: issue / show / redeem),
+  NOT part of the (delivery-free) Better Auth instance — the Host hands the link over out of band.
 
-## Open product questions
+## Meals lifecycle — synchronous and atomic
 
-See PRD §10.
-- **#10 + #11 — Resolved in M3.5.** Confidence chip removed; replaced by a colored Improve estimate button beside the AI Estimate that opens a sheet hosting clarifications + a textarea prefilled with `meal.last_refinement_text`. Override visibility: AI value shown as placeholder when field is empty; tappable `× edited` badge appears next to the label when overridden.
-- **#12 — Member self-delete landed.** Admin-side delete (Host removes any Member's meal) and the capture-failure retry button on the spinner toast remain open. Member-delete pattern (see Status entry above) is the template: admin-delete will live on a separate admin route with a `role === "host"` ownership branch, NOT a retrofit of `DELETE /api/meals/:id`.
-- **notAnalyzable handling — still open.** Schema + prompt already support the escape hatch (`notAnalyzable: true` + `notAnalyzableReason: string`), but `operations.ts:create()` doesn't check it, so a non-food photo (dog, screwdriver) saves a ghost meal with empty `dishName` and 0 totals. Fix is ~30 lines — add `not-analyzable` to `VisionErrorCode`, check after `runEstimate` and throw, route maps to 422 → client toast with the AI's `notAnalyzableReason`. Deferred while dogfooding to see the real failure shape first.
+No background analysis, no `pending`/`failed` status (CONTEXT "Analysis Status"). Client POSTs a base64 photo
+→ `Meal.create` validates the image, runs the estimator (the gate — nothing persists unless it succeeds),
+THEN inserts the meal row + attaches the photo. A row exists ⟺ it has a valid Estimate. The "loading" UX is
+the client button spinner. Totals are **override-first, computed at read** (`override.field ?? sum(foods[i].field)`),
+never stored (ADR 0003). Override (PUT/DELETE) and Refinement (POST, re-runs the AI in place) are distinct
+reified sub-resources (ADR 0012).
 
-## Gotchas hit during setup
+## Project-specific decisions worth knowing (extend / deviate from the skill)
 
-- D1 + Drizzle "boolean" mode emits `DEFAULT true/false` in SQL; SQLite accepts it. Don't try to "fix" the migration file.
-- ESLint may flag stale "unused import" diagnostics between two sequential Edit calls in the same file. Re-run `pnpm lint` to confirm; the file itself is usually fine.
-- Drizzle-generated migrations that recreate a table to change NOT NULL constraints need manual review — if the source table has rows with NULL in the now-NOT-NULL column, the INSERT SELECT fails. Add a `WHERE` filter or `DELETE` in the migration.
-- `worker-configuration.d.ts` is committed (it's huge but stable). Regenerate via `pnpm cf-typegen` whenever `wrangler.jsonc` bindings change.
-- `pnpm` overrides force `sharp@^0.34.5` to avoid the duplicate libvips dylib warning from `@vite-pwa/assets-generator`.
-- The shadcn `form` component silently no-ops in v4.7; use react-hook-form + bare Input/Label.
-- Promptfoo requires Node 22.22+; `.nvmrc` is pinned. Use `nvm use` before running evals.
+- **One English system prompt** in the prod path (`getSystemPrompt("en")` in `EstimatorLive`); locale
+  plumbing exists but is exercised by evals only. `callVisionModel` is shared by prod + evals (no drift).
+- **`MealAnalysis` is ONE Effect Schema** (`models/meal-analysis.ts`, browser-safe) driving three consumers:
+  the estimator derives its provider JSON Schema from it AND decodes output back through it; the `Meal` model
+  stores it as a JSON-TEXT column; the views derive Totals. No top-level totals — per-food values only.
+- **`inference_run` is a decoupled audit log** (no FK; soft `userId`) — the cost survives meal/Member
+  deletion. The Admin cost view sums it per UTC range, divided by the **Member count** (Host-excluding).
+- **Vision model selection** lives in `app_settings` (the Admin model-select writes it; `Meal.runEstimate`
+  reads `Settings.visionModelId()`, defaulted defensively). The OpenRouter key is a `wrangler secret`, NOT
+  in the admin UI.
+- **Profile is an append-only `profile_snapshots` log** (ADR 0001) — "onboarded" = "has ≥1 snapshot" (no
+  column). Derived values (Maintenance/Target/macros) are computed at read by `views/derive.ts` (browser-safe,
+  shared by the worker AND the SPA). Edits take effect **next local midnight** (today's plan is sealed —
+  ADR 0002); Day-segmentation is purely client-side by the Member's TZ.
+- **Weights are user-correctable** (delete-only, ADR 0007); logging is one atomic dual-append (a `weights`
+  row + a tomorrow `profile_snapshots` row). `calorie-history` is a derived **read-model** (no aggregate),
+  TZ-bucketing meal Totals into local days with the historical Target attached.
+- **Member-delete cascade is explicit** (D1 has no FK cascade): purge photos, delete the credential FIRST
+  (so a partial failure never leaves a sign-in-able orphan), then the app rows in one `atomically` batch.
+- **Charts are hand-rolled SVG, not Recharts** (PWA bundle size): the Day Summary ring, the Progress weight
+  chart / calorie bars / BMI strip.
+
+## Gotchas (Effect 4-beta + the platform)
+
+- **Training data is mostly Effect 3 / older AI SDK and will be WRONG.** Verify against `node_modules`.
+  `docs/refactor-handoff-2.md §7` + `refactor-handoff-3.md §8` pin the VERIFIED facts (Schema `Literals`/
+  `Finite`/`Trim`/`isBetween`, `HttpApi` query/params/payload keys, a handler may return a raw
+  `HttpServerResponse`, `HttpServerResponse.fromWeb` for Set-Cookie, `auth.$context.internalAdapter`, etc.).
+- **`noUncheckedIndexedAccess` is on** in both tsconfigs — a `arr[0]` / destructure is `T | undefined`.
+- **D1 has no interactive transactions** — atomicity is `atomically([...commands])` (one `batch()`); D1 has
+  no FK cascade — cascades are explicit multi-command writes in the domain.
+- **The Write/Edit tools want a fresh Read of a file in the same turn before editing** (esp. just-`git mv`'d
+  files). Re-read right before editing.
+- **Sharp:** deliberately NOT in `pnpm.onlyBuiltDependencies` (its install script breaks on Homebrew libvips);
+  the prebuilt `@img/sharp-<platform>` optional dep is what runs. The "ignored build scripts: sharp" message
+  is the expected working state.
 
 ## Status
 
-- **M1** (deploy skeleton, setup wizard, login) — landed; setup is now a **2-step wizard** (family name → account)
-- **PWA foundation** (manifest, SW, placeholder icons) — landed; real icon art pending Replicate token
-- **AI evaluation harness** — landed. `evals/` runs the production estimator via a custom promptfoo provider. Findings (under the old code path): Gemini 3 Flash leads at ~78% kcal bare / ~96% kcal with pre-baked portion hints; portion is the dominant error source. Gemini 3.5 Flash newly available — eval pending. See `evals/RESULTS.md`.
-- **M3 (meal capture, detail, override, refinement)** — **landed**. Synchronous create; estimator-as-function; loader-based routing with `useSuspenseQuery`; auth middleware; thin handlers; meals module owns D1 + R2.
-- **Admin view (cost + model select + Members)** — landed. `/admin` route, bottom nav, inference_run audit log decoupled from meals/users, Password link flow for Member provisioning + password reset (unified). Sonner toasts, AlertDialog for delete-and-destroy. Translation cut from v1 (English-only).
-- **M2 (onboarding + Profile + Day summary)** — **landed**. The shape that shipped diverges from the design images and from the original PRD chip-based goal selection; the architectural decisions are captured in three ADRs:
-  - `profile_log` is the single source of truth for Member inputs — append-only history, no parallel `user_profile` table. Derived values (Maintenance, Target, macro grams) computed at read by `worker/profile/derive.ts`. See **ADR 0001** + **ADR 0003**.
-  - Profile edits take effect *starting next local midnight* — today's plan is sealed from the moment the day begins. Onboarding is the only Profile write that applies same-day. See **ADR 0002**. This rule applies uniformly to weight changes (Profile edit OR future dedicated weight-log surface).
-  - Goal selection is a **slider** for `goal_weight_kg` + rate chips (Slowly 0.25 / Moderately 0.5 kg/wk). The directional `goal: lose|maintain|gain` enum was dropped — direction is derived from `sign(goal_weight − weight)`. The 4-chip approach in the original PRD was replaced because the chip labels ("Lose moderately") are less concrete than picking an actual goal weight.
-  - Slider range is asymmetric: current weight `−60 kg` to `+30 kg` (floored/capped at the schema's 30/300 absolute bounds). Lose more, gain less.
-  - Sex enum collapsed to `male | female` (no `unspecified`/"Other"). Mifflin's gendered constants don't have a neutral middle; the UI keeps it as a pragmatic two-choice question without elaborating "assigned at birth" — the ⓘ → /how-it-works carries the explanation.
-  - `/how-it-works` is auth-optional and listed in the root onboarding-gate exclude list so the wizard's ⓘ links can deep-link into it.
-
-- **Progress tab (M5/M6 weight + intake)** — **landed**. `/progress` route co-located per ADR 0006. Weight chart is custom SVG (no Recharts) — raw `weight_log` points with tap-a-dot delete (see **ADR 0007** — `weight_log` rows are user-correctable, `profile_log` rows remain sealed). Calorie history is server-aggregated via `GET /api/calorie-history?from&to&bucket&tz` returning per-bucket avg kcal + historical Target via `snapshotFor` + color (green/yellow/red against historical per-day Target — same thresholds as the Day view's week strip). BMI card uses universal WHO bands with height-personalized kg axis. Bottom nav went 3 → 4 tabs (Today / Progress / Profile / Admin). Weight sheet promoted to `src/components/log-weight-sheet.tsx` and shared by Profile + Progress; `POST /api/weights` is the sole writer (`PATCH /api/profile` dropped `weightKg` handling). Maintenance refinement deferred to v1.5.
-
-- **M5 Saved Meals — NEXT.** Design fully grilled, captured in **ADR 0008** + PRD §6.5 + CONTEXT.md "Saved Meal". Implementation is intentionally small: one schema column (`meal.saved_at`), three endpoints (`GET /api/meals/saved`, `PATCH /api/meals/:id/saved`, `POST /api/meals/clone`), bookmark glyph on MealCard + bookmark toggle in Meal detail header, inline "Add" control on the Day view (replaces the FAB; two options — photo / from-saved), Profile gets a Saved Meals section at the very end (reuses `<MealCard>`), Sign Out moves to Profile header top-right (PRD §6.11 was updated to reflect this — reasoning is the saved-meals list would otherwise push body-anchored Sign-Out off-screen). Custom names deferred to v2 — bookmark is a pure toggle.
-  - **Critical for a fresh session:** there is **no separate `saved_meal` table**, no parallel edit surface, no naming sheet. The Saved Meal IS the source `meal` row; editing it goes through `/meals/:id`; re-logging clones in full (ai_analysis, override, and the R2 photo via server-side copy to a new key) so source + clone have independent lifecycles. Read ADR 0008 before touching anything in this area.
-
-- **M3.5 meal-detail redesign — landed.** Confidence chip removed; colored **Improve estimate** button beside the AI Estimate header (green/amber/red by `overallConfidence` — no jargon visible). Tap opens a bottom sheet with the AI's clarifications + a textarea prefilled with `meal.last_refinement_text` (new nullable column, migration 0010) + Refine with AI. The old standalone Refine card is gone — folded entirely into the sheet, so the refinement trace lives where the action is. Override editor now uses AI-as-placeholder (no more "AI: X" caption); a tappable `× edited` badge appears next to the label when a field is overridden and clears just that field on tap. Bug fix in the same batch: clearing a field now sends `null` in the PATCH (server semantics: absent = leave alone, null = clear) — previously empty fields were skipped, so deletions silently no-op'd.
-
-- **Monorepo migration — landed.** Repo went from single-package to pnpm workspaces + Turborepo. `apps/web` (SPA + Worker; kept together because of the Cloudflare Vite plugin) + `apps/evals` (promptfoo harness, imports from `../web/worker/meals/estimator/`). Root `package.json` is a thin orchestrator. Staging environment added via Wrangler `[env.staging]` — separate `sufra-staging` Worker with its own D1 + R2 + secrets. The `deploy:staging` script sets `CLOUDFLARE_ENV=staging` at build time AND passes `--env staging` at deploy time (both required — see "Staging environment" above).
-
-- **Meal delete flow — landed.** Hard delete (matches the Weights / Member-delete precedent — ADR 0007, PRD §6.1). `DELETE /api/meals/:id`, owner-scoped, returns `{ok: true}` or 404. R2 photo deleted in the same handler (D1 first, then best-effort R2 with `console.error` on failure); `inference_run` rows survive (audit-log decoupling). UI: page-level `variant="outline"` button at the bottom of the meal detail page with destructive-red border/text; AlertDialog confirm with static copy ("The photo and estimate will be permanently removed. This can't be undone."). Post-delete: `removeQueries(["meal", id])` + `invalidateQueries(["meals"])` (prefix-matches both Day view and Saved Meals lists) → `router.history.back()` (with `/` fallback) → sonner "Meal deleted". The page-level button is disabled while any other meal-scoped mutation is in flight — implemented by tagging all four meal mutations (override save, refine, bookmark toggle, delete) with `mutationKey: ["meal", id]` and reading `useIsMutating({mutationKey: ["meal", id]})`. No undo (hard delete commits to hard delete). Admin meal-delete is out of scope for this batch — PRD §10 #12 follow-up.
-
-- **PWA icon went full-bleed — landed.** Source PNG at `apps/web/public/favicon.png` (512×512, metadata-stripped). Custom `pwaAssets` preset in `vite.config.ts` with `padding: 0` and `fit: "cover"` replaces the default `minimal-2023` preset (which wrapped the source in 30% white/transparent bleed, producing a white-square-with-logo look on Android launchers). All generated sizes (192/512 any, 512 maskable, 180 apple-touch) now carry the source's colored corners edge-to-edge so the Android launcher's circle mask reveals the brand color, not white — mirroring how Spark / Disney+ ship their maskable icons.
-
-## M2 — what shipped (vs original design intent)
-
-The wireframes that drove M2 deviated meaningfully from both the original design images and the early PRD chip-based goal model. The actual shape that landed:
-
-**Onboarding (6 screens):**
-1. Sex — **two** chips, Male / Female (no "Other" — Mifflin has no neutral constant, see Status notes)
-2. Birthday — date input (`YYYY-MM-DD`); recompute age dynamically
-3. Height — number + cm/ft+in toggle (canonical cm storage)
-4. Weight — number + kg/lb toggle (canonical kg storage). Typing here auto-syncs `goalWeightKg` so the Member doesn't end up at a stale goal on step 6.
-5. Activity level — four-option chips with inline definitions
-6. Goal — **slider** (not chips) for `goal_weight_kg` from `currentWeight − 60` to `+30` kg; rate chips (Slowly / Moderately) below; derived target preview card. Hidden rate when slider sits on Maintain.
-
-Progress dots (`●○○○○○`) on every screen. Back chevron on screens 2-6.
-
-**Profile (single page):**
-- ABOUT YOU: per-field bottom sheets (iOS-Settings pattern). Each row is a chevron → sheet → save → toast "Starts tomorrow." Sheets show in-sheet live preview using the shared formula module.
-- GOAL: sheet with the slider + rate chips (mirrors onboarding step 6).
-- YOUR NUMBERS (read-only): Daily target + macro grams. "Pending changes — starts tomorrow" pill when a not-yet-effective snapshot exists.
-- ACCOUNT: username (read-only) + Sign out.
-
-**Day summary panel** (between week strip and meals list):
-- Left: kcal ring (custom SVG, no Recharts) — Remaining as default, tap-to-toggle to Consumed; preference in `sufra:ring-mode` localStorage.
-- Right: three macro bars (P/C/F) — `eaten/goal` labels, CSS-only bars.
-- ⓘ → `/how-it-works`. No key nutrients (deferred to v2 with the `MealAnalysis` schema extension).
-- Past-day-aware: `snapshotFor(profiles, localDate(selectedDay))` picks the profile snapshot that was active on that day, then derives target/macros from it.
-
-**`/how-it-works`**: static page with Mifflin formula + activity multipliers + macro split, each with citations.
-
-## Critical design notes for the next session
-
-These captured architectural decisions deviate from the original mockup images and the early PRD. A new agent without context will get them wrong:
-
-- **No direct kcal target input.** Members pick a goal weight via slider; target is derived from `maintenance + sign(goalWeight − weight) × weeklyRate × 1100`. Never directly editable. Inputs flow one way into derived numbers. See ADR 0003.
-- **No `user_profile` table.** It was replaced in M2 by an append-only `profile_log` (one row per onboarding + per Profile edit). The "current profile" = the row with the latest `effective_from`. See ADR 0001. Don't reintroduce `user_profile`.
-- **Profile edits apply starting next local midnight.** Today's plan is sealed. This rule is uniform — applies to weight changes too, whether from Profile or from a future Progress-tab weight-log surface. See ADR 0002.
-- **No macro customization in v1.** 25/50/25 (P/C/F) split is the v1 default, sourced from IOM AMDR. Per-macro overrides are v2 work governed by the "user intent is sacred" principle (PRD §10 #15).
-- **No adaptive daily target.** Sufra ships a fixed daily target; smoothing / weekly banking / HealthKit activity adjustments are explicit-opt-in v2 features with full transparency (PRD §10 #16). Cal AI's silent target fluctuation is the anti-pattern.
-- **No safety floor (deficit warning) in v1.** Members are adults; the math runs. Deferred to v1.5 — revisit if dogfooding surfaces members hitting a steep deficit unawares. See PRD §10 #6.
-- **No manual deactivate of Members.** Delete-only with cascade. `inference_run` cost rows survive Member deletion (PRD §6.1 + the audit-log decoupling principle).
-- **No `goal: lose|maintain|gain` enum.** Direction is derived from `sign(goal_weight_kg − weight_kg)`. The slider IS the input.
-- **Birthday, not age.** Age is computed dynamically from the `birthday` column on `profile_log`. Mifflin's `−5·age` term re-runs every read.
-- **Sex is `male | female` only.** No "Other" / `unspecified` — Mifflin's gendered constants don't have a neutral middle. UI keeps it minimal; ⓘ → `/how-it-works` carries the explanation.
-- **Weight is stored as canonical kg (`real`), height as canonical cm (`integer`).** Display unit toggles live in `profile_log.display_height_unit` / `display_weight_unit`. Formula module never sees imperial.
-- **Numeric inputs (weight, height-cm) keep a local string state.** Don't round-trip through the parent's `number` state on every keystroke — typing "93.5" loses its dot mid-keystroke. See `apps/web/src/routes/profile/route.tsx` `WeightSheet` and `apps/web/src/routes/onboarding/-components/step-weight.tsx` for the pattern.
-- **`/how-it-works` is in the onboarding-gate exclude list.** Both Profile and the wizard's ⓘ links deep-link into it. Back button uses `router.history.back()` so the destination depends on entry point.
-- **Ring is a custom SVG, not Recharts.** One screen, one component, no library dependency. If M5/M6 brings Recharts in for trend charts via shadcn, the Day Summary ring can stay as-is.
-- **"Inactive" badge from the admin mockup is not implemented** — no inactive state exists.
-- **"Active sessions" from the admin mockup is not implemented** — out of v1 scope.
-- **"Last login" / "Never signed in" labels from earlier admin drafts are not displayed** — minimum-UI principle.
-- **Pending invite rows look identical to active Member rows.** No "Pending" pill, no expanded "Awaiting first sign-in" card. The 🔑 icon does the same action regardless of state (generate Password link).
-- **The clipboard fallback** (`document.execCommand("copy")`) is intentionally retained alongside the modern `navigator.clipboard` API so dev-server-on-LAN-IP testing works. Don't strip it (see PRD §10 #17).
-- **Charts are custom SVG, not Recharts.** Day Summary ring, Weight chart on Progress, Calories bars on Progress, BMI band strip — all hand-rolled. Recharts was deliberately not added (PWA bundle size). When building more charts, mirror the existing SVG pattern.
-- **Saved Meals is a marker on `meal`, not a separate table.** `meal.saved_at` is the truth; no parallel CRUD; editing a saved Meal navigates to `/meals/:id`; re-logging clones via `POST /api/meals/clone` (copies row + R2 photo). Bookmark is a pure toggle — no naming sheet in v1, rename deferred to v2. See **ADR 0008** + PRD §6.5.
-- **Day view FAB will be removed in M5.** Replaced by an inline "Add" control at the top of the meals list with two options: photo / from-saved. Inline position makes adding to past Days self-evident (it sits inside the list of the selected Day).
-- **Sign Out lives in Profile's header top-right** (post-M5). The earlier PRD line ("nobody signs out daily, don't put it in chrome") was reversed because the growing Saved Meals list would push body-anchored Sign-Out off-screen. See PRD §6.11.
+- **Effect + Cloudflare re-platform — COMPLETE through Slice 5.** All five vertical slices landed on
+  `refactor/effect-cloudflare-rebuild`: auth foundation, the Meal vertical, Member (profile/weights/`/me`),
+  Admin + Setup + PasswordLink, and Progress + cleanup. The old `apps/web/worker/` (Hono/Drizzle) is deleted;
+  `apps/evals` is repointed to the new estimator. Per-slice decisions are in `docs/refactor-plan.md`.
+- **Cutover — PENDING (ops, needs Cloudflare creds).** Before flipping to `main`: create the prod + staging
+  KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging
+  D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.
 
 ## Pointers
 
-- PRD: `PRD.md`
-- Glossary: `CONTEXT.md`
-- Better-auth docs: https://www.better-auth.com/docs
-- TanStack Router docs: https://tanstack.com/router/latest
+- House style: `~/.claude/skills/fawwaz-coding-style/` · Glossary: `CONTEXT.md` · Product: `PRD.md`
+- ADRs: `docs/adr/0001–0016` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
+- Better Auth: https://www.better-auth.com/docs · TanStack Router: https://tanstack.com/router/latest
 - Cloudflare Vite plugin: https://developers.cloudflare.com/workers/vite-plugin/

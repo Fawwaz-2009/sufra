@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { LogOut } from "lucide-react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 
+import { BottomNav } from "@/components/bottom-nav"
 import { PoweredBy } from "@/components/powered-by"
 import { authClient } from "@/client/auth-client"
 import { requireOnboarded } from "@/client/gate"
@@ -64,6 +65,8 @@ function Profile() {
         <SavedMealsSection />
         <PoweredBy />
       </main>
+
+      <BottomNav />
     </div>
   )
 }

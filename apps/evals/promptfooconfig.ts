@@ -1,10 +1,8 @@
 import { config as loadEnv } from "dotenv"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
-import {
-  getSystemPrompt,
-  MODELS,
-} from "../web/worker/meals/estimator/index.js"
+import { getSystemPrompt } from "../web/src/worker/estimator/prompts.ts"
+import { MODELS } from "../web/src/worker/estimator/models.ts"
 import { DISHES } from "./dishes.js"
 import type { UnifiedConfig } from "promptfoo"
 

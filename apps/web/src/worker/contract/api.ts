@@ -2,6 +2,7 @@ import * as HttpApi from "effect/unstable/httpapi/HttpApi"
 import { MeGroup } from "./me.ts"
 import { ProfileSnapshotsGroup } from "./profile-snapshots.ts"
 import { WeightsGroup } from "./weights.ts"
+import { CalorieHistoryGroup } from "./calorie-history.ts"
 import { MealsGroup } from "./meals.ts"
 import { OverrideGroup } from "./meals/override.ts"
 import { RefinementGroup } from "./meals/refinement.ts"
@@ -28,6 +29,7 @@ export const api = HttpApi.make("api")
   .add(MeGroup)
   .add(ProfileSnapshotsGroup)
   .add(WeightsGroup)
+  .add(CalorieHistoryGroup)
   .add(MealsGroup)
   .add(OverrideGroup)
   .add(RefinementGroup)

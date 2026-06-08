@@ -2,8 +2,6 @@ import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import * as Clock from "effect/Clock"
 import * as Schema from "effect/Schema"
-import { generateText, Output, jsonSchema } from "ai"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import {
   Estimator,
   type EstimateFailure,
@@ -11,9 +9,9 @@ import {
   type EstimateResult,
   type EstimateUsage
 } from "./estimator.ts"
-import { MealAnalysis, MEAL_ANALYSIS_JSON_SCHEMA } from "../models/meal-analysis.ts"
+import { MealAnalysis } from "../models/meal-analysis.ts"
 import { computeCost, getModel } from "./models.ts"
-import { buildUserPromptText, getSystemPrompt } from "./prompts.ts"
+import { callVisionModel } from "./call.ts"
 import { environmentOf, type Bindings } from "../env.ts"
 
 /**
@@ -53,33 +51,15 @@ export const EstimatorLive = (env: Bindings): Layer.Layer<Estimator> =>
     estimate: ({ photo, modelId, userText }: EstimateInput) =>
       Effect.gen(function* () {
         const model = getModel(modelId)
-        const client = createOpenRouter({
-          apiKey: env.OPENROUTER_API_KEY,
-          headers: { "HTTP-Referer": "https://github.com/fawwaz/sufra", "X-Title": "Sufra" }
-        })
         const start = yield* nowMillis
 
-        // Run the vision model. A provider throw is a DOMAIN outcome here (the user is waiting on a
-        // synchronous create), so it stays in the typed channel — not a defect. The sync `catch` keeps
-        // the raw pieces; `matchEffect` stamps latency from the Clock on BOTH paths (a sync catch can't).
+        // Run the vision model via the SHARED `callVisionModel` (the same call the eval harness runs, so
+        // prod and evals never drift — locale is hardcoded "en" here, the v1 prod path). A provider throw
+        // is a DOMAIN outcome (the user is waiting on a synchronous create), so it stays in the typed
+        // channel — not a defect. The sync `catch` keeps the raw pieces; `matchEffect` stamps latency from
+        // the Clock on BOTH paths (a sync catch can't).
         const generate = Effect.tryPromise({
-          try: () =>
-            generateText({
-              model: client(modelId),
-              output: Output.object({
-                schema: jsonSchema(MEAL_ANALYSIS_JSON_SCHEMA as Parameters<typeof jsonSchema>[0])
-              }),
-              system: getSystemPrompt("en"),
-              messages: [
-                {
-                  role: "user",
-                  content: [
-                    { type: "text", text: buildUserPromptText({ userText }) },
-                    { type: "image", image: photo }
-                  ]
-                }
-              ]
-            }),
+          try: () => callVisionModel({ apiKey: env.OPENROUTER_API_KEY, modelId, photo, locale: "en", userText }),
           catch: (e) => ({ code: classify(e), usage: extractUsage(e) })
         })
 

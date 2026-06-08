@@ -11,11 +11,6 @@ export default defineConfig([
     '**/node_modules',
     'apps/web/src/routeTree.gen.ts',
     'apps/web/worker-configuration.d.ts',
-    'apps/web/worker/db/migrations/**',
-    // The pre-Effect Hono/Drizzle worker (port-reference, deleted in Slice 5) + the deferred frontend
-    // route trees moved out of the compiled tree (restored + reshaped in Slices 3-5).
-    'apps/web/worker/**',
-    'apps/web/deferred-frontend/**',
     '.turbo',
   ]),
   {
@@ -56,54 +51,9 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
-  {
-    // ADR 0005 — physical isomorphism boundary.
-    //
-    // Two surfaces share one rule: any file that gets compiled into the SPA
-    // bundle (`apps/web/src/**`) AND any file that may also be imported from
-    // the SPA (`apps/web/worker/**/isomorphic/**`) must not value-import from
-    // worker-runtime modules. Doing so would pull drizzle / drizzle-zod /
-    // Hono / the AI SDK into the client bundle. Type imports remain free
-    // under `verbatimModuleSyntax: true`.
-    //
-    // The ban list enumerates the worker-runtime files explicitly because
-    // ESLint v9's no-restricted-imports uses gitignore-style matching where
-    // re-including a file under an ignored directory isn't reliable. Files
-    // under `worker/<domain>/isomorphic/**` and `worker/meals/estimator/schema`
-    // (the zod-only `MealAnalysis` schema) stay freely value-importable
-    // because they are NOT in the ban list.
-    files: [
-      'apps/web/src/**/*.{ts,tsx}',
-      'apps/web/worker/**/isomorphic/**/*.{ts,tsx}',
-    ],
-    rules: {
-      'no-restricted-imports': ['error', {
-        patterns: [{
-          group: [
-            // Whole-directory bans — every file under these is worker-runtime.
-            '**/worker/db/**',
-            '**/worker/routes/**',
-            // Specific worker-runtime files.
-            '**/worker/index',
-            '**/worker/types',
-            '**/worker/errors',
-            '**/worker/auth/index',
-            '**/worker/auth/middleware',
-            '**/worker/auth/password-link',
-            '**/worker/profile/operations',
-            '**/worker/profile/schema',
-            '**/worker/meals/index',
-            '**/worker/meals/operations',
-            '**/worker/meals/schema',
-            '**/worker/meals/estimator/index',
-            '**/worker/meals/estimator/errors',
-            '**/worker/meals/estimator/prompts',
-          ],
-          allowTypeImports: true,
-          message:
-            'Worker-runtime modules cannot be value-imported from the SPA or from an isomorphic file — use `import type`, or move runtime values into a worker/<domain>/isomorphic/ leaf. See ADR 0005.',
-        }],
-      }],
-    },
-  },
+  // NOTE: the old ADR 0005 `no-restricted-imports` isomorphism rule (anchored to the deleted Hono/Drizzle
+  // `worker/**`) is gone. The browser-safe boundary is now enforced structurally by the split tsconfigs —
+  // server-only `src/worker/*` can't compile under the frontend's DOM scope, and the frontend only imports
+  // the browser-safe `src/worker/{contract,models,views}`. An explicit ESLint boundary rule for the new
+  // stack is a known, deliberate gap (fawwaz-coding-style "Known gaps").
 ])
