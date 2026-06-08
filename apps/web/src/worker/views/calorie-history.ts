@@ -12,7 +12,7 @@ export type CalorieBucket = (typeof CALORIE_BUCKETS)[number]
 export const BucketColor = Schema.NullOr(Schema.Literals(["ok", "warn", "over"]))
 
 /**
- * One bar on the Progress Calories chart — a pre-bucketed, per-period rollup (the ADR 0011 read-model).
+ * One bar on the Progress Calories chart — a pre-bucketed, per-period rollup (the ADR 0011 projection).
  * The server does the TZ-bucketing + historical-Target derivation (`snapshotFor` + `deriveProfile`), so the
  * chart renders colored bars without re-deriving anything. Plain JSON.
  *

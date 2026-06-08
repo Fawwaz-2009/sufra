@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 
 import { MealCard } from "@/components/meal-card"
-import { savedMealsQueryOptions } from "@/routes/index/-queries"
+import { savedMealsQueryOptions } from "@/routes/(home)/-queries"
 
 export function SavedMealsSection() {
   const saved = useQuery(savedMealsQueryOptions())

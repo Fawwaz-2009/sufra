@@ -1,3 +1,4 @@
+// projections/calorie-history.ts — a PROJECTION (no table; reads meals + profile_snapshots → a derived view). Reads only.
 import * as Effect from "effect/Effect"
 import * as Option from "effect/Option"
 import { MealsRepo } from "../db/meals.ts"
@@ -11,12 +12,13 @@ import { deriveProfile, snapshotFor } from "../views/derive.ts"
 import type { CalorieBucket, CalorieHistoryBucketView } from "../views/calorie-history.ts"
 
 /**
- * Calorie history — the Progress Calories rollup (ADR 0011). A READ-MODEL: no writes → a plain read verb,
- * not an aggregate-with-concerns (the `Cost` precedent). It reads the Member's meals + Profile snapshots,
- * buckets meal Totals into LOCAL days by the Member's TZ (Day boundaries are TZ-local — CONTEXT "Day"),
- * attaches each day's HISTORICAL Target (`snapshotFor` + `deriveProfile`, honoring the ADR 0002 seal), then
- * rolls days up to the requested bucket (avg over logged days + adherence color). The TZ math lives here,
- * server-side, so the chart renders without re-deriving — `views/derive.ts` is the SHARED formula.
+ * Calorie history — the Progress Calories rollup (ADR 0011). A PROJECTION (no table — no `models/`/`db/` of
+ * its own; it composes OTHER repos into a view; the `Cost` precedent). Subject-scoped to the current Member:
+ * it reads the Member's meals + Profile snapshots, buckets meal Totals into LOCAL days by the Member's TZ
+ * (Day boundaries are TZ-local — CONTEXT "Day"), attaches each day's HISTORICAL Target (`snapshotFor` +
+ * `deriveProfile`, honoring the ADR 0002 seal), then rolls days up to the requested bucket (avg over logged
+ * days + adherence color). The TZ math lives here, server-side, so the chart renders without re-deriving —
+ * `views/derive.ts` is the SHARED formula.
  */
 const index = Effect.fn("CalorieHistory.index")(function* (query: {
   readonly from: string

@@ -14,7 +14,7 @@ import { MealDetailPending } from "./-components/pending"
 import { PhotoHero } from "./-components/photo-hero"
 import { mealDetailKey, mealQueryOptions } from "./-queries"
 
-export const Route = createFileRoute("/meals/$id")({
+export const Route = createFileRoute("/meals/$id/")({
   beforeLoad: ({ context }) => requireOnboarded(context.queryClient),
   loader: async ({ context, params }) => {
     const data = await context.queryClient.ensureQueryData(

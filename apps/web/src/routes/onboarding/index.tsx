@@ -16,7 +16,7 @@ import { StepWeight } from "./-components/step-weight"
 import { BackButton, Dots, Shell } from "./-components/wizard-shell"
 import { INITIAL_DRAFT, isStepValid, type Draft, type Step } from "./-types"
 
-export const Route = createFileRoute("/onboarding")({
+export const Route = createFileRoute("/onboarding/")({
   // Onboarding is the destination, not a gated route: require a session, but bounce an already-onboarded
   // account back to the Day view (no loop). Primes `/me` so the check + the wizard share one fetch.
   beforeLoad: async ({ context }) => {

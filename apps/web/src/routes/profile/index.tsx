@@ -15,7 +15,7 @@ import { GoalSection } from "./-components/goal-section"
 import { SavedMealsSection } from "./-components/saved-meals-section"
 import { YourNumbersSection } from "./-components/your-numbers-section"
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/profile/")({
   beforeLoad: ({ context }) => requireOnboarded(context.queryClient),
   loader: ({ context }) => context.queryClient.ensureQueryData(meQueryOptions()),
   component: Profile,

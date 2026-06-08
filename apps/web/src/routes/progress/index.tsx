@@ -16,7 +16,7 @@ import {
   type WeightPeriod,
 } from "./-search"
 
-export const Route = createFileRoute("/progress")({
+export const Route = createFileRoute("/progress/")({
   validateSearch: (search) => progressSearchSchema.parse(search),
   loaderDeps: ({ search }) => ({
     wp: search.wp ?? DEFAULT_WEIGHT_PERIOD,

@@ -21,7 +21,7 @@ import {
   type Member,
 } from "./-queries"
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   beforeLoad: ({ context }) => requireHost(context.queryClient),
   loader: ({ context }) =>
     Promise.all([

@@ -32,7 +32,7 @@ import { SavedMealsSheet } from "./-components/saved-meals-sheet"
 import { weekMealsQueryOptions } from "./-queries"
 import { indexSearchSchema, resolveSelectedDay } from "./-search"
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/(home)/")({
   validateSearch: (search) => indexSearchSchema.parse(search),
   loaderDeps: ({ search }) => ({
     weekKey: formatLocalDate(weekStart(resolveSelectedDay(search))),
