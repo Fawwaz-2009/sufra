@@ -1,5 +1,7 @@
 # Saved Meals are markers on existing Meal rows; re-log clones the source Meal (basket model)
 
+> **Evolved by ADR 0012.** The marker-on-the-row model and the clone-the-source basket model are preserved; only the endpoints are reified as REST sub-resources of the Meal: `GET /api/meals/saved → GET /meals?saved`; `PATCH /api/meals/:id/saved → POST`/`DELETE /meals/:id/saved`; `POST /api/meals/clone → POST /meals/:id/clones`. Read this for the rationale; ADR 0012 for the current contract.
+
 A Member "saves" a Meal by toggling a bookmark on the existing `meal` row — there is no separate `saved_meal` table. The state lives in a single nullable timestamp column `meal.saved_at` (non-null ⇒ saved). Editing a saved Meal is editing the underlying source Meal; there is no parallel edit surface. Re-logging from a saved Meal creates a brand-new `meal` row that **clones** the source's `ai_analysis`, `override`, and R2 photo bytes, timestamped `now` (or a Member-chosen Day). The clone and the source are wholly independent after the clone — deleting either does not affect the other.
 
 ## Why

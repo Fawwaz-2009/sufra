@@ -27,6 +27,9 @@ apps/web/src/routeTree.gen.ts
 # NB: worker-configuration.d.ts is committed — regenerate via `pnpm cf-typegen`
 # after editing wrangler.jsonc (it's derived but pinned so fresh clones build).
 
+# Better Auth CLI throwaway SQLite (used only by `auth:generate` to pick the SQL flavor)
+**/.auth-cli.sqlite
+
 # Eval harness — local secrets and cached results
 apps/evals/.env
 apps/evals/.promptfoo/

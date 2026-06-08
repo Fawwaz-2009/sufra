@@ -1,5 +1,7 @@
 # Domain shapes have one source — drizzle tables — and flow outward via inference and composition
 
+> **Superseded by ADR 0009.** The drizzle `$inferSelect` + `Pick` projections + drizzle-zod discipline below is replaced by `Model.Class` as the single source of truth, the `Command` persistence model, and the `views/` serializers under the Effect + Cloudflare house style. Retained for historical rationale.
+
 The drizzle table is the canonical shape for any domain entity that touches the DB. Zod schemas for HTTP write operations come from `drizzle-zod` (`createInsertSchema`, `createUpdateSchema`, `createSelectSchema`) with field refinements applied at the call site. TypeScript row types come from `typeof table.$inferSelect`. Sub-schemas and sub-types are composed from those canonicals via zod's `.pick/.omit/.partial/.extend` (runtime) or TypeScript's `Pick/Omit/Partial` (compile-time). No hand-authored shape mirrors a drizzle table.
 
 ## Why

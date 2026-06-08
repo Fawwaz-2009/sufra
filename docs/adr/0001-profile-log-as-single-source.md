@@ -1,5 +1,7 @@
 # Profile state lives in an append-only `profile_log`, not a current-state `user_profile` table
 
+> **Evolved by ADR 0011.** The append-only-snapshots-plus-derive-at-read core is preserved; the table is renamed `profile_log → profile_snapshots` and the collection is folded into the one Member aggregate. Read this for the original rationale; ADR 0011 for the current shape.
+
 A Member's profile inputs (sex, birthday, height, weight, activity level, goal weight, weekly rate) are stored as an append-only `profile_log` table. Each row is a full snapshot keyed by an `effective_from` local date. The Member's "current profile" is the latest row by `effective_from` — there is no separate `user_profile` table. Derived values (Maintenance, Target, Macro goals) are computed at read time via the shared formula module (`worker/profile/derive.ts`) and never stored.
 
 ## Why

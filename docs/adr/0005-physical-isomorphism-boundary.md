@@ -1,5 +1,7 @@
 # Isomorphic files live in `worker/<domain>/isomorphic/`, named for what they are
 
+> **Superseded by ADR 0009.** The `worker/<domain>/isomorphic/` boundary is replaced by the browser-safe `contract/` · `models/` · `views/` layer set. Retained for historical rationale.
+
 Files that the SPA value-imports from the worker live in a `isomorphic/` sub-directory of their owning domain — `worker/profile/isomorphic/`, `worker/meals/isomorphic/`, `worker/auth/isomorphic/`. The directory name is the documentation: anything under `isomorphic/` is bundle-safe for the SPA; everything else under `worker/` is worker-runtime and may be `import type`-only from the SPA.
 
 ## Why
