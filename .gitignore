@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# The coding-style conventions skill is its OWN repo, synced on setup (scripts/sync-conventions.sh),
+# never vendored here. Ignore ONLY this skill — a project's own .claude/skills/* stay tracked.
+/.claude/skills/fawwaz-coding-style
+
 # Turborepo
 .turbo
 
