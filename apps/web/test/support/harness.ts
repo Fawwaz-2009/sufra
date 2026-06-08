@@ -73,6 +73,13 @@ export const patchJson = (path: string, body: unknown, cookie?: string): Promise
     body: JSON.stringify(body)
   })
 
+export const putJson = (path: string, body: unknown, cookie?: string): Promise<Response> =>
+  call(path, {
+    method: "PUT",
+    headers: { "content-type": "application/json", origin: ORIGIN, ...(cookie ? { cookie } : {}) },
+    body: JSON.stringify(body)
+  })
+
 export const del = (path: string, cookie?: string): Promise<Response> =>
   call(path, { method: "DELETE", headers: cookie ? { cookie } : {} })
 

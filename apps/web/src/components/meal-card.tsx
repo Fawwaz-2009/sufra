@@ -3,10 +3,10 @@ import { Camera } from "lucide-react"
 
 import { formatMealTime } from "@/lib/date"
 import { cn } from "@/lib/utils"
-import type { Confidence } from "../../worker/meals/estimator/schema"
-import type { MealListItem } from "../../worker/meals/schema"
+import type { Confidence } from "@/worker/models/meal-analysis"
+import type { MealListItemView } from "@/worker/views/meal"
 
-export function MealCard({ meal }: { meal: MealListItem }) {
+export function MealCard({ meal }: { meal: MealListItemView }) {
   const kcal = Math.round(meal.totals.kcal)
   const p = Math.round(meal.totals.proteinG)
   const c = Math.round(meal.totals.carbsG)

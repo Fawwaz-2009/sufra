@@ -72,11 +72,48 @@ Realizes **ADR 0009, 0011** (calorie-history as a read-model).
 
 **Delivers:** the calorie-history report and the weight/BMI/intake views.
 
+## Slice 2 — decisions landed (meals)
+
+- **MealAnalysis unified on ONE Effect `Schema`** (`models/meal-analysis.ts`, browser-safe). The estimator
+  DERIVES its provider JSON Schema from it (`Schema.toJsonSchemaDocument` → flattened to a `JSONSchema7`
+  → AI SDK `jsonSchema()`) and DECODES the model output back through the SAME schema (the drift-net). Zod
+  is gone from the new estimator. **Risk to watch:** an Effect-derived JSON Schema driving OpenRouter
+  strict structured output is unproven here — the request tests never exercise it (they use the
+  deterministic `EstimatorTest` layer selected on `ENVIRONMENT="test"`); the real path is exercised by
+  the evals (Slice 5 repoint) + dogfooding. If a provider rejects the schema, the fallback is a
+  hand-curated JSON Schema next to the Effect schema (drop single-source for the wire schema only).
+- **Estimator is an env-swapped Effect service** (`estimator/{estimator,layers}.ts`): `EstimatorLive`
+  (OpenRouter via the AI SDK) / `EstimatorTest` (deterministic), `EstimatorLayer(env)` selector — mirrors
+  `MailerLayer`. Model selection still defaults to `DEFAULT_VISION_MODEL_ID` (the `app_settings` read
+  lands in Slice 4). The decoupled `inference_run` audit is written by the Meal aggregate around every
+  estimator call, success or failure.
+- **Photo proxy serve fits the HttpApi cleanly** — `GET /meals/:id/photo` is a contract endpoint behind
+  `MealScoped`; the controller returns a raw `HttpServerResponse.uint8Array` (a handler may return the
+  success value OR a custom response) with the per-meal content type + an immutable private cache header.
+  No seam special-casing needed.
+- **AI daily quota — DEFERRED.** The old per-Member daily AI-call cap (the D1 `rate_limit` table bounding
+  the host's OpenRouter bill) is NOT ported in Slice 2 (it isn't in the ADR'd surface). Re-add it as a
+  small concern if dogfooding cost warrants — login throttling still rides the Workers Rate Limiting
+  binding (`LOGIN_RATE_LIMITER`), unaffected.
+- **Frontend reshaped (the meal surface + the seam).** New `src/client/{api-client,auth-client}.ts` (the
+  typed `HttpApiClient` + the no-email better-auth client, SPA-only — no SSR/isomorphic branch). The Day
+  view, meal detail, override editor (PUT-replace / DELETE-reset), Improve sheet (refinement), bookmark
+  (POST/DELETE saved), clone, delete, and base64 photo upload all go through the typed client (the
+  raw-`fetch` + Hono-RPC holes are gone). Auth is a per-route session gate (`authClient.getSession()` →
+  redirect `/login`); the Setup + Onboarding gates and the Day-summary panel (which need the profile/admin
+  backends) return with their slices.
+- **Deferred frontend — `apps/web/deferred-frontend/`.** The not-yet-reshaped route trees (profile,
+  onboarding, admin, progress, setup, set-password, how-it-works) + their components (day-summary-panel,
+  log-weight-sheet, bottom-nav) were MOVED OUT of `src/` so the frontend compiles + the meal tracer bullet
+  runs. **Slices 3-5 restore each tree from `deferred-frontend/` and reshape it in place** (the components
+  are largely reusable — only the data seam changes). The old Hono/Drizzle `src/lib/{api,auth-*}` seam was
+  deleted.
+
 ## Open follow-ups (not yet decided — flag, don't invent)
 
 - **Tooling specifics** — the skill `conventions:sync` wiring, the `auth:generate` script, the `kysely@0.28.17` pin, and the split tsconfig (browser-safe vs worker) boundary.
-- **The request-test pyramid** over local D1 + KV — net-new; shape not yet decided.
-- **Estimator-as-Effect-service** — exact service shape, and keeping the evals import path (`evals/estimator-provider.ts` imports the leaf unchanged) intact.
+- **Estimator evals import path** — `evals/estimator-provider.ts` still imports the OLD zod leaf; repoint
+  it to the new Effect estimator (and its single-source `MealAnalysis`) in Slice 5.
 - **calorie-history read-model placement** — exactly where it lives; read-models are a gap in the skill.
 - **The future `packages/contract` lift** — extracting browser-safe `contract`/`models`/`views` into a shared package when Expo lands.
 - **Future Member `displayName` + avatar** — the avatar via the `attachable` model; deferred.

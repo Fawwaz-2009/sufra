@@ -7,8 +7,8 @@ import { toast } from "sonner"
 
 import { MealCard } from "@/components/meal-card"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { api } from "@/lib/api"
-import { savedMealsQueryOptions } from "../../profile/-queries"
+import { getClient, run } from "@/client/api-client"
+import { savedMealsQueryOptions } from "../-queries"
 
 export function SavedMealsSheet({
   open,
@@ -25,31 +25,16 @@ export function SavedMealsSheet({
   const saved = useQuery({ ...savedMealsQueryOptions(), enabled: open })
 
   const clone = useMutation({
-    mutationFn: async (sourceMealId: string) => {
-      const res = await api.api.meals.clone.$post({
-        json: { sourceMealId, capturedAt },
-      })
-      if (!res.ok) throw new Error("clone_failed")
-      return res.json()
-    },
+    mutationFn: async (sourceMealId: string) =>
+      run(
+        (await getClient()).clones.create({
+          params: { id: sourceMealId },
+          payload: { ...(capturedAt ? { capturedAt } : {}) },
+        })
+      ),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["meals"] })
-      const kcal =
-        "aiAnalysis" in data
-          ? Math.round(
-              data.aiAnalysis.foods.reduce(
-                (acc, f) => acc + f.estimatedKcal,
-                0
-              )
-            )
-          : null
-      const dishName =
-        "aiAnalysis" in data ? data.aiAnalysis.dishName : "Meal"
-      toast.success(
-        kcal != null
-          ? `Added ~${kcal} kcal — ${dishName}`
-          : `Added ${dishName}`
-      )
+      toast.success(`Added ~${Math.round(data.totals.kcal)} kcal — ${data.aiAnalysis.dishName}`)
       onOpenChange(false)
     },
     onError: () => {

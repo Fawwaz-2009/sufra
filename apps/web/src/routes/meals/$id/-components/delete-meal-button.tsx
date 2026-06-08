@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { mealDetailKey } from "../-queries"
 
 export function DeleteMealButton({ mealId }: { mealId: string }) {
@@ -37,11 +37,7 @@ export function DeleteMealButton({ mealId }: { mealId: string }) {
 
   const deleteMutation = useMutation({
     mutationKey: ["meal", mealId],
-    mutationFn: async () => {
-      const res = await api.api.meals[":id"].$delete({ param: { id: mealId } })
-      if (!res.ok) throw new Error("delete_failed")
-      return res.json()
-    },
+    mutationFn: async () => run((await getClient()).meals.destroy({ params: { id: mealId } })),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: mealDetailKey(mealId) })
       queryClient.invalidateQueries({ queryKey: ["meals"] })

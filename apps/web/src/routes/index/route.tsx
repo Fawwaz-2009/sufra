@@ -1,16 +1,11 @@
 import { useRef, useState, type ChangeEvent } from "react"
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import { toast } from "sonner"
 
-import { BottomNav } from "@/components/bottom-nav"
-import { DaySummaryPanel } from "@/components/day-summary-panel"
 import { MealCard } from "@/components/meal-card"
-import { useAuth } from "@/lib/auth-context"
+import { authClient } from "@/client/auth-client"
+import { getClient, run } from "@/client/api-client"
 import {
   addDays,
   diffInLocalDays,
@@ -22,8 +17,6 @@ import {
   todayLocal,
   weekStart,
 } from "@/lib/date"
-import { snapshotFor } from "../../../worker/profile/isomorphic/derive"
-import type { MealListItem } from "../../../worker/meals/schema"
 import { AddMealRow } from "./-components/add-meal-row"
 import { DayHeader } from "./-components/day-header"
 import { DayShell } from "./-components/day-shell"
@@ -41,9 +34,9 @@ export const Route = createFileRoute("/")({
   loaderDeps: ({ search }) => ({
     weekKey: formatLocalDate(weekStart(resolveSelectedDay(search))),
   }),
-  beforeLoad: ({ context }) => {
-    if (!context.session) throw redirect({ to: "/login" })
-    return { session: context.session }
+  beforeLoad: async () => {
+    const { data } = await authClient.getSession()
+    if (!data) throw redirect({ to: "/login" })
   },
   loader: ({ context, deps }) => {
     return context.queryClient.ensureQueryData(
@@ -56,7 +49,6 @@ export const Route = createFileRoute("/")({
 })
 
 function Home() {
-  const auth = useAuth()
   const queryClient = useQueryClient()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
@@ -69,16 +61,9 @@ function Home() {
   const ws = weekStart(selectedDay)
   const { data, isLoading } = useQuery(weekMealsQueryOptions(ws))
 
-  const allMeals = (data?.meals ?? []) as MealListItem[]
+  const allMeals = data ?? []
   const mealsForSelectedDay = allMeals.filter((m) =>
     isSameLocalDay(new Date(m.capturedAt), selectedDay)
-  )
-
-  // Past-day-aware profile lookup: each day reads the snapshot that was
-  // active for it. See ADR 0002.
-  const profileForDay = snapshotFor(
-    auth.profiles,
-    formatLocalDate(selectedDay)
   )
 
   const isViewingToday = isSameLocalDay(selectedDay, today)
@@ -95,31 +80,23 @@ function Home() {
     selectDay(diffInLocalDays(next, today) > 0 ? today : next)
   }
 
+  // Photo capture → the typed `create` (base64 Upload, no multipart). The estimator gates persistence;
+  // a failure surfaces the server's human message (EstimateFailed / UnsupportedMedia / MediaTooLarge).
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData()
-      formData.append("photo", file)
-      if (!isViewingToday) {
-        formData.append("capturedAt", localDateForCapture(selectedDay))
-      }
-      const res = await fetch("/api/meals", { method: "POST", body: formData })
-      if (!res.ok) {
-        const body = (await res
-          .json<{ error?: string }>()
-          .catch(() => ({}))) as { error?: string }
-        throw new Error(body.error ?? "upload_failed")
-      }
-      return res.json()
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const capturedAt = isViewingToday ? undefined : localDateForCapture(selectedDay)
+      return run(
+        (await getClient()).meals.create({
+          payload: { photo: { filename: file.name, data: bytes }, ...(capturedAt ? { capturedAt } : {}) },
+        })
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] })
     },
-    // Surface failures with a clear toast instead of silently reverting the
-    // button. Server returns the error code (see worker/errors.ts ERROR_CODES);
-    // map known codes to readable copy. Anything we don't recognize falls
-    // through to a generic message — the user can retry.
-    onError: (error: Error) => {
-      toast.error(captureErrorMessage(error.message))
+    onError: (error: unknown) => {
+      toast.error(captureErrorMessage(error))
     },
   })
 
@@ -144,13 +121,6 @@ function Home() {
         today={today}
         onSelect={selectDay}
       />
-
-      {profileForDay && (
-        <DaySummaryPanel
-          meals={mealsForSelectedDay}
-          profile={profileForDay}
-        />
-      )}
 
       <main className="flex-1 px-5 pb-24">
         <section>
@@ -205,31 +175,17 @@ function Home() {
       <SavedMealsSheet
         open={savedSheetOpen}
         onOpenChange={setSavedSheetOpen}
-        capturedAt={
-          isViewingToday ? undefined : localDateForCapture(selectedDay)
-        }
+        capturedAt={isViewingToday ? undefined : localDateForCapture(selectedDay)}
       />
-      <BottomNav />
     </DayShell>
   )
 }
 
-// Map server error codes (worker/errors.ts ERROR_CODES) to user-readable
-// copy for the capture toast. Keep messages calm and short — they appear
-// at top-center where they compete with the Day view for attention.
-function captureErrorMessage(code: string): string {
-  switch (code) {
-    case "photo_too_large":
-      return "Photo is too big. Try a smaller one."
-    case "captured_at_in_future":
-      return "Can't log a meal in the future."
-    case "too_many_requests":
-      return "You've reached today's AI limit. Try again tomorrow."
-    case "unauthorized":
-      return "Signed out — sign in again to continue."
-    case "photo_missing":
-      return "Couldn't read the photo. Try again."
-    default:
-      return "Couldn't save that meal. Try again in a moment."
-  }
+// The estimator surfaces user-facing failures as TYPED errors carrying a human `message`; show it
+// verbatim with a calm generic fallback. (No client-side policy strings — the server owns the copy.)
+function captureErrorMessage(error: unknown): string {
+  const msg = (error as { message?: unknown })?.message
+  return typeof msg === "string" && msg.length > 0
+    ? msg
+    : "Couldn't save that meal. Try again in a moment."
 }

@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import { useMutation } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import type { MealDetail } from "../../../../../worker/meals/schema"
+import { getClient, run } from "@/client/api-client"
+import type { MealView } from "@/worker/views/meal"
 
 export function ImproveEstimateSheet({
   open,
@@ -16,36 +17,26 @@ export function ImproveEstimateSheet({
   open: boolean
   onOpenChange: (v: boolean) => void
   mealId: string
-  clarifications: MealDetail["aiAnalysis"]["clarifications"]
+  clarifications: MealView["aiAnalysis"]["clarifications"]
   lastRefinementText: string | null
   onRefined: () => void
 }) {
   const [text, setText] = useState(lastRefinementText ?? "")
 
-  // Re-sync the textarea whenever the sheet is opened — the parent's
-  // lastRefinementText updates after a successful refine, and we want a
-  // re-open to show the freshest value.
-  useEffect(() => {
+  // Re-sync the textarea whenever the sheet is (re)opened — the parent's lastRefinementText updates
+  // after a successful refine, and we want a re-open to show the freshest value. This is React's
+  // "adjust state during render" pattern (storing the previous `open`), not an effect — so it re-syncs
+  // in the same render the sheet opens, with no cascading-render round-trip.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) setText(lastRefinementText ?? "")
-  }, [open, lastRefinementText])
+  }
 
   const mutation = useMutation({
     mutationKey: ["meal", mealId],
-    mutationFn: async (userText: string) => {
-      const res = await fetch(`/api/meals/${mealId}/refine`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ userText }),
-      })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          error?: string
-          message?: string
-        }
-        throw new Error(body.message ?? body.error ?? "refine_failed")
-      }
-      return res.json()
-    },
+    mutationFn: async (userText: string) =>
+      run((await getClient()).refinement.create({ params: { id: mealId }, payload: { userText } })),
     onSuccess: () => {
       onRefined()
       onOpenChange(false)

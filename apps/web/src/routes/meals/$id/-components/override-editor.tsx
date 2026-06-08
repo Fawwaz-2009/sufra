@@ -2,50 +2,48 @@ import { useState, type FormEvent } from "react"
 import { useMutation } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
-import type {
-  MealDetail,
-  MealOverride,
-  MealOverridePatchInput,
-} from "../../../../../worker/meals/schema"
-import {
-  resolveTotals,
-  type ResolvedTotals,
-} from "../../../../../worker/meals/isomorphic/totals"
+import { getClient, run } from "@/client/api-client"
+import type { MealView } from "@/worker/views/meal"
+import type { MealOverride } from "@/worker/models/meal-analysis"
+import { resolveTotals, type ResolvedTotals } from "@/worker/views/meal"
 import { OverrideField } from "./override-field"
+
+type OverrideKey = "kcal" | "proteinG" | "carbsG" | "fatG"
+const KEYS: ReadonlyArray<OverrideKey> = ["kcal", "proteinG", "carbsG", "fatG"]
 
 export function OverrideEditor({
   meal,
   aiSum,
   onSaved,
 }: {
-  meal: MealDetail
+  meal: MealView
   aiSum: ResolvedTotals
   onSaved: () => void
 }) {
-  const [draft, setDraft] = useState<Record<keyof MealOverride, string>>(() =>
+  const [draft, setDraft] = useState<Record<OverrideKey, string>>(() =>
     overrideToInputs(meal.override)
   )
 
   const mutation = useMutation({
     mutationKey: ["meal", meal.id],
-    mutationFn: async (patch: MealOverridePatchInput) => {
-      const res = await fetch(`/api/meals/${meal.id}/override`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(patch),
-      })
-      if (!res.ok) throw new Error("save_failed")
-      return res.json()
+    mutationFn: async (override: MealOverride) => {
+      const client = await getClient()
+      // PUT-replace when anything is set; DELETE-reset when the whole override is empty (ADR 0012 —
+      // the override IS what you send, so there is no null-vs-absent ambiguity to mishandle).
+      if (Object.keys(override).length === 0) {
+        return run(client.override.destroy({ params: { id: meal.id } }))
+      }
+      return run(client.override.update({ params: { id: meal.id }, payload: override }))
     },
-    onSuccess: (_data, patch) => {
-      setDraft(patchToInputs(patch))
+    onSuccess: (_data, override) => {
+      setDraft(overrideToInputs(override))
       onSaved()
     },
   })
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    mutation.mutate(inputsToPatch(draft))
+    mutation.mutate(inputsToOverride(draft))
   }
 
   const resolved = resolveTotals(meal.aiAnalysis, meal.override)
@@ -105,9 +103,7 @@ export function OverrideEditor({
         <Button
           type="button"
           variant="ghost"
-          onClick={() =>
-            setDraft({ kcal: "", proteinG: "", carbsG: "", fatG: "" })
-          }
+          onClick={() => setDraft({ kcal: "", proteinG: "", carbsG: "", fatG: "" })}
           disabled={mutation.isPending}
         >
           Reset
@@ -120,9 +116,7 @@ export function OverrideEditor({
   )
 }
 
-function overrideToInputs(
-  override: MealOverride | null
-): Record<keyof MealOverride, string> {
+function overrideToInputs(override: MealOverride | null): Record<OverrideKey, string> {
   return {
     kcal: override?.kcal != null ? String(override.kcal) : "",
     proteinG: override?.proteinG != null ? String(override.proteinG) : "",
@@ -131,33 +125,16 @@ function overrideToInputs(
   }
 }
 
-// Build the PATCH body from the editor inputs. Empty input → explicit `null`
-// so the server clears that field. (Server PATCH semantics: absent key is
-// "leave alone"; null is "clear" — see worker/meals/operations.ts setOverride.
-// Skipping empty fields here would silently preserve a prior override.)
-function inputsToPatch(
-  draft: Record<keyof MealOverride, string>
-): MealOverridePatchInput {
-  const out: MealOverridePatchInput = {}
-  for (const k of ["kcal", "proteinG", "carbsG", "fatG"] as const) {
+// Build the override from the editor inputs — only NON-empty, valid, non-negative fields. An empty
+// field is OMITTED (PUT-replace semantics); an all-empty result triggers the DELETE reset in the
+// mutation. This is the clean replacement for the old per-field null/absent PATCH dance.
+function inputsToOverride(draft: Record<OverrideKey, string>): MealOverride {
+  const out: { -readonly [K in OverrideKey]?: number } = {}
+  for (const k of KEYS) {
     const raw = draft[k].trim()
-    if (raw === "") {
-      out[k] = null
-      continue
-    }
+    if (raw === "") continue
     const n = Number(raw)
     if (Number.isFinite(n) && n >= 0) out[k] = n
   }
   return out
-}
-
-function patchToInputs(
-  patch: MealOverridePatchInput
-): Record<keyof MealOverride, string> {
-  return {
-    kcal: typeof patch.kcal === "number" ? String(patch.kcal) : "",
-    proteinG: typeof patch.proteinG === "number" ? String(patch.proteinG) : "",
-    carbsG: typeof patch.carbsG === "number" ? String(patch.carbsG) : "",
-    fatG: typeof patch.fatG === "number" ? String(patch.fatG) : "",
-  }
 }

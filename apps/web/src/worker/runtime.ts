@@ -9,36 +9,58 @@ import { api } from "./contract/api.ts"
 import { SqlLayer } from "./db/sql.ts"
 import { Auth, type AuthInstance } from "./auth/instance.ts"
 import { AuthenticationLive } from "./middleware/authentication.ts"
+import { MealScopedLive } from "./middleware/meal-scoped.ts"
 import { UsersRepoLayer } from "./db/users.ts"
+import { MealsRepoLayer } from "./db/meals.ts"
+import { AttachmentsRepoLayer } from "./db/attachments.ts"
+import { InferenceRunsRepoLayer } from "./db/inference-runs.ts"
+import { BlobsLayer } from "./blobs/layers.ts"
+import { EstimatorLayer } from "./estimator/layers.ts"
 import { MeControllerLive } from "./controllers/me.ts"
+import { MealsControllerLive } from "./controllers/meals.ts"
+import { OverrideControllerLive } from "./controllers/meals/override.ts"
+import { RefinementControllerLive } from "./controllers/meals/refinement.ts"
+import { SavedControllerLive } from "./controllers/meals/saved.ts"
+import { ClonesControllerLive } from "./controllers/meals/clones.ts"
+import { PhotoControllerLive } from "./controllers/meals/photo.ts"
 import type { Bindings } from "./env.ts"
 
 /**
- * Platform layer the HttpApi builder needs. Workers have no filesystem, so provide a no-op
- * FileSystem; HttpPlatform depends on it. `provideMerge` keeps FileSystem visible alongside
- * HttpPlatform/Path/Etag.
+ * Platform layer the HttpApi builder needs. Workers have no filesystem, so provide a no-op FileSystem;
+ * HttpPlatform depends on it. `provideMerge` keeps FileSystem visible alongside HttpPlatform/Path/Etag.
  */
 const PlatformLayer = Layer.mergeAll(HttpPlatform.layer, Path.layer, Etag.layer).pipe(
   Layer.provideMerge(FileSystem.layerNoop({}))
 )
 
 /**
- * Assemble the Effect HttpApi into a Cloudflare-Worker fetch handler. Called ONCE per isolate by
- * the worker (bindings are stable), so everything below is built a single time.
- * `HttpRouter.toWebHandler` provides `HttpRouter` + the per-request services (the request, its
- * scope); everything else is wired here, once.
+ * Assemble the Effect HttpApi into a Cloudflare-Worker fetch handler. Called ONCE per isolate (bindings
+ * are stable). One `SqlClient` for the isolate; repos share it. `Blobs` + `Estimator` are env-static
+ * (the binding/key are stable), so they're built once and merged into the request data layer.
  */
 export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
-  // One SqlClient/D1Client for the isolate; repos share it (Effect memoizes by ref).
   const sql = SqlLayer(env.DB)
   const usersRepo = UsersRepoLayer.pipe(Layer.provide(sql))
+  const mealsRepo = MealsRepoLayer.pipe(Layer.provide(sql))
+  const attachmentsRepo = AttachmentsRepoLayer.pipe(Layer.provide(sql))
+  const inferenceRunsRepo = InferenceRunsRepoLayer.pipe(Layer.provide(sql))
+  const blobs = BlobsLayer(env)
+  const estimator = EstimatorLayer(env)
 
-  // Per-request services, discharged via provideRequest.
-  const dataLayer = Layer.mergeAll(usersRepo, sql)
+  // Per-request services, discharged via provideRequest. (blobs/estimator are stable singletons, but the
+  // domain resolves them per-request, so they ride here alongside the repos.)
+  const dataLayer = Layer.mergeAll(usersRepo, mealsRepo, attachmentsRepo, inferenceRunsRepo, blobs, estimator, sql)
 
   const appLayer = HttpApiBuilder.layer(api).pipe(
     Layer.provide(MeControllerLive),
+    Layer.provide(MealsControllerLive),
+    Layer.provide(OverrideControllerLive),
+    Layer.provide(RefinementControllerLive),
+    Layer.provide(SavedControllerLive),
+    Layer.provide(ClonesControllerLive),
+    Layer.provide(PhotoControllerLive),
     Layer.provide(AuthenticationLive), // middleware impl; needs Auth
+    Layer.provide(MealScopedLive.pipe(Layer.provide(mealsRepo))), // loads CurrentMeal through the user
     Layer.provide(Layer.succeed(Auth, auth)), // the shared Better Auth instance (built once)
     Layer.provide(PlatformLayer),
     HttpRouter.provideRequest(dataLayer)

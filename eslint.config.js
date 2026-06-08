@@ -12,6 +12,10 @@ export default defineConfig([
     'apps/web/src/routeTree.gen.ts',
     'apps/web/worker-configuration.d.ts',
     'apps/web/worker/db/migrations/**',
+    // The pre-Effect Hono/Drizzle worker (port-reference, deleted in Slice 5) + the deferred frontend
+    // route trees moved out of the compiled tree (restored + reshaped in Slices 3-5).
+    'apps/web/worker/**',
+    'apps/web/deferred-frontend/**',
     '.turbo',
   ]),
   {
@@ -28,12 +32,28 @@ export default defineConfig([
     },
   },
   {
-    // TanStack Router route files export `Route` alongside the inline route
-    // component. Fast Refresh can't preserve state for locally-defined route
-    // components, but a full route reload is acceptable here.
-    files: ['apps/web/src/routes/**/*.{ts,tsx}'],
+    // TanStack Router route files export `Route` alongside the inline route component; shadcn `ui/*`
+    // components export their `cva` variants alongside the component. Fast Refresh can't preserve state
+    // for those, but a full reload is acceptable here.
+    files: ['apps/web/src/routes/**/*.{ts,tsx}', 'apps/web/src/components/ui/**/*.{ts,tsx}'],
     rules: {
       'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // The Effect + Cloudflare worker (ADR 0009+) carries house-style idioms that the default
+    // `recommended` rules flag as smells but are settled conventions (fawwaz-coding-style):
+    //  - the DERIVED repo interface `export interface XRepo extends Effect.Success<typeof make> {}`
+    //    (no-empty-object-type) — the single-source-of-truth pattern, nothing to declare;
+    //  - the low-level Command generic `Statement.Statement<any>` in db/sql.ts + db/table.ts
+    //    (no-explicit-any) — the un-run-statement carrier, deliberately opaque;
+    //  - the middleware's unused `_options` param (no-unused-vars) — part of the HttpApiMiddleware
+    //    function signature, kept for documentation.
+    files: ['apps/web/src/worker/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
   {

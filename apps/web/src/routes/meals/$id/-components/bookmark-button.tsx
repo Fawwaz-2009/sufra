@@ -2,7 +2,7 @@ import { Bookmark } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { cn } from "@/lib/utils"
 import { mealDetailKey } from "../-queries"
 
@@ -18,11 +18,11 @@ export function BookmarkButton({
   const toggle = useMutation({
     mutationKey: ["meal", mealId],
     mutationFn: async () => {
-      const res = await api.api.meals[":id"].saved.$patch({
-        param: { id: mealId },
-      })
-      if (!res.ok) throw new Error("toggle_failed")
-      return res.json()
+      const client = await getClient()
+      // POST save / DELETE unsave (ADR 0012's singular toggle), branching on the current state.
+      return saved
+        ? run(client.saved.destroy({ params: { id: mealId } }))
+        : run(client.saved.create({ params: { id: mealId } }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mealDetailKey(mealId) })

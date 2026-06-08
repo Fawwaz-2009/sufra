@@ -1,21 +1,21 @@
 import { queryOptions } from "@tanstack/react-query"
+import * as Effect from "effect/Effect"
 
-import { api } from "@/lib/api"
-import type { MealDetail } from "../../../../worker/meals/schema"
+import { getClient, run } from "@/client/api-client"
+import type { MealView } from "@/worker/views/meal"
 
-// Cache key for this Meal's detail query. Exported so other routes (e.g. the
-// Day view's optimistic update after an Override save) can invalidate without
-// reconstructing the key string locally — see ADR 0006 (co-located queries).
+// Cache key for this Meal's detail query. Exported so other routes (the Day view after an Override save)
+// can invalidate without reconstructing the key string locally — see ADR 0006 (co-located queries).
 export const mealDetailKey = (id: string) => ["meal", id] as const
 
 export function mealQueryOptions(id: string) {
   return queryOptions({
     queryKey: mealDetailKey(id),
-    queryFn: async (): Promise<MealDetail | null> => {
-      const res = await api.api.meals[":id"].$get({ param: { id } })
-      if (res.status === 404) return null
-      if (!res.ok) throw new Error("failed_to_load_meal")
-      return (await res.json()) as MealDetail
+    queryFn: async (): Promise<MealView | null> => {
+      const client = await getClient()
+      // A scoped 404 is the typed `NotFound` error → map it to null (the loader turns null into a
+      // notFound() route state). Any other failure propagates to the error boundary.
+      return run(client.meals.show({ params: { id } }).pipe(Effect.catchTag("NotFound", () => Effect.succeed(null))))
     },
   })
 }

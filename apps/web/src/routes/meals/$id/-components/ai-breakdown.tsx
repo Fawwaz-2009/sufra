@@ -2,8 +2,8 @@ import { useState } from "react"
 import { Sparkles, Pencil } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import type { Confidence } from "../../../../../worker/meals/estimator/schema"
-import type { MealDetail } from "../../../../../worker/meals/schema"
+import type { Confidence } from "@/worker/models/meal-analysis"
+import type { MealView } from "@/worker/views/meal"
 import { ImproveEstimateSheet } from "./improve-estimate-sheet"
 
 // The Improve button's color reflects how unsure the AI was. Members never
@@ -25,7 +25,7 @@ export function AiBreakdown({
   onRefined,
 }: {
   mealId: string
-  aiAnalysis: MealDetail["aiAnalysis"]
+  aiAnalysis: MealView["aiAnalysis"]
   lastRefinementText: string | null
   onRefined: () => void
 }) {

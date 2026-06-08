@@ -9,8 +9,6 @@ export const router = createRouter({
   scrollRestoration: true,
   context: {
     queryClient,
-    // Overridden by RouterProvider's `context` prop in <InnerApp/>.
-    auth: undefined!,
   },
 })
 
