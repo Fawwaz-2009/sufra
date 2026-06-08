@@ -1,10 +1,9 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
-import { useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { cn } from "@/lib/utils"
-import { MODELS } from "../../../../worker/meals/isomorphic/models"
+import { MODELS } from "@/worker/estimator/models"
 import { settingsQueryOptions } from "../-queries"
 import { Section } from "./section"
 
@@ -13,13 +12,8 @@ export function ModelSelect() {
   const queryClient = useQueryClient()
 
   const patchSettings = useMutation({
-    mutationFn: async (input: { visionModelId: string }) => {
-      const res = await api.api.admin.settings.$patch({ json: input })
-      if (!res.ok) throw new Error("failed_to_update_settings")
-      const json = await res.json()
-      if ("error" in json) throw new Error(json.error)
-      return json
-    },
+    mutationFn: async (input: { visionModelId: string }) =>
+      run((await getClient()).settings.update({ payload: input })),
     onSuccess: (next) => {
       queryClient.setQueryData(settingsQueryOptions().queryKey, next)
       const model = MODELS.find((m) => m.id === next.visionModelId)

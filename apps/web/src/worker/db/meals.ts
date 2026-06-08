@@ -63,7 +63,18 @@ const make = Effect.gen(function* () {
         : Schema.decodeUnknownEffect(Meal.select)(rows[0]).pipe(Effect.orDie, Effect.map(Option.some))
   })
 
-  return { create, update, updateWhere, delete: del, inRange, saved, find } as const
+  // Just the ids of a Member's meals — the member-delete cascade walks them to purge each meal's photo
+  // (the R2 blobs + attachment rows) before the rows themselves are deleted.
+  const idsForUser = (scope: { readonly userId: string }): Command<ReadonlyArray<string>> => ({
+    statement: Effect.sync(() => sql`SELECT id FROM meals WHERE userId = ${scope.userId}`),
+    decode: (rows) =>
+      Schema.decodeUnknownEffect(Schema.Array(Schema.Struct({ id: Schema.String })))(rows).pipe(
+        Effect.orDie,
+        Effect.map((r) => r.map((x) => x.id))
+      )
+  })
+
+  return { create, update, updateWhere, delete: del, inRange, saved, find, idsForUser } as const
 })
 
 export interface MealsRepo extends Effect.Success<typeof make> {}

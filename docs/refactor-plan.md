@@ -153,6 +153,83 @@ Realizes **ADR 0009, 0011** (calorie-history as a read-model).
 - **AI daily quota still deferred** (carried from Slice 2). calorie-history (read-model) + the Progress
   views remain Slice 5, reusing `views/derive.ts`.
 
+## Slice 4 — decisions landed (admin + setup + password-link)
+
+- **Two HttpApis, one prefix: a second unauth `publicApi` solves the api-wide `Authentication` conflict.**
+  `contract/public-api.ts` is `HttpApi.make("publicApi")` with `SetupGroup` + `PasswordLinksGroup`, NO
+  middleware, same `.prefix("/api")`. `runtime.ts` builds it as a SEPARATE `toWebHandler` (`publicHandler`)
+  sharing the same `dataLayer` + `Auth`. `handler.ts` dispatches the known public prefixes (`/api/setup`,
+  `/api/password-links`, exact-or-child match so they can't shadow an authed route) to `publicHandler`,
+  everything else `/api/*` to the authed `handler`. The frontend reaches it via a SECOND typed client
+  (`getPublicClient`). This is the recommended shape from handoff-3 §5.1, confirmed by request tests.
+- **Set-Cookie from a handler: `signInUsername({ returnHeaders:true })` → `getSetCookie()` →
+  `HttpServerResponse.fromWeb(new Response(body, { headers }))`.** Setup-create and Password-link-redeem
+  both create/overwrite a credential then sign the caller in; the handler returns a raw `HttpServerResponse`
+  (the same "a handler may return a response instead of the success value" pattern the photo serve uses).
+  The shared helper is `support/session-response.ts`. `getSetCookie()` returns each Set-Cookie un-combined;
+  `fromWeb` round-trips the cookie collection so the runtime re-emits them. Verified: the setup/redeem
+  request tests extract the cookie and authenticate the next request with it. (handoff-3 §5.2 resolved.)
+- **Auth-instance primitives, not the admin HTTP endpoints, for role-flip / password-set / credential-delete.**
+  `auth.$context.internalAdapter.{updateUser,updatePassword,deleteUser,deleteSessions}` + `$context.password.hash`
+  (verified present in better-auth 1.6.12) — so the domain never threads request headers and never needs an
+  admin session (Setup's role-flip happens before any admin exists; redeem's credential IS the token). The
+  admin `setRole`/`createUser` HTTP endpoints are deliberately NOT used.
+- **Member provisioning uses `signUpEmail` with an unreachable placeholder password** (the proven path the
+  test harness already uses), NOT `admin.createUser`. ADR 0010 / handoff phrased it as `admin.createUser`;
+  `signUpEmail` is the verified, simpler equivalent — it fires the `user.create.after` provision hook,
+  lands `defaultRole = member`, and (called server-side without forwarding its Set-Cookie) doesn't disturb
+  the Host's session. The Member sets a real password via a Password link. **Documented deviation.**
+- **Member-create is PURE (returns the Member); the link is a SEPARATE issue (ADR 0016).** The frontend
+  `AddMemberForm` chains `create` → `POST /admin/members/:id/password-link` → copy. No auto-issue. The link
+  step is BEST-EFFORT (a review fix): once the Member exists the create must NOT be retried (username taken),
+  so a link failure still reveals the Member in the list + shows a "tap the 🔑 to retry" toast.
+- **Member-delete cascade is explicit (D1 has no FK cascade).** `User.members.destroy`: purge each meal's
+  photo (R2 blobs + attachment rows, keyed per-meal via `meals.idsForUser` + `Attachable.purgeRecord`),
+  then the credential FIRST (`internalAdapter.deleteSessions` + `deleteUser`), then ONE `atomically` batch
+  (`meals` / `profile_snapshots` / `weights` / `password_links` / `users`). `inference_run` rows SURVIVE
+  (decoupled audit). **Credential-FIRST** (a review fix — was last): not cross-system atomic (BA + D1), so a
+  mid-sequence defect must never strand an account that can still *authenticate* — the security-sensitive
+  half goes first; the worst case is then inaccessible leftover app rows no session can reach.
+- **`HostOnly` is a PURE gate (provides nothing).** `contract/middleware/host-only.ts` requires
+  `CurrentUser`, errors `NotFound`; `middleware/host-only.ts` is `Layer.effect(HostOnly, Effect.succeed(fn))`
+  (no per-request capture) — `role !== "host"` → 404, else passes the endpoint through (`return yield*
+  httpEffect`). Role is a scope; a non-host 404s exactly as a non-owner does (ADR 0013, no 403 anywhere).
+  Attached per admin/settings group in each group's contract.
+- **Admin member ops live on the ONE `User` aggregate** as `User.members.{index,create,destroy}`
+  (instance-wide, host-only) — consistent with the Slice 3 "`User` aggregate, not `domain/member.ts`"
+  decision. Distinct from the user-scoped `User.snapshots` / `User.weights`. `PasswordLink` / `Settings` /
+  `Cost` / `Setup` are their own small aggregates (`domain/{password-link,settings,cost,setup}.ts`).
+- **Schema role value is `member` (not the old `user`).** Member list/find + `countMembers` filter
+  `role = 'member'`; `countHosts` filters `role = 'host'`. The credential reads (username/role) are
+  inline-projection JOINs to `identities` in `db/users.ts` — never mirrored onto `users` (ADR 0010). The
+  Admin cost per-Member average divides by `countMembers` (Host-EXCLUDING, matching the member list — a
+  review fix; the old code divided by all accounts), and the public Setup `familyName` is trimmed at the
+  contract boundary (`Schema.Trim`, restoring the old `.trim()` — a review fix).
+- **Model selection closes the Slice 2 deferral.** `Meal.runEstimate` reads `Settings.visionModelId()` (the
+  `app_settings` row), defaulted defensively to `DEFAULT_VISION_MODEL_ID` if the row is somehow absent (so a
+  capture never 500s on a missing setting). `PATCH /settings` constrains `visionModelId` to a known model id
+  at the contract boundary (a `Schema.Literals` over `MODELS` → 400 on an unknown id).
+- **`app_settings` reset baseline drops the dead columns** (`default_language`,
+  `deficit_safety_warning_enabled`) — translation + the deficit floor are deferred. The singleton is
+  `id` (CHECK `id = 1`) + `visionModelId` + `familyName` (default `'My'`) + `updatedAt`. Seeded by Setup,
+  edited from Admin.
+- **`minPasswordLength: 6` added to the auth instance** to honor the 6-char Setup / set-password UI (Better
+  Auth's default is 8, which would reject those passwords at `signUpEmail` / `updatePassword`).
+- **Login rate-limit RESTORED (a re-platform regression).** The old `worker/routes/auth.ts` throttled
+  `/api/auth/sign-in/*` per IP via `LOGIN_RATE_LIMITER`; the new direct auth seam had dropped it (handoff-2's
+  "unaffected" was wrong). `handler.ts` now throttles POST sign-in before the Better Auth hand-off,
+  env-gated OFF under `ENVIRONMENT="test"` (the harness signs in many times from one shared key).
+- **Routes/verbs.** Setup is the singleton `GET /setup` (show = status) + `POST /setup` (create, 409
+  `AlreadySetUp`). Public redeem: `GET /password-links/:token` (show) + `POST /password-links/:token/password`
+  (create = redeem). Host issuance: `POST /admin/members/:id/password-link` (singular sub-resource, 200,
+  upsert-in-place). Admin: `GET/POST /admin/members`, `DELETE /admin/members/:id`, `GET /admin/cost`.
+  Settings: `GET/PATCH /settings` (top-level host-only singleton; the page is `/admin`).
+- **Frontend Setup tier folded into `client/gate.ts`** above onboarding: `requireOnboarded` is now Setup →
+  Login → Onboarding; `requireHost` gates `/admin`. `setupStatusQueryOptions` (`staleTime: Infinity`); the
+  Setup submit invalidates it with `refetchType: "all"` + await before navigating (else the gate's
+  `ensureQueryData` reads stale `needsSetup=true` and loops). `admin` / `setup` / `set-password` restored;
+  the bottom-nav + Progress stay deferred to Slice 5 (admin is URL-reachable for now, like Profile).
+
 ## Open follow-ups (not yet decided — flag, don't invent)
 
 - **Tooling specifics** — the skill `conventions:sync` wiring, the `auth:generate` script, the `kysely@0.28.17` pin, and the split tsconfig (browser-safe vs worker) boundary.

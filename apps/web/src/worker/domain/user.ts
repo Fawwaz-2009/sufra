@@ -8,6 +8,7 @@ import { toProfileSnapshotView } from "../views/profile-snapshot.ts"
 import type { MeView } from "../views/me.ts"
 import * as Snapshots from "./user/snapshots.ts"
 import * as Weights from "./user/weights.ts"
+import * as Members from "./user/members.ts"
 
 const nowIso = Effect.map(Clock.currentTimeMillis, (ms) => new Date(ms).toISOString())
 
@@ -33,13 +34,15 @@ const provision = Effect.fn("User.provision")(function* (input: { readonly id: s
 /**
  * THE USER AGGREGATE — the account/person (the product's "Member"; Host or Member by role), the ADR 0011
  * Member aggregate rooted on `users` (code-named `User` per the settled Slice 1/2 convention). Its own
- * verbs plus the two owned collections grouped as sub-namespaces: `User.snapshots.create` (the append-
- * only Profile, seal rule + onboarding seed) and `User.weights.{index,log,remove}` (measurements + the
- * atomic dual-append). Consumers import `{ User }` and call `User.*`, never a concern directly.
+ * verbs plus the owned collections grouped as sub-namespaces: `User.snapshots.create` (the append-only
+ * Profile, seal rule + onboarding seed), `User.weights.{index,log,remove}` (measurements + the atomic
+ * dual-append), and `User.members.{index,create,destroy}` (the Host's instance-wide admin view of the
+ * household accounts, behind HostOnly). Consumers import `{ User }` and call `User.*`, never a concern directly.
  */
 export const User = {
   show,
   provision,
   snapshots: Snapshots, // User.snapshots.create
-  weights: Weights // User.weights.index / .log / .remove
+  weights: Weights, // User.weights.index / .log / .remove
+  members: Members // User.members.index / .create / .destroy (host-only, instance-wide)
 } as const

@@ -2,7 +2,7 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { KeyRound, Trash } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { copyPasswordLinkMessage } from "../-helpers"
 import { membersQueryOptions, type Member } from "../-queries"
 
@@ -14,27 +14,16 @@ export function MembersList({
   const members = useSuspenseQuery(membersQueryOptions()).data
 
   const generateLink = useMutation({
-    mutationFn: async (memberId: string) => {
-      const res = await api.api.admin.members[":id"]["password-link"].$post({
-        param: { id: memberId },
-      })
-      const json = await res.json()
-      if (!res.ok || "error" in json) {
-        throw new Error("failed_to_generate_link")
-      }
-      return json
-    },
-    onSuccess: async (data, memberId) => {
-      const m = members.members.find((m) => m.id === memberId)
-      await copyPasswordLinkMessage(
-        m?.username ?? "",
-        data.passwordLink.token
-      )
+    mutationFn: async (memberId: string) =>
+      run((await getClient()).memberPasswordLink.create({ params: { id: memberId } })),
+    onSuccess: async (link, memberId) => {
+      const m = members.find((m) => m.id === memberId)
+      await copyPasswordLinkMessage(m?.username ?? "", link.token)
     },
     onError: () => toast.error("Couldn't copy link. Try again."),
   })
 
-  if (members.members.length === 0) {
+  if (members.length === 0) {
     return (
       <p className="rounded-xl bg-card px-4 py-6 text-center text-sm text-muted-foreground ring-1 ring-foreground/10">
         No Members yet. Add one above.
@@ -44,7 +33,7 @@ export function MembersList({
 
   return (
     <ul className="flex flex-col gap-2">
-      {members.members.map((m) => (
+      {members.map((m) => (
         <li
           key={m.id}
           className="flex items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10"

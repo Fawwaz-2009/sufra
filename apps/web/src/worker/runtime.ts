@@ -6,16 +6,20 @@ import * as HttpPlatform from "effect/unstable/http/HttpPlatform"
 import * as Etag from "effect/unstable/http/Etag"
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder"
 import { api } from "./contract/api.ts"
+import { publicApi } from "./contract/public-api.ts"
 import { SqlLayer } from "./db/sql.ts"
 import { Auth, type AuthInstance } from "./auth/instance.ts"
 import { AuthenticationLive } from "./middleware/authentication.ts"
 import { MealScopedLive } from "./middleware/meal-scoped.ts"
+import { HostOnlyLive } from "./middleware/host-only.ts"
 import { UsersRepoLayer } from "./db/users.ts"
 import { ProfileSnapshotsRepoLayer } from "./db/profile-snapshots.ts"
 import { WeightsRepoLayer } from "./db/weights.ts"
 import { MealsRepoLayer } from "./db/meals.ts"
 import { AttachmentsRepoLayer } from "./db/attachments.ts"
 import { InferenceRunsRepoLayer } from "./db/inference-runs.ts"
+import { AppSettingsRepoLayer } from "./db/app-settings.ts"
+import { PasswordLinksRepoLayer } from "./db/password-links.ts"
 import { BlobsLayer } from "./blobs/layers.ts"
 import { EstimatorLayer } from "./estimator/layers.ts"
 import { MeControllerLive } from "./controllers/me.ts"
@@ -27,6 +31,12 @@ import { RefinementControllerLive } from "./controllers/meals/refinement.ts"
 import { SavedControllerLive } from "./controllers/meals/saved.ts"
 import { ClonesControllerLive } from "./controllers/meals/clones.ts"
 import { PhotoControllerLive } from "./controllers/meals/photo.ts"
+import { MembersControllerLive } from "./controllers/admin/members.ts"
+import { MemberPasswordLinkControllerLive } from "./controllers/admin/members/password-link.ts"
+import { CostControllerLive } from "./controllers/admin/cost.ts"
+import { SettingsControllerLive } from "./controllers/settings.ts"
+import { SetupControllerLive } from "./controllers/setup.ts"
+import { PasswordLinksControllerLive } from "./controllers/password-links.ts"
 import type { Bindings } from "./env.ts"
 
 /**
@@ -38,9 +48,15 @@ const PlatformLayer = Layer.mergeAll(HttpPlatform.layer, Path.layer, Etag.layer)
 )
 
 /**
- * Assemble the Effect HttpApi into a Cloudflare-Worker fetch handler. Called ONCE per isolate (bindings
- * are stable). One `SqlClient` for the isolate; repos share it. `Blobs` + `Estimator` are env-static
- * (the binding/key are stable), so they're built once and merged into the request data layer.
+ * Assemble BOTH Effect HttpApis into Cloudflare-Worker fetch handlers. Called ONCE per isolate (bindings
+ * are stable). One `SqlClient` for the isolate; the repos share it. The repos, `Blobs`, `Estimator`, and
+ * the `Auth` instance are env-static singletons merged into a single request data layer that BOTH apis
+ * discharge via `provideRequest`.
+ *
+ * Two web handlers come back: `handler` (the authed `api` — Authentication api-wide, HostOnly on the
+ * admin/settings groups) and `publicHandler` (the unauth `publicApi` — Setup + Password-link redemption,
+ * the bootstrap surface that cannot sit behind a session). `handler.ts` dispatches the known public path
+ * prefixes to `publicHandler`, everything else `/api/*` to `handler`.
  */
 export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
   const sql = SqlLayer(env.DB)
@@ -50,11 +66,17 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
   const mealsRepo = MealsRepoLayer.pipe(Layer.provide(sql))
   const attachmentsRepo = AttachmentsRepoLayer.pipe(Layer.provide(sql))
   const inferenceRunsRepo = InferenceRunsRepoLayer.pipe(Layer.provide(sql))
+  const appSettingsRepo = AppSettingsRepoLayer.pipe(Layer.provide(sql))
+  const passwordLinksRepo = PasswordLinksRepoLayer.pipe(Layer.provide(sql))
   const blobs = BlobsLayer(env)
   const estimator = EstimatorLayer(env)
+  const authValue = Layer.succeed(Auth, auth) // the shared Better Auth instance (built once)
 
-  // Per-request services, discharged via provideRequest. (blobs/estimator are stable singletons, but the
-  // domain resolves them per-request, so they ride here alongside the repos.)
+  // Per-request services, discharged via provideRequest (the repos/blobs/estimator/auth are stable
+  // singletons, but the domain resolves them per-request, so they ride here together). `Auth` is in here
+  // because the admin/setup/password-link handlers `yield* Auth` at REQUEST time (calling into Better
+  // Auth) — distinct from the build-time `Layer.provide(authValue)` that the Authentication middleware
+  // captures at construction.
   const dataLayer = Layer.mergeAll(
     usersRepo,
     profileSnapshotsRepo,
@@ -62,8 +84,11 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     mealsRepo,
     attachmentsRepo,
     inferenceRunsRepo,
+    appSettingsRepo,
+    passwordLinksRepo,
     blobs,
     estimator,
+    authValue,
     sql
   )
 
@@ -77,12 +102,30 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     Layer.provide(SavedControllerLive),
     Layer.provide(ClonesControllerLive),
     Layer.provide(PhotoControllerLive),
+    Layer.provide(MembersControllerLive),
+    Layer.provide(MemberPasswordLinkControllerLive),
+    Layer.provide(CostControllerLive),
+    Layer.provide(SettingsControllerLive),
     Layer.provide(AuthenticationLive), // middleware impl; needs Auth
     Layer.provide(MealScopedLive.pipe(Layer.provide(mealsRepo))), // loads CurrentMeal through the user
-    Layer.provide(Layer.succeed(Auth, auth)), // the shared Better Auth instance (built once)
+    Layer.provide(HostOnlyLive), // role gate for the admin/settings groups (404, not 403 — ADR 0013)
+    Layer.provide(authValue),
     Layer.provide(PlatformLayer),
     HttpRouter.provideRequest(dataLayer)
   )
 
-  return HttpRouter.toWebHandler(appLayer, { disableLogger: true })
+  // The PUBLIC api — Setup + Password-link redemption, NO Authentication. Same repos + Auth instance;
+  // dispatched by path prefix in handler.ts. A SEPARATE router (its own toWebHandler), so the two apis
+  // never collide on the shared `/api` prefix.
+  const publicAppLayer = HttpApiBuilder.layer(publicApi).pipe(
+    Layer.provide(SetupControllerLive),
+    Layer.provide(PasswordLinksControllerLive),
+    Layer.provide(authValue),
+    Layer.provide(PlatformLayer),
+    HttpRouter.provideRequest(dataLayer)
+  )
+
+  const handler = HttpRouter.toWebHandler(appLayer, { disableLogger: true }).handler
+  const publicHandler = HttpRouter.toWebHandler(publicAppLayer, { disableLogger: true }).handler
+  return { handler, publicHandler }
 }

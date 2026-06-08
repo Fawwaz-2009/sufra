@@ -17,6 +17,7 @@ let app:
   | {
       readonly auth: AuthInstance
       readonly handler: ReturnType<typeof assembleHandler>["handler"]
+      readonly publicHandler: ReturnType<typeof assembleHandler>["publicHandler"]
     }
   | undefined
 
@@ -29,8 +30,8 @@ export const getApp = (env: Bindings) => {
     const provisionUser = (id: string): Promise<void> => provisioning.runPromise(User.provision({ id }))
 
     const auth = makeAuth(env, provisionUser)
-    const { handler } = assembleHandler(env, auth)
-    app = { auth, handler }
+    const { handler, publicHandler } = assembleHandler(env, auth)
+    app = { auth, handler, publicHandler }
   }
   return app!
 }

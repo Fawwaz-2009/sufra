@@ -1,4 +1,3 @@
-import { BottomNav } from "@/components/bottom-nav"
 import { AdminShell } from "./admin-shell"
 
 export function AdminPending() {
@@ -20,7 +19,6 @@ export function AdminPending() {
           ))}
         </div>
       </main>
-      <BottomNav />
     </AdminShell>
   )
 }

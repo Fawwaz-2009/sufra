@@ -87,8 +87,9 @@ export const del = (path: string, cookie?: string): Promise<Response> =>
 export const post = (path: string, cookie?: string): Promise<Response> =>
   call(path, { method: "POST", headers: { origin: ORIGIN, ...(cookie ? { cookie } : {}) } })
 
-/** Collapse a Response's Set-Cookie header(s) into a replayable `cookie` request header. */
-const cookieHeaderFrom = (response: Response): string | undefined => {
+/** Collapse a Response's Set-Cookie header(s) into a replayable `cookie` request header. Exported so
+ *  Slice-4 tests can assert the Set-Cookie round-trip on Setup / Password-link redemption. */
+export const cookieHeaderFrom = (response: Response): string | undefined => {
   const lines =
     typeof response.headers.getSetCookie === "function"
       ? response.headers.getSetCookie()
@@ -122,5 +123,24 @@ export const signInAs = async (username: string, opts?: { role?: "host" | "membe
   if (!signedIn.ok) throw new Error(`sign-in/username failed: ${signedIn.status} ${await signedIn.text()}`)
   const cookie = cookieHeaderFrom(signedIn)
   if (cookie === undefined) throw new Error("sign-in succeeded but set no cookie")
+  return cookie
+}
+
+/**
+ * Run the REAL Setup flow (the public `POST /api/setup`) to create the first Host, seeding `app_settings`
+ * — the production path (vs. `signInAs`, which bypasses Setup). Returns the host's replayable session
+ * cookie from the response's Set-Cookie, which also proves the `fromWeb` cookie round-trip works.
+ */
+export const setupHost = async (
+  opts?: { username?: string; password?: string; familyName?: string }
+): Promise<string> => {
+  const res = await postJson("/api/setup", {
+    familyName: opts?.familyName ?? "Smith",
+    username: opts?.username ?? "chef",
+    password: opts?.password ?? "host-password-1"
+  })
+  if (!res.ok) throw new Error(`setup failed: ${res.status} ${await res.text()}`)
+  const cookie = cookieHeaderFrom(res)
+  if (cookie === undefined) throw new Error("setup succeeded but set no session cookie")
   return cookie
 }

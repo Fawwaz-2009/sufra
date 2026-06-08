@@ -14,7 +14,7 @@ import { Photo } from "../models/meal.ts"
 import { MealAnalysis } from "../models/meal-analysis.ts"
 import { toMealListItemView, toMealView } from "../views/meal.ts"
 import { Estimator, type EstimateResult } from "../estimator/estimator.ts"
-import { DEFAULT_VISION_MODEL_ID } from "../estimator/models.ts"
+import { Settings } from "./settings.ts"
 import * as Attachable from "./concerns/attachable.ts"
 import * as Overridable from "./meal/overridable.ts"
 import * as Saveable from "./meal/saveable.ts"
@@ -58,7 +58,8 @@ const recordRun = Effect.fn("Meal.recordRun")(function* (input: {
 /**
  * Run the estimator and AUDIT it on both paths (cost is ground truth, recorded even when the run failed
  * but still billed), then map the internal failure to the typed `EstimateFailed` the client renders. The
- * shared gate behind create + refine. Model selection is `app_settings` (Slice 4) — defaulted for now.
+ * shared gate behind create + refine. The vision model is the Host's `app_settings` choice (`Settings`),
+ * defaulted defensively if unset (the Slice 2 deferral closes here).
  */
 const runEstimate = Effect.fn("Meal.runEstimate")(function* (input: {
   readonly userId: string
@@ -67,8 +68,9 @@ const runEstimate = Effect.fn("Meal.runEstimate")(function* (input: {
   readonly userText?: string
 }) {
   const estimator = yield* Estimator
+  const modelId = yield* Settings.visionModelId()
   return yield* estimator
-    .estimate({ photo: input.photo, modelId: DEFAULT_VISION_MODEL_ID, userText: input.userText })
+    .estimate({ photo: input.photo, modelId, userText: input.userText })
     .pipe(
       Effect.tap((r: EstimateResult) =>
         recordRun({

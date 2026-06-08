@@ -3,6 +3,7 @@ import * as ManagedRuntime from "effect/ManagedRuntime"
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient"
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient"
 import { api } from "../worker/contract/api.ts"
+import { publicApi } from "../worker/contract/public-api.ts"
 
 /**
  * The browser's typed view of the backend: an `HttpApiClient` derived from the same `api` contract the
@@ -18,6 +19,14 @@ const runtime = ManagedRuntime.make(FetchHttpClient.layer)
 
 /** The typed API client, bound to the page origin. */
 export const getClient = () => runtime.runPromise(HttpApiClient.make(api, { baseUrl: window.location.origin }))
+
+/**
+ * The typed PUBLIC API client — the unauth bootstrap surface (Setup status/create + Password-link
+ * show/redeem). Derived from the separate `publicApi` contract (no Authentication), since the main client
+ * derives from the authed `api`. Same origin, cookie rides along; redeem/create responses set the session.
+ */
+export const getPublicClient = () =>
+  runtime.runPromise(HttpApiClient.make(publicApi, { baseUrl: window.location.origin }))
 
 /** Execute an Effect (an API call) as a Promise — the bridge into a TanStack query/mutation fn. */
 export const run = <A, E>(effect: Effect.Effect<A, E>): Promise<A> =>

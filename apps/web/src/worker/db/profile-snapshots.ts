@@ -5,7 +5,7 @@ import * as Option from "effect/Option"
 import * as Schema from "effect/Schema"
 import { ProfileSnapshot } from "../models/profile-snapshot.ts"
 import { makeTable } from "./table.ts"
-import { type Command } from "./sql.ts"
+import { command, type Command } from "./sql.ts"
 
 /**
  * The profile-snapshots repository — the append-only Profile history (ADR 0001), exposed through the
@@ -75,7 +75,12 @@ const make = Effect.gen(function* () {
     decode: decodeMany
   })
 
-  return { upsert, latest, history } as const
+  // The member-delete cascade — sealed snapshots are normally immutable (no edit/delete endpoint), but
+  // deleting the whole Member removes their entire history (no FK, so the app deletes explicitly).
+  const deleteForUser = (userId: string): Command<void> =>
+    command(() => sql`DELETE FROM profile_snapshots WHERE userId = ${userId}`)
+
+  return { upsert, latest, history, deleteForUser } as const
 })
 
 export interface ProfileSnapshotsRepo extends Effect.Success<typeof make> {}

@@ -8,6 +8,10 @@ import { RefinementGroup } from "./meals/refinement.ts"
 import { SavedGroup } from "./meals/saved.ts"
 import { ClonesGroup } from "./meals/clones.ts"
 import { PhotoGroup } from "./meals/photo.ts"
+import { MembersGroup } from "./admin/members.ts"
+import { MemberPasswordLinkGroup } from "./admin/members/password-link.ts"
+import { CostGroup } from "./admin/cost.ts"
+import { SettingsGroup } from "./settings.ts"
 import { Authentication } from "./middleware/authentication.ts"
 
 /**
@@ -15,7 +19,10 @@ import { Authentication } from "./middleware/authentication.ts"
  * (every endpoint requires a session → `CurrentUser`). Better Auth's own routes live under
  * `/api/auth/*` and are handled directly by `auth.handler` in the worker entry — NOT part of this
  * Effect HttpApi. The meal sub-resources carry their own `MealScoped` guard (in each group's
- * contract). Profile-snapshots + weights are user-scoped (no resource middleware); admin lands later.
+ * contract). Profile-snapshots + weights are user-scoped (no resource middleware); the admin/settings
+ * groups carry their own `HostOnly` gate (host-scoped + instance-wide — ADR 0013). The UNAUTH bootstrap
+ * surface (setup + password-link redeem) is a SEPARATE `publicApi` (no Authentication) — see
+ * `contract/public-api.ts`.
  */
 export const api = HttpApi.make("api")
   .add(MeGroup)
@@ -27,5 +34,9 @@ export const api = HttpApi.make("api")
   .add(SavedGroup)
   .add(ClonesGroup)
   .add(PhotoGroup)
+  .add(MembersGroup)
+  .add(MemberPasswordLinkGroup)
+  .add(CostGroup)
+  .add(SettingsGroup)
   .middleware(Authentication)
   .prefix("/api")

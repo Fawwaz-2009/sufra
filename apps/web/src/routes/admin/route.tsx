@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 
-import { BottomNav } from "@/components/bottom-nav"
+import { requireHost } from "@/client/gate"
 import { AddMemberForm } from "./-components/add-member-form"
 import { AdminHeader, AdminShell } from "./-components/admin-shell"
 import { CostCard } from "./-components/cost-card"
@@ -21,11 +21,7 @@ import {
 } from "./-queries"
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: ({ context }) => {
-    if (!context.session) throw redirect({ to: "/login" })
-    if (context.session.user.role !== "host") throw redirect({ to: "/" })
-    return { session: context.session }
-  },
+  beforeLoad: ({ context }) => requireHost(context.queryClient),
   loader: ({ context }) =>
     Promise.all([
       context.queryClient.ensureQueryData(
@@ -47,7 +43,7 @@ function Admin() {
     <AdminShell>
       <AdminHeader />
 
-      <main className="flex-1 px-5 pb-32">
+      <main className="flex-1 px-5 pb-12">
         <CostCard
           totalUsd={cost.totalUsd}
           perMemberAvgUsd={cost.perMemberAvgUsd}
@@ -66,8 +62,6 @@ function Admin() {
         member={memberToDelete}
         onOpenChange={(open) => !open && setMemberToDelete(null)}
       />
-
-      <BottomNav />
     </AdminShell>
   )
 }

@@ -41,9 +41,10 @@ export const makeAuth = (env: Bindings, provisionUser: (id: string) => Promise<v
 
     // Username + password (no email). The non-routable <username>@sufra.local satisfies Better
     // Auth's required email column. The public email sign-up HTTP route is disabled — accounts are
-    // created by Setup (first Host) and the Host's admin.createUser (Members), both of which use
-    // the internal API.
-    emailAndPassword: { enabled: true },
+    // created by Setup (first Host) and member provisioning (signUpEmail with a placeholder), both via
+    // the internal API. `minPasswordLength: 6` honors the wizard/set-password UI ("6+ characters") —
+    // Better Auth's default is 8, which would reject those passwords at signUp/updatePassword.
+    emailAndPassword: { enabled: true, minPasswordLength: 6 },
     disabledPaths: ["/sign-up/email"],
 
     plugins: [
