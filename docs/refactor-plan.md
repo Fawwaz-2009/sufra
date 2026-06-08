@@ -109,6 +109,50 @@ Realizes **ADR 0009, 0011** (calorie-history as a read-model).
   are largely reusable — only the data seam changes). The old Hono/Drizzle `src/lib/{api,auth-*}` seam was
   deleted.
 
+## Slice 3 — decisions landed (member)
+
+- **One `User` aggregate, not a separate `domain/member.ts`.** ADR 0011 named the aggregate `Member`;
+  Slice 1/2 settled the **`User`/`users` code-name** (handoff §3), so Slice 3 EXTENDS the existing
+  `domain/user.ts` `User` aggregate with two grouped sub-namespaces — `User.snapshots.create` and
+  `User.weights.{index,log,remove}` — rather than introducing a parallel `Member` symbol over the same
+  `users` root. "Member" stays the product noun; the code reads `User.snapshots.*` / `User.weights.*`.
+  Concerns are namespaced under `domain/user/{snapshots,weights}.ts`.
+- **`GET /me` carries the whole Profile snapshot timeline + `isOnboarded`, not just a resolved current
+  snapshot.** ADR 0011 phrased `/me` as "the resolved current snapshot + derived numbers"; in practice
+  Day segmentation is client-side by the Member's TZ (ADR 0002/0003), so the server can't resolve
+  "today." `/me` returns `{ id, username, role, isOnboarded, profiles[] }` (newest first); the SPA picks
+  the active snapshot per day with `snapshotFor` and derives Target/macros with `deriveProfile` — both
+  browser-safe in **`views/derive.ts`** (the ADR 0011 "snapshotFor + deriveProfile on the read side"
+  note). The old `GET /profile` read folds into `/me`; there is no `PATCH /profile` and no separate
+  profile read endpoint.
+- **A Profile "edit" is an APPEND of a COMPLETE snapshot — payload = `ProfileSnapshot.jsonCreate`.** Not
+  a partial PATCH. The client merges the changed field over the latest snapshot it already holds (from
+  `/me`) and POSTs the whole thing + `effectiveFrom`. The aggregate owns the seal in ONE place: branch on
+  "has a prior snapshot" → first = onboarding (same-day, seeds the first Weight, atomic dual-append),
+  rest = effective-tomorrow upsert; `weightKg` is PINNED to the latest snapshot on an edit (ADR 0007 —
+  weight flows only through `POST /weights`), honored only on onboarding. This is ADR 0011's
+  "merge-from-latest in the aggregate" refined: the client assembles the complete snapshot; the server
+  owns effective-tomorrow + the weightKg seal + seed-first-weight + upsert-the-pending-row. "Edited twice
+  the same day" → `ON CONFLICT (userId, effectiveFrom) DO UPDATE` overwrites in place.
+- **Weight id is a text UUID v7** (every app table; the old `weight_log` autoincrement integer is gone).
+  `DELETE /weights/:id` is string-id'd, load-is-authorizing (find-through-user → 404 on a foreign/absent
+  id). Logging is `atomically([weights.insert, snapshots.upsert])`; deleting touches only `weights`
+  (sealed snapshots don't move — ADR 0007).
+- **`models/profile-snapshot.ts` is the single source for the Profile vocabulary** — the enum tuples
+  (`SEX_VALUES`/…), numeric bounds, AND the reusable field schemas (`Sex`/`WeightKg`/`LocalDate`/…),
+  consumed by the model, the `weights` contract payload, and the frontend chips/sliders.
+- **`/how-it-works` restored in Slice 3, not Slice 4.** The Day Summary ⓘ and Profile "Your numbers"
+  deep-link into it; it's a static, ungated, auth-optional page with no backend dependency, so it had to
+  come back with the Day Summary panel. (Slice 4's frontend list drops it.)
+- **Onboarding gate is per-route `requireOnboarded(queryClient)`** (`client/gate.ts`): no session →
+  `/login`; signed in, no snapshot → `/onboarding`; primes `/me`. Applied to `/`, `/meals/$id`,
+  `/profile`. The onboarding submit invalidates `["me"]` with **`refetchType: "all"`** (nothing observes
+  `/me` during onboarding, so an active-only invalidate would leave the gate reading stale
+  not-onboarded data → redirect loop). The **Setup gate** (no Host → `/setup`) + the **bottom-nav** stay
+  deferred (Slice 4 / Slice 5); Profile is reachable by URL until the nav lands.
+- **AI daily quota still deferred** (carried from Slice 2). calorie-history (read-model) + the Progress
+  views remain Slice 5, reusing `views/derive.ts`.
+
 ## Open follow-ups (not yet decided — flag, don't invent)
 
 - **Tooling specifics** — the skill `conventions:sync` wiring, the `auth:generate` script, the `kysely@0.28.17` pin, and the split tsconfig (browser-safe vs worker) boundary.

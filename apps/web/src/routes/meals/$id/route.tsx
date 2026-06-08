@@ -1,7 +1,7 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router"
+import { createFileRoute, notFound } from "@tanstack/react-router"
 
-import { authClient } from "@/client/auth-client"
+import { requireOnboarded } from "@/client/gate"
 import { resolveTotals } from "@/worker/views/meal"
 import { AiBreakdown } from "./-components/ai-breakdown"
 import { BookmarkButton } from "./-components/bookmark-button"
@@ -15,10 +15,7 @@ import { PhotoHero } from "./-components/photo-hero"
 import { mealDetailKey, mealQueryOptions } from "./-queries"
 
 export const Route = createFileRoute("/meals/$id")({
-  beforeLoad: async () => {
-    const { data } = await authClient.getSession()
-    if (!data) throw redirect({ to: "/login" })
-  },
+  beforeLoad: ({ context }) => requireOnboarded(context.queryClient),
   loader: async ({ context, params }) => {
     const data = await context.queryClient.ensureQueryData(
       mealQueryOptions(params.id)

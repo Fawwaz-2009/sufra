@@ -1,11 +1,14 @@
 import { useRef, useState, type ChangeEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link, redirect } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { toast } from "sonner"
 
 import { MealCard } from "@/components/meal-card"
-import { authClient } from "@/client/auth-client"
+import { DaySummaryPanel } from "@/components/day-summary-panel"
 import { getClient, run } from "@/client/api-client"
+import { requireOnboarded } from "@/client/gate"
+import { meQueryOptions } from "@/client/me"
+import { snapshotFor } from "@/worker/views/derive"
 import {
   addDays,
   diffInLocalDays,
@@ -34,10 +37,7 @@ export const Route = createFileRoute("/")({
   loaderDeps: ({ search }) => ({
     weekKey: formatLocalDate(weekStart(resolveSelectedDay(search))),
   }),
-  beforeLoad: async () => {
-    const { data } = await authClient.getSession()
-    if (!data) throw redirect({ to: "/login" })
-  },
+  beforeLoad: ({ context }) => requireOnboarded(context.queryClient),
   loader: ({ context, deps }) => {
     return context.queryClient.ensureQueryData(
       weekMealsQueryOptions(parseLocalDate(deps.weekKey))
@@ -60,6 +60,10 @@ function Home() {
 
   const ws = weekStart(selectedDay)
   const { data, isLoading } = useQuery(weekMealsQueryOptions(ws))
+  // The profile snapshot active on the SELECTED day drives the Day Summary's Target/macros — past days
+  // read their historical snapshot (ADR 0002/0003). The onboarding gate guarantees `/me` is cached.
+  const me = useQuery(meQueryOptions()).data
+  const daySnapshot = me ? snapshotFor(me.profiles, formatLocalDate(selectedDay)) : null
 
   const allMeals = data ?? []
   const mealsForSelectedDay = allMeals.filter((m) =>
@@ -121,6 +125,12 @@ function Home() {
         today={today}
         onSelect={selectDay}
       />
+
+      {daySnapshot && (
+        <div className="mt-4">
+          <DaySummaryPanel meals={mealsForSelectedDay} profile={daySnapshot} />
+        </div>
+      )}
 
       <main className="flex-1 px-5 pb-24">
         <section>

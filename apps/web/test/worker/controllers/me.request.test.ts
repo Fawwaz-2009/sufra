@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest"
 import { get, signInAs, testEnv } from "../../support/harness.ts"
 
-type Me = { readonly id: string; readonly username: string; readonly role: string }
+type Me = {
+  readonly id: string
+  readonly username: string
+  readonly role: string
+  readonly isOnboarded: boolean
+  readonly profiles: ReadonlyArray<unknown>
+}
 
 const showMe = async (cookie: string): Promise<Me> => (await (await get("/api/me", cookie)).json()) as Me
 
@@ -16,6 +22,10 @@ describe("Me (request)", () => {
     const me = await showMe(cookie)
     expect(me.username).toBe("ada")
     expect(me.role).toBe("member")
+
+    // A fresh account has no Profile yet — the onboarding gate's canonical signal (ADR 0001/0011).
+    expect(me.isOnboarded).toBe(false)
+    expect(me.profiles.length).toBe(0)
 
     // The users row was provisioned at sign-up, sharing the identity's primary key.
     const userRow = await testEnv.DB.prepare(`SELECT id FROM users WHERE id = ?`)

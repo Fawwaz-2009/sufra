@@ -11,12 +11,16 @@ import { Auth, type AuthInstance } from "./auth/instance.ts"
 import { AuthenticationLive } from "./middleware/authentication.ts"
 import { MealScopedLive } from "./middleware/meal-scoped.ts"
 import { UsersRepoLayer } from "./db/users.ts"
+import { ProfileSnapshotsRepoLayer } from "./db/profile-snapshots.ts"
+import { WeightsRepoLayer } from "./db/weights.ts"
 import { MealsRepoLayer } from "./db/meals.ts"
 import { AttachmentsRepoLayer } from "./db/attachments.ts"
 import { InferenceRunsRepoLayer } from "./db/inference-runs.ts"
 import { BlobsLayer } from "./blobs/layers.ts"
 import { EstimatorLayer } from "./estimator/layers.ts"
 import { MeControllerLive } from "./controllers/me.ts"
+import { ProfileSnapshotsControllerLive } from "./controllers/profile-snapshots.ts"
+import { WeightsControllerLive } from "./controllers/weights.ts"
 import { MealsControllerLive } from "./controllers/meals.ts"
 import { OverrideControllerLive } from "./controllers/meals/override.ts"
 import { RefinementControllerLive } from "./controllers/meals/refinement.ts"
@@ -41,6 +45,8 @@ const PlatformLayer = Layer.mergeAll(HttpPlatform.layer, Path.layer, Etag.layer)
 export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
   const sql = SqlLayer(env.DB)
   const usersRepo = UsersRepoLayer.pipe(Layer.provide(sql))
+  const profileSnapshotsRepo = ProfileSnapshotsRepoLayer.pipe(Layer.provide(sql))
+  const weightsRepo = WeightsRepoLayer.pipe(Layer.provide(sql))
   const mealsRepo = MealsRepoLayer.pipe(Layer.provide(sql))
   const attachmentsRepo = AttachmentsRepoLayer.pipe(Layer.provide(sql))
   const inferenceRunsRepo = InferenceRunsRepoLayer.pipe(Layer.provide(sql))
@@ -49,10 +55,22 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
 
   // Per-request services, discharged via provideRequest. (blobs/estimator are stable singletons, but the
   // domain resolves them per-request, so they ride here alongside the repos.)
-  const dataLayer = Layer.mergeAll(usersRepo, mealsRepo, attachmentsRepo, inferenceRunsRepo, blobs, estimator, sql)
+  const dataLayer = Layer.mergeAll(
+    usersRepo,
+    profileSnapshotsRepo,
+    weightsRepo,
+    mealsRepo,
+    attachmentsRepo,
+    inferenceRunsRepo,
+    blobs,
+    estimator,
+    sql
+  )
 
   const appLayer = HttpApiBuilder.layer(api).pipe(
     Layer.provide(MeControllerLive),
+    Layer.provide(ProfileSnapshotsControllerLive),
+    Layer.provide(WeightsControllerLive),
     Layer.provide(MealsControllerLive),
     Layer.provide(OverrideControllerLive),
     Layer.provide(RefinementControllerLive),
