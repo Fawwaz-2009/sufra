@@ -4,7 +4,7 @@ import * as Option from "effect/Option"
 import * as HttpApiError from "effect/unstable/httpapi/HttpApiError"
 import { AppSettingsRepo } from "../db/app-settings.ts"
 import { run } from "../db/sql.ts"
-import { DEFAULT_VISION_MODEL_ID } from "../estimator/models.ts"
+import { DEFAULT_VISION_MODEL_ID } from "../views/setting.ts"
 import { toSettingsView } from "../views/setting.ts"
 import type { UpdateSettings } from "../contract/settings.ts"
 

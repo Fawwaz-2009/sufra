@@ -1,5 +1,5 @@
 import { applyD1Migrations, env } from "cloudflare:test"
-import { getAuth } from "../../src/worker/app.ts"
+import { makeRequestAuth } from "../../src/worker/auth/instance.ts"
 import { serveBackend } from "../../src/worker/handler.ts"
 import type { Bindings } from "../../src/worker/env.ts"
 
@@ -108,7 +108,7 @@ export const cookieHeaderFrom = (response: Response): string | undefined => {
  * identity to host before sign-in (so the session carries it).
  */
 export const signInAs = async (username: string, opts?: { role?: "host" | "member" }): Promise<string> => {
-  await getAuth(testEnv).api.signUpEmail({
+  await makeRequestAuth(testEnv).api.signUpEmail({
     body: {
       email: `${username}@sufra.local`,
       password: TEST_PASSWORD,

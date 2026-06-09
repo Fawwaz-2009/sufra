@@ -5,7 +5,7 @@ import { WeightsGroup } from "./weights.ts"
 import { CalorieHistoryGroup } from "./calorie-history.ts"
 import { MealsGroup } from "./meals.ts"
 import { OverrideGroup } from "./meals/override.ts"
-import { RefinementGroup } from "./meals/refinement.ts"
+import { EstimatesGroup } from "./meals/estimates.ts"
 import { SavedGroup } from "./meals/saved.ts"
 import { ClonesGroup } from "./meals/clones.ts"
 import { PhotoGroup } from "./meals/photo.ts"
@@ -32,7 +32,7 @@ export const api = HttpApi.make("api")
   .add(CalorieHistoryGroup)
   .add(MealsGroup)
   .add(OverrideGroup)
-  .add(RefinementGroup)
+  .add(EstimatesGroup)
   .add(SavedGroup)
   .add(ClonesGroup)
   .add(PhotoGroup)

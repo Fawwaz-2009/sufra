@@ -4,7 +4,7 @@ import * as Schema from "effect/Schema"
 import { MealsRepo } from "../../db/meals.ts"
 import { run } from "../../db/sql.ts"
 import { CurrentMeal } from "../../contract/middleware/meal-scoped.ts"
-import { MealOverride } from "../../models/meal-analysis.ts"
+import { MealOverride } from "../../models/meal.ts"
 
 const nowIso = Effect.map(Clock.currentTimeMillis, (ms) => new Date(ms).toISOString())
 

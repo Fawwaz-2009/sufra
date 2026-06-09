@@ -2,7 +2,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
 import { requireOnboarded } from "@/client/gate"
-import { resolveTotals } from "@/worker/views/meal"
+import { estimateErrorMessage } from "@/worker/views/meal"
 import { AiBreakdown } from "./-components/ai-breakdown"
 import { BookmarkButton } from "./-components/bookmark-button"
 import { DeleteMealButton } from "./-components/delete-meal-button"
@@ -12,6 +12,7 @@ import { MealNotFound } from "./-components/not-found"
 import { OverrideEditor } from "./-components/override-editor"
 import { MealDetailPending } from "./-components/pending"
 import { PhotoHero } from "./-components/photo-hero"
+import { UnreadableEstimate } from "./-components/unreadable-estimate"
 import { mealDetailKey, mealQueryOptions } from "./-queries"
 
 export const Route = createFileRoute("/meals/$id/")({
@@ -40,8 +41,9 @@ function MealDetail() {
     queryClient.invalidateQueries({ queryKey: ["meals"] })
   }
 
+  // The current Estimate (latest "ok"), or null when the AI hasn't succeeded yet (ADR 0017) — then we
+  // show the retry panel instead of the breakdown/override editor. The failure is data, not an error.
   const ai = meal.aiAnalysis
-  const aiSum = resolveTotals(ai, null)
   const time = new Date(meal.capturedAt).toLocaleString(undefined, {
     weekday: "short",
     month: "short",
@@ -57,21 +59,30 @@ function MealDetail() {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="font-heading text-2xl font-semibold">
-              {ai.dishName}
+              {ai ? ai.dishName : "Couldn't read this meal"}
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">{time}</p>
           </div>
           <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
         </div>
 
-        <OverrideEditor meal={meal} aiSum={aiSum} onSaved={onSaved} />
-
-        <AiBreakdown
-          mealId={meal.id}
-          aiAnalysis={ai}
-          lastRefinementText={meal.lastRefinementText}
-          onRefined={onSaved}
-        />
+        {ai ? (
+          <>
+            <OverrideEditor meal={meal} analysis={ai} onSaved={onSaved} />
+            <AiBreakdown
+              mealId={meal.id}
+              analysis={ai}
+              lastRefinementText={meal.lastRefinementText}
+              onRefined={onSaved}
+            />
+          </>
+        ) : (
+          <UnreadableEstimate
+            mealId={meal.id}
+            message={estimateErrorMessage(meal.latestErrorCode)}
+            onRetried={onSaved}
+          />
+        )}
 
         <DeleteMealButton mealId={meal.id} />
       </div>

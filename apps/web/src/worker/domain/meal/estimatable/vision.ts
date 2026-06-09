@@ -1,9 +1,60 @@
+import { generateText, Output, jsonSchema } from "ai"
+import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import * as Schema from "effect/Schema"
+import { Analysis } from "../../../models/estimate.ts"
+
 /**
- * Locale design (multi-language is a v2 frontier; v1 hardcodes "en"):
+ * The humble vision call — the ONLY file that speaks OpenRouter / the AI SDK. Effect-free + no repos, so
+ * `apps/evals` imports it VERBATIM (the no-drift guarantee: prod and evals run the same model, system
+ * prompt, user prompt, derived JSON Schema, and `response_format`). It lives INSIDE the Meal domain (the
+ * estimatable concern), not an edge folder — the adapter is one function, not a complex client.
  *
- * ONE English system prompt is the source of truth. For a non-English locale we append a short
- * instruction telling the model to output specific user-read fields in the target language. Adding a
- * language = add its name to LOCALE_NAMES. No prompt translation, no per-language file.
+ * Returns the raw AI-SDK result (`result.output` + `result.usage`); the Vision service (./service.ts)
+ * wraps it in Effect, classifies failures, and decodes `output` through `Analysis`. Throws on a
+ * provider/parse failure — the service catches it into the typed Vision channel.
+ */
+
+// The provider JSON Schema, DERIVED from `Analysis` (the single source of truth) — strict structured
+// output: every field required + `additionalProperties: false`, exactly what the providers want.
+const analysisDoc = Schema.toJsonSchemaDocument(Analysis, { additionalProperties: false })
+const ANALYSIS_JSON_SCHEMA: Record<string, unknown> = {
+  ...analysisDoc.schema,
+  ...(Object.keys(analysisDoc.definitions).length > 0 ? { $defs: analysisDoc.definitions } : {})
+}
+
+export const callVisionModel = (input: {
+  readonly apiKey: string
+  readonly modelId: string
+  readonly photo: Uint8Array
+  readonly locale?: Locale
+  readonly userText?: string
+}) => {
+  const client = createOpenRouter({
+    apiKey: input.apiKey,
+    headers: { "HTTP-Referer": "https://github.com/fawwaz/sufra", "X-Title": "Sufra" }
+  })
+  return generateText({
+    model: client(input.modelId),
+    output: Output.object({
+      schema: jsonSchema(ANALYSIS_JSON_SCHEMA as Parameters<typeof jsonSchema>[0])
+    }),
+    system: getSystemPrompt(input.locale ?? "en"),
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: buildUserPromptText({ userText: input.userText }) },
+          { type: "image", image: input.photo }
+        ]
+      }
+    ]
+  })
+}
+
+/**
+ * Locale design (multi-language is a v2 frontier; v1 hardcodes "en"): ONE English system prompt is the
+ * source of truth; for a non-English locale we append a short instruction to output specific user-read
+ * fields in the target language. Adding a language = add its name to LOCALE_NAMES. Exercised by evals only.
  */
 export type Locale = "en" | "ar" | (string & {})
 
@@ -17,7 +68,6 @@ const LOCALE_NAMES: Record<string, string> = {
   ur: "Urdu"
 }
 
-// The only fields that get localized; everything else (units, numbers, ids) stays English/standard.
 const USER_READ_FIELDS = [
   "dishName",
   "foods[].name",

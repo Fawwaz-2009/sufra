@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { getClient, run } from "@/client/api-client"
-import type { MealView } from "@/worker/views/meal"
+import type { Analysis } from "@/worker/models/estimate"
 
 export function ImproveEstimateSheet({
   open,
@@ -17,7 +17,7 @@ export function ImproveEstimateSheet({
   open: boolean
   onOpenChange: (v: boolean) => void
   mealId: string
-  clarifications: MealView["aiAnalysis"]["clarifications"]
+  clarifications: Analysis["clarifications"]
   lastRefinementText: string | null
   onRefined: () => void
 }) {
@@ -36,7 +36,7 @@ export function ImproveEstimateSheet({
   const mutation = useMutation({
     mutationKey: ["meal", mealId],
     mutationFn: async (userText: string) =>
-      run((await getClient()).refinement.create({ params: { id: mealId }, payload: { userText } })),
+      run((await getClient()).estimates.create({ params: { id: mealId }, payload: { userText } })),
     onSuccess: () => {
       onRefined()
       onOpenChange(false)

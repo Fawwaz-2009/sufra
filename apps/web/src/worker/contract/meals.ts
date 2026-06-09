@@ -7,17 +7,6 @@ import { MealListItemView, MealView } from "../views/meal.ts"
 import { MediaTooLarge, Upload, UnsupportedMedia } from "./upload.ts"
 import { MealScoped } from "./middleware/meal-scoped.ts"
 
-/**
- * The synchronous-atomic create gates persistence on the estimator: nothing persists unless the
- * Estimate succeeds (CLAUDE.md "Meals lifecycle"). When it fails, the waiting Member sees this typed
- * error (a toast), declared on `create` + `refinement`. (Lives here so refinement can import it.)
- */
-export class EstimateFailed extends Schema.TaggedErrorClass<EstimateFailed>()(
-  "EstimateFailed",
-  { message: Schema.String },
-  { httpApiStatus: 502 }
-) {}
-
 /** Create payload — the photo (base64-JSON `Upload`) + an optional client `capturedAt` (defaults to
  *  now server-side). NOT `Meal.jsonCreate`: a meal's columns are all server-set. */
 export const CreateMeal = Schema.Struct({
@@ -51,10 +40,13 @@ export const MealsGroup = HttpApiGroup.make("meals")
     }).middleware(MealScoped)
   )
   .add(
+    // Create ALWAYS persists the meal then appends the first Estimate (ok OR failed) — the AI failing is
+    // data in the returned view (`latestStatus`/`latestErrorCode`), not an HTTP error (ADR 0017). The only
+    // create-time errors are the photo-validation ones, raised before the meal is written.
     HttpApiEndpoint.post("create", "/meals", {
       payload: CreateMeal,
       success: MealView.pipe(HttpApiSchema.status(201)),
-      error: [EstimateFailed, UnsupportedMedia, MediaTooLarge]
+      error: [UnsupportedMedia, MediaTooLarge]
     })
   )
   .add(

@@ -1,19 +1,18 @@
--- Meals — one captured photo + its Estimate, owned by a Member (CONTEXT "Meal").
+-- Meals — one captured photo a Member logged (CONTEXT "Meal").
 --
--- Synchronous-atomic create: a row exists ⟺ the estimator succeeded, so `aiAnalysis` is NOT NULL and
--- there is no status column. The photo is NOT a column — it lives in `attachments` as the optional
--- `photo` slot (ADR 0014), served via the authenticated proxy `GET /api/meals/:id/photo`.
+-- The AI's read of the meal is NOT here — it lives in the `estimates` child log (one meal → many
+-- estimates; current = latest "ok"), so a meal can exist while its first estimate is still failed/pending
+-- (the retry flow, ADR 0017). The photo is NOT a column either — it lives in `attachments` as the
+-- optional `photo` slot (ADR 0014), served via the authenticated proxy `GET /api/meals/:id/photo`.
 --
--- camelCase quoted columns + ISO TEXT timestamps, matching the Meal model. `aiAnalysis` + `override`
--- are JSON stored as TEXT (Schema.fromJsonString). `userId` is a plain FK with NO constraint
--- (inline-join approach). Nullable columns map to the model's FieldOption fields.
+-- camelCase quoted columns + ISO TEXT timestamps, matching the Meal model. `override` is JSON stored as
+-- TEXT (Schema.fromJsonString). `userId` is a plain FK with NO constraint (inline-join approach).
+-- Nullable columns map to the model's FieldOption fields.
 CREATE TABLE meals (
   "id"                 text not null primary key,
   "userId"             text not null,        -- FK to users(id), NO constraint
   "capturedAt"         text not null,        -- ISO-8601 Z; day-segmentation is client-side
-  "aiAnalysis"         text not null,        -- the Estimate, JSON as TEXT
   "override"           text,                 -- manual Totals correction, JSON as TEXT (FieldOption)
-  "lastRefinementText" text,                 -- most recent Refinement note (FieldOption)
   "savedAt"            text,                 -- non-null ISO ⇒ saved for re-log (FieldOption)
   "createdAt"          text not null,
   "updatedAt"          text not null

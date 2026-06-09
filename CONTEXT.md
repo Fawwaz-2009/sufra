@@ -21,7 +21,7 @@ One log entry — a single photo-capture event a Host or Member creates by tappi
 _Avoid_: Entry, log, item, food, capture.
 
 **Estimate**:
-The AI's output for a Meal — a single structured result containing a dish name, a per-food breakdown, model-generated clarification questions, and a confidence level. Always exactly one Estimate per Meal at any time; Refinement replaces it in place. Schema field: `meal.ai_analysis` (the verb-flavored field name is fine in the DB layer; the canonical domain noun is Estimate). In UI copy, prefix with "AI" when source disambiguation matters ("AI: 150 kcal"); otherwise just "Estimate" or "the estimate".
+The AI's read of a Meal — a single structured result containing a dish name, a per-food breakdown, model-generated clarification questions, and a confidence level. A Meal has an **append-only log of Estimates** (one per attempt: create makes the first, each Refinement or retry appends another); the **current** Estimate is the latest with `status = ok`, and unqualified "the Estimate" means that one. A failed attempt is a persisted row (`status = failed`, no analysis, an error code) — the AI failing is data the Member can retry, not a discarded error (ADR 0017). Schema: the `estimates` child table, its `analysis` JSON column carrying the content (the `Analysis` schema in `models/estimate.ts`). In UI copy, prefix with "AI" when source disambiguation matters ("AI: 150 kcal"); otherwise just "Estimate" or "the estimate".
 _Avoid_: AI analysis, AI snapshot, the analysis, prediction.
 
 **Override**:
@@ -29,11 +29,11 @@ A Member's manual correction of a Meal's totals (kcal, protein, carbs, fat), set
 _Avoid_: Edit, correction, adjustment, manual entry.
 
 **Refinement**:
-A Member adds free-text context ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the original photo + that text. The new Estimate **replaces** the prior one in place — no Estimate history kept. The Refinement *text itself* IS retained on the Meal record (`meal.last_refinement_text`, latest-only — a new Refinement overwrites the previous text) so the Improve estimate sheet can prefill the textarea with what the Member previously told the AI. Does not touch the Override. Costs an AI call per Refinement. Reified as a singular, create-only sub-resource: `POST /meals/:id/refinement` → `Meal.refine` (no destroy).
-_Avoid_: Re-analyze, re-estimate, clarification, edit.
+A Member adds free-text context ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the original photo + that text. The new Estimate is **appended** to the log (the prior one is kept as history; current = latest ok — no replace-in-place). The Refinement *text* rides on that Estimate row (`estimates.refinement_text`); the Improve estimate sheet prefills the textarea from the latest attempt's text. Does not touch the Override. Costs an AI call per Refinement. Reified as a create-only sub-resource: `POST /meals/:id/estimates` with an optional `userText` (text ⇒ Refinement, none ⇒ a plain retry of a failed attempt) → `Meal.reestimate`. (Supersedes the old singular `refinement` resource — ADR 0017.)
+_Avoid_: Re-analyze, edit, replace.
 
 **Total**:
-The resolved number displayed on a Meal card — kcal, protein, carbs, fat. Computed per-field as `override.field ?? sum(estimate.foods.field)`. Unqualified "Total" always refers to this resolved value. When source-disambiguation is genuinely needed in conversation, say "the Estimate's kcal" (sum of foods) or "the Override" (Member-set number). Schema denormalizes the kcal Total as `meal.kcal_total`. Day-level rollups in the Day view are sums of per-Meal Totals.
+The resolved number displayed on a Meal card — kcal, protein, carbs, fat. Computed per-field as `override.field ?? sum(estimate.foods.field)`. Unqualified "Total" always refers to this resolved value. When source-disambiguation is genuinely needed in conversation, say "the Estimate's kcal" (sum of foods) or "the Override" (Member-set number). Totals are derived at read, **never stored** (ADR 0003) — computed from the **current** Estimate's per-food values, override-first. Day-level rollups in the Day view are sums of per-Meal Totals; a Meal with no successful Estimate yet contributes nothing.
 _Avoid_: Resolved total, displayed total, effective total, final number.
 
 **Clarification**:
@@ -97,8 +97,8 @@ A row in `profile_snapshots` (renamed from `profile_log`) capturing a Member's f
 _Avoid_: Profile, profile row, user profile, current profile.
 
 **Analysis Status**:
-Not modeled — there is no status column. Meal creation is **synchronous and atomic**: the AI call runs inline, and a `meal` row exists ⟺ it has a valid Estimate (`ai_analysis` and `kcal_total` are NOT NULL). There is no `pending` (nothing persists until the Estimate succeeds) and no `failed` (a failed AI call writes nothing and surfaces as a request error, not a stored state). The create flow IS the lifecycle. Refinement re-runs the AI synchronously and replaces the Estimate in place; the row never changes state because there is no state to change. The client-side spinner during the inline call is the only "loading" UX.
-_Avoid_: Status, state, meal status, lifecycle, pending, failed.
+The **Meal** has no status column — but the **Estimate** carries `status` (`ok | failed`), and that is where the lifecycle lives (ADR 0017). Meal creation is **synchronous** (the Member waits; the client spinner is the only "loading" UX) but no longer *atomic-gated*: the `meal` row persists first, then the first Estimate appends — `ok`, or `failed` (no analysis, an error code) which the Member retries against the same stored photo. So a meal **can** exist with only a failed Estimate (the retry state); the old "a row exists ⟺ a valid Estimate" rule is superseded. There is still no async `pending` — the call is inline; a "failed" Estimate is a stored row, not a discarded request error. Distinct from `notAnalyzable`, which is a *successful* call's "this isn't food" verdict (content on the analysis), not a `failed` status (the call itself broke).
+_Avoid_: meal status, pending, async; (note: `failed` is now a real Estimate status, not a forbidden term).
 
 ## Example dialogue
 

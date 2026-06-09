@@ -6,10 +6,10 @@ import type {
 } from "promptfoo"
 import * as Schema from "effect/Schema"
 
-import { callVisionModel } from "../web/src/worker/estimator/call.ts"
-import { computeCost, getModel } from "../web/src/worker/estimator/models.ts"
-import { MealAnalysis } from "../web/src/worker/models/meal-analysis.ts"
-import type { Locale } from "../web/src/worker/estimator/prompts.ts"
+import { callVisionModel } from "../web/src/worker/domain/meal/estimatable/vision.ts"
+import { computeCost, resolveVisionModel } from "../web/src/worker/views/setting.ts"
+import { Analysis } from "../web/src/worker/models/estimate.ts"
+import type { Locale } from "../web/src/worker/domain/meal/estimatable/vision.ts"
 
 // Promptfoo custom provider that exercises the PRODUCTION vision call directly: `callVisionModel` is the
 // exact OpenRouter invocation `EstimatorLive` runs (same model, system + user prompts, derived JSON
@@ -17,7 +17,7 @@ import type { Locale } from "../web/src/worker/estimator/prompts.ts"
 // response_format divergence, no schema/prompt drift. The only knob prod doesn't expose is `locale` (prod
 // hardcodes "en"); the harness exercises the locale plumbing.
 
-const decodeAnalysis = Schema.decodeUnknownSync(MealAnalysis)
+const decodeAnalysis = Schema.decodeUnknownSync(Analysis)
 
 export default class EstimatorProvider implements ApiProvider {
   private providerId: string
@@ -74,7 +74,7 @@ export default class EstimatorProvider implements ApiProvider {
         // models it exceeds prompt+completion (reasoning tokens). Cost still uses prompt/completion only
         // (the prod `EstimateUsage` shape — `computeCost` never saw a total).
         tokenUsage: { total: result.usage.totalTokens ?? prompt + completion, prompt, completion },
-        cost: computeCost(getModel(this.modelId), { promptTokens: prompt, completionTokens: completion }),
+        cost: computeCost(resolveVisionModel(this.modelId), { promptTokens: prompt, completionTokens: completion }),
       }
     } catch (e) {
       return {

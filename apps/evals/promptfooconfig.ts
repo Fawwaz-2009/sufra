@@ -1,8 +1,8 @@
 import { config as loadEnv } from "dotenv"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
-import { getSystemPrompt } from "../web/src/worker/estimator/prompts.ts"
-import { MODELS } from "../web/src/worker/estimator/models.ts"
+import { getSystemPrompt } from "../web/src/worker/domain/meal/estimatable/vision.ts"
+import { VISION_MODELS } from "../web/src/worker/views/setting.ts"
 import { DISHES } from "./dishes.js"
 import type { UnifiedConfig } from "promptfoo"
 
@@ -68,7 +68,7 @@ const tests = [
 // estimator-provider.ts and instantiates the default-exported class with the
 // per-entry config. Each invocation calls the production estimator function
 // directly — no response_format / chat-completions divergence from prod.
-const providers = MODELS.map((m) => ({
+const providers = VISION_MODELS.map((m) => ({
   id: "file://./estimator-provider.ts",
   label: m.id,
   config: { modelId: m.id },

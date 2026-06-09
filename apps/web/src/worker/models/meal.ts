@@ -1,6 +1,5 @@
 import * as Schema from "effect/Schema"
 import * as Model from "effect/unstable/schema/Model"
-import { MealAnalysis, MealOverride } from "./meal-analysis.ts"
 import { sniffImageType, type Slot } from "../contract/upload.ts"
 
 /** Branded id for the `meals` table — a UUID v7 generated on insert. */
@@ -8,19 +7,31 @@ export const MealId = Schema.String.pipe(Schema.brand("MealId"))
 export type MealId = typeof MealId.Type
 
 /**
- * A Meal — one captured photo + its Estimate, owned by a Member (CONTEXT "Meal"). The create flow is
- * synchronous-atomic: a row exists ⟺ the estimator succeeded, so `aiAnalysis` is NOT NULL and there is
- * no status column (CLAUDE.md "Meals lifecycle").
+ * The manual Totals correction (CONTEXT "Override") — a DETAIL of the Meal, persisted on the meal so it
+ * SURVIVES across Estimates (a new estimate must not clear the Member's correction). Each macro is
+ * independently OMITTABLE: an absent field falls back to `sum(foods[i].field)` (override-first, ADR
+ * 0003). PUT-replace semantics on the override sub-resource mean "what you send IS the override," so
+ * absence is the only "not overridden" signal (no null — this is what kills the null-vs-absent bug).
+ */
+export const MealOverride = Schema.Struct({
+  kcal: Schema.optional(Schema.Finite),
+  proteinG: Schema.optional(Schema.Finite),
+  carbsG: Schema.optional(Schema.Finite),
+  fatG: Schema.optional(Schema.Finite)
+})
+export type MealOverride = typeof MealOverride.Type
+
+/**
+ * A Meal — one captured photo a Member logged (CONTEXT "Meal"). The AI's read of it lives in the
+ * `estimates` child log (one Meal → many Estimates; the current Estimate is the latest "ok" one), NOT
+ * on the meal — so a meal can exist while its first estimate is still failed/pending (the retry flow,
+ * ADR 0017). `override` (manual Totals) and `savedAt` live HERE because they belong to the meal, not to
+ * any one estimate.
  *
- * The photo is NOT a column here — it's the optional `Photo` slot (below) in the polymorphic
- * `attachments` table (ADR 0014). "A photo is required" is a create-time rule, not a `NOT NULL`
- * constraint, so a future description-meal keeps ONE Meal shape with no migration.
- *
- * Two JSON-TEXT columns via `Schema.fromJsonString` (Encoded = a JSON string in D1, Type = the decoded
- * object): `aiAnalysis` (the Estimate, server-set by the estimator so out of the wire-write variants)
- * and `override` (the manual Totals correction, written through the override sub-resource). `userId`,
- * `capturedAt`, and `aiAnalysis` are all server-set FKs/values — created via the meal-create payload,
- * not `Meal.jsonCreate`.
+ * The photo is NOT a column — it's the `Photo` slot (below) in the polymorphic `attachments` table (ADR
+ * 0014), served via the authenticated proxy `GET /api/meals/:id/photo`. `override` is JSON stored as
+ * TEXT (`Schema.fromJsonString`). `userId` + `capturedAt` are server-set (CurrentUser + the create
+ * payload), so out of the wire-write variants.
  */
 export class Meal extends Model.Class<Meal>("Meal")({
   id: Model.UuidV7Insert(MealId),
@@ -28,23 +39,15 @@ export class Meal extends Model.Class<Meal>("Meal")({
   // FK to users(id) — NO db constraint (inline-join approach). Set from CurrentUser, never client-sent.
   userId: Model.FieldExcept(["jsonCreate", "jsonUpdate"])(Schema.String),
 
-  // When the photo was taken (CONTEXT "Day": UTC ISO Z; day-segmentation is client-side by the
-  // Member's TZ). Server-resolved from the create payload (`capturedAt ?? now`), so out of the wire
-  // write variants.
+  // When the photo was taken (CONTEXT "Day": UTC ISO Z; day-segmentation is client-side by the Member's
+  // TZ). Server-resolved from the create payload (`capturedAt ?? now`), so out of the wire write variants.
   capturedAt: Model.FieldExcept(["jsonCreate", "jsonUpdate"])(Schema.String),
-
-  // The Estimate — set by the estimator at create/refine, never a client write. Stored as JSON TEXT.
-  aiAnalysis: Model.FieldExcept(["jsonCreate", "jsonUpdate"])(Schema.fromJsonString(MealAnalysis)),
 
   // The manual Totals correction, or none. Written through PUT/DELETE /meals/:id/override.
   override: Model.FieldOption(Schema.fromJsonString(MealOverride)),
 
-  // The Member's most recent Refinement text — prefilled into the Improve sheet so they can see + amend
-  // what they last told the AI. Latest replaces latest, no history (CONTEXT "Refinement").
-  lastRefinementText: Model.FieldOption(Schema.String),
-
-  // Saved-for-re-log marker (CONTEXT "Saved Meal"; ADR 0008): non-null ISO timestamp ⇒ saved. No
-  // separate `saved_meal` table — one column is the truth.
+  // Saved-for-re-log marker (CONTEXT "Saved Meal"; ADR 0008): non-null ISO ⇒ saved. No separate table —
+  // one column is the truth.
   savedAt: Model.FieldOption(Schema.String),
 
   createdAt: Model.DateTimeInsert,

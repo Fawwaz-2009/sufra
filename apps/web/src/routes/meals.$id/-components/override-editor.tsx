@@ -4,8 +4,9 @@ import { useMutation } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { getClient, run } from "@/client/api-client"
 import type { MealView } from "@/worker/views/meal"
-import type { MealOverride } from "@/worker/models/meal-analysis"
-import { resolveTotals, type ResolvedTotals } from "@/worker/views/meal"
+import type { MealOverride } from "@/worker/models/meal"
+import type { Analysis } from "@/worker/models/estimate"
+import { resolveTotals } from "@/worker/views/meal"
 import { OverrideField } from "./override-field"
 
 type OverrideKey = "kcal" | "proteinG" | "carbsG" | "fatG"
@@ -13,11 +14,11 @@ const KEYS: ReadonlyArray<OverrideKey> = ["kcal", "proteinG", "carbsG", "fatG"]
 
 export function OverrideEditor({
   meal,
-  aiSum,
+  analysis,
   onSaved,
 }: {
   meal: MealView
-  aiSum: ResolvedTotals
+  analysis: Analysis
   onSaved: () => void
 }) {
   const [draft, setDraft] = useState<Record<OverrideKey, string>>(() =>
@@ -46,7 +47,10 @@ export function OverrideEditor({
     mutation.mutate(inputsToOverride(draft))
   }
 
-  const resolved = resolveTotals(meal.aiAnalysis, meal.override)
+  // Both derived from the CURRENT Estimate's analysis (passed in, never null here): the per-field AI
+  // values (override-free sum) and the live override-applied header total.
+  const aiSum = resolveTotals(analysis, null)
+  const resolved = resolveTotals(analysis, meal.override)
 
   return (
     <form

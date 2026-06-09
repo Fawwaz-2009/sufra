@@ -1,8 +1,14 @@
 import { betterAuth } from "better-auth"
 import { admin, username } from "better-auth/plugins"
+import { expo } from "@better-auth/expo"
 import { D1Dialect } from "kysely-d1"
 import * as Context from "effect/Context"
+import * as ManagedRuntime from "effect/ManagedRuntime"
+import * as Layer from "effect/Layer"
 import { ac, host, member } from "./permissions.ts"
+import { SqlLayer } from "../db/sql.ts"
+import { UsersRepoLayer } from "../db/users.ts"
+import { User } from "../domain/user.ts"
 import type { Bindings } from "../env.ts"
 
 /**
@@ -49,7 +55,12 @@ export const makeAuth = (env: Bindings, provisionUser: (id: string) => Promise<v
 
     plugins: [
       username(),
-      admin({ ac, roles: { host, member }, defaultRole: "member", adminRoles: ["host"] })
+      admin({ ac, roles: { host, member }, defaultRole: "member", adminRoles: ["host"] }),
+      // The native (Expo) client. Adds NO tables — only the cookie-replay session transport (Set-Cookie
+      // captured into SecureStore, replayed as a Cookie header). NOT bearer; the `auth.api.getSession`
+      // bridge the Authentication middleware uses is unchanged. No auth.cli.ts mirror — expo() touches
+      // no schema.
+      expo()
     ],
 
     // identities.name is a required core column we don't display (default it to keep NOT NULL
@@ -69,12 +80,32 @@ export const makeAuth = (env: Bindings, provisionUser: (id: string) => Promise<v
     // Workers don't auto-infer origin. Trust the origin the request arrived on — supports LAN-IP
     // dogfooding (phone hits http://<ip>:5173 while desktop hits localhost); in production the
     // worker is only reachable via its deployed origin, so this equals [BETTER_AUTH_URL].
-    trustedOrigins: (request) => (request ? [new URL(request.url).origin] : [])
+    //
+    // The native app is different: its requests carry the app's "sufra://" scheme as their Origin (not
+    // a Worker URL), so the scheme must be trusted explicitly or Better Auth's CSRF check 403s every
+    // device sign-in. The app ships as a dev build (not Expo Go — @expo/ui has native code), so
+    // "sufra://" is the origin in dev AND production alike; no exp:// needed.
+    trustedOrigins: (request) => [...(request ? [new URL(request.url).origin] : []), "sufra://"]
   })
+
+/**
+ * A Better Auth instance built FRESH for one request (its own provisioning runtime + adapter). Better Auth
+ * resolves its `$context` (the Kysely-D1 adapter) lazily on first use and binds that D1 I/O to the request
+ * that triggers it; a module-cached instance reused across requests deadlocks on Cloudflare (the `$context`
+ * promise never resolves — the symptom was the app hanging on skeleton loaders). Building per request keeps
+ * each D1 connection inside one request's I/O lifetime. The provisioning runtime is short-lived; the
+ * `user.create.after` hook only fires on sign-up.
+ */
+export const makeRequestAuth = (env: Bindings): AuthInstance => {
+  const provisioning = ManagedRuntime.make(UsersRepoLayer.pipe(Layer.provide(SqlLayer(env.DB))))
+  const provisionUser = (id: string): Promise<void> => provisioning.runPromise(User.provision({ id }))
+  return makeAuth(env, provisionUser)
+}
 
 /** The concrete runtime Better Auth instance type. */
 export type AuthInstance = ReturnType<typeof makeAuth>
 
-/** The built instance, exposed as a service so the Authentication middleware reads the SAME
- *  instance the worker entry uses, without reconstructing it. */
+/** The Better Auth instance exposed as an Effect service — provided per request (`Layer.sync` over
+ *  `makeRequestAuth` in runtime.ts) so the admin/setup/password-link handlers `yield* Auth` get a fresh
+ *  instance whose D1 I/O is scoped to their request (a cached instance deadlocks across requests). */
 export class Auth extends Context.Service<Auth, AuthInstance>()("app/Auth") {}

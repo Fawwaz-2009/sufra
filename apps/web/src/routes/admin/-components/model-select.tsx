@@ -3,7 +3,7 @@ import { toast } from "sonner"
 
 import { getClient, run } from "@/client/api-client"
 import { cn } from "@/lib/utils"
-import { MODELS } from "@/worker/estimator/models"
+import { VISION_MODELS } from "@/worker/views/setting"
 import { settingsQueryOptions } from "../-queries"
 import { Section } from "./section"
 
@@ -16,7 +16,7 @@ export function ModelSelect() {
       run((await getClient()).settings.update({ payload: input })),
     onSuccess: (next) => {
       queryClient.setQueryData(settingsQueryOptions().queryKey, next)
-      const model = MODELS.find((m) => m.id === next.visionModelId)
+      const model = VISION_MODELS.find((m) => m.id === next.visionModelId)
       toast.success(`Vision model updated → ${model?.label ?? next.visionModelId}.`)
     },
     onError: () => toast.error("Couldn't update model. Try again."),
@@ -25,7 +25,7 @@ export function ModelSelect() {
   return (
     <Section title="Vision Model">
       <ul className="flex flex-col gap-2">
-        {MODELS.map((m) => {
+        {VISION_MODELS.map((m) => {
           const selected = settings.visionModelId === m.id
           const pending =
             patchSettings.isPending &&

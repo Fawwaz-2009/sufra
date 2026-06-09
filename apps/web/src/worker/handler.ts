@@ -1,4 +1,5 @@
 import { getApp } from "./app.ts"
+import { makeRequestAuth } from "./auth/instance.ts"
 import { environmentOf, type Bindings } from "./env.ts"
 
 /**
@@ -46,7 +47,14 @@ export const serveBackend = async (
         })
       }
     }
-    return app.auth.handler(request) // Better Auth
+    // Better Auth's HTTP `.handler` resolves its `$context` (the D1 adapter) lazily on first use. A
+    // module-cached instance binds that D1 I/O to the request that first triggered it; on Cloudflare a
+    // later request reusing it — and, under miniflare's D1 input gate, even the very first one — deadlocks
+    // (the `$context` promise never resolves), which surfaced as the whole app hanging on skeletons. The
+    // documented fix is to give the `.handler` path a per-request instance so its D1 connection lives and
+    // dies within one request. (The Effect api below uses `auth.api.getSession` on the isolate-cached
+    // instance, which does NOT take that code path, so it stays a build-once singleton.)
+    return makeRequestAuth(env).handler(request)
   }
   if (isPublicApiPath(url.pathname)) return app.publicHandler(request) // unauth bootstrap (Setup + redeem)
   if (url.pathname.startsWith("/api/")) return app.handler(request) // the authed Effect HttpApi

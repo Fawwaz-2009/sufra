@@ -1,107 +1,35 @@
 import * as Effect from "effect/Effect"
 import * as Clock from "effect/Clock"
 import * as Option from "effect/Option"
-import * as Schema from "effect/Schema"
 import * as HttpApiError from "effect/unstable/httpapi/HttpApiError"
 import { MealsRepo } from "../db/meals.ts"
-import { InferenceRunsRepo } from "../db/inference-runs.ts"
-import { run } from "../db/sql.ts"
+import { EstimatesRepo } from "../db/estimates.ts"
+import { run, atomically } from "../db/sql.ts"
 import { CurrentUser } from "../contract/middleware/authentication.ts"
 import { CurrentMeal } from "../contract/middleware/meal-scoped.ts"
-import { EstimateFailed } from "../contract/meals.ts"
 import type { Upload } from "../contract/upload.ts"
 import { Photo } from "../models/meal.ts"
-import { MealAnalysis } from "../models/meal-analysis.ts"
 import { toMealListItemView, toMealView } from "../views/meal.ts"
-import { Estimator, type EstimateResult } from "../estimator/estimator.ts"
 import { Settings } from "./settings.ts"
 import * as Attachable from "./concerns/attachable.ts"
+import * as Estimatable from "./meal/estimatable/index.ts"
 import * as Overridable from "./meal/overridable.ts"
 import * as Saveable from "./meal/saveable.ts"
 
 const nowIso = Effect.map(Clock.currentTimeMillis, (ms) => new Date(ms).toISOString())
-const encodeAnalysis = Schema.encodeSync(Schema.fromJsonString(MealAnalysis))
 
-// The photo slot, bound from the model's declaration. Used by create/refine/clone here and exposed as
-// `Meal.photo` for the proxy serve controller.
+// The photo slot, bound from the model's declaration. Used by create/re-estimate/clone here and exposed
+// as `Meal.photo` for the proxy serve controller.
 const photoSlot = Attachable.one(Photo)
 
-// Record one inference run (the decoupled cost audit — survives meal/Member deletion). `userId` and
-// `errorCode` are the model's nullable columns (FieldOption), so they take Options.
-const recordRun = Effect.fn("Meal.recordRun")(function* (input: {
-  readonly userId: string
-  readonly kind: "estimate" | "refinement"
-  readonly status: "ok" | "failed"
-  readonly modelId: string
-  readonly promptTokens: number
-  readonly completionTokens: number
-  readonly costUsd: number
-  readonly latencyMs: number
-  readonly errorCode: string | null
-}) {
-  const runs = yield* InferenceRunsRepo
-  yield* run(
-    runs.create({
-      userId: Option.some(input.userId),
-      modelId: input.modelId,
-      kind: input.kind,
-      status: input.status,
-      errorCode: Option.fromNullishOr(input.errorCode),
-      promptTokens: input.promptTokens,
-      completionTokens: input.completionTokens,
-      costUsd: input.costUsd,
-      latencyMs: input.latencyMs
-    })
-  )
-})
-
-/**
- * Run the estimator and AUDIT it on both paths (cost is ground truth, recorded even when the run failed
- * but still billed), then map the internal failure to the typed `EstimateFailed` the client renders. The
- * shared gate behind create + refine. The vision model is the Host's `app_settings` choice (`Settings`),
- * defaulted defensively if unset (the Slice 2 deferral closes here).
- */
-const runEstimate = Effect.fn("Meal.runEstimate")(function* (input: {
-  readonly userId: string
-  readonly kind: "estimate" | "refinement"
-  readonly photo: Uint8Array
-  readonly userText?: string
-}) {
-  const estimator = yield* Estimator
-  const modelId = yield* Settings.visionModelId()
-  return yield* estimator
-    .estimate({ photo: input.photo, modelId, userText: input.userText })
-    .pipe(
-      Effect.tap((r: EstimateResult) =>
-        recordRun({
-          userId: input.userId,
-          kind: input.kind,
-          status: "ok",
-          modelId: r.modelId,
-          promptTokens: r.usage.promptTokens,
-          completionTokens: r.usage.completionTokens,
-          costUsd: r.costUsd,
-          latencyMs: r.latencyMs,
-          errorCode: null
-        })
-      ),
-      Effect.tapError((f) =>
-        f.usage === undefined
-          ? Effect.void // the run never billed (network/rate before the model ran) — nothing to record
-          : recordRun({
-              userId: input.userId,
-              kind: input.kind,
-              status: "failed",
-              modelId: f.modelId,
-              promptTokens: f.usage.promptTokens,
-              completionTokens: f.usage.completionTokens,
-              costUsd: f.costUsd ?? 0,
-              latencyMs: f.latencyMs,
-              errorCode: f.code
-            })
-      ),
-      Effect.mapError((f) => new EstimateFailed({ message: f.message }))
-    )
+// Re-read a meal with its current Estimate joined (the wire view). The write paths create/append rows,
+// then read back through this so the view reflects the new current state. The meal was just written, so a
+// miss is a defect (die), never a typed 404 (that keeps create's error channel to the media errors).
+const viewMeal = Effect.fn("Meal.view")(function* (mealId: string, userId: string) {
+  const meals = yield* MealsRepo
+  const row = yield* run(meals.find({ id: mealId, userId }))
+  if (Option.isNone(row)) return yield* Effect.die(new Error(`meal ${mealId} vanished after write`))
+  return toMealView(row.value)
 })
 
 // ── the meal's OWN verbs ──
@@ -127,9 +55,11 @@ const show = Effect.fn("Meal.show")(function* () {
 })
 
 /**
- * Synchronous-atomic create (CLAUDE.md "Meals lifecycle"): validate the photo (so we never spend tokens
- * on a non-image), estimate (the gate — nothing persists unless it succeeds), THEN insert the meal row
- * and attach the photo. A row exists ⟺ it has a valid Estimate.
+ * Create (CLAUDE.md "Meals lifecycle"; ADR 0017): validate the photo (so we never spend tokens on a
+ * non-image), create the Meal row, attach the photo, THEN run the first Estimate. The Estimate is appended
+ * as a child (ok OR failed) — a failed first attempt leaves the meal with no current Estimate, which the
+ * client shows as "couldn't estimate — retry". So create ALWAYS returns 201 + the meal; the AI failing is
+ * data in the view (`latestStatus`/`latestErrorCode`), not an HTTP error.
  */
 const create = Effect.fn("Meal.create")(function* (input: {
   readonly photo: Upload
@@ -139,96 +69,115 @@ const create = Effect.fn("Meal.create")(function* (input: {
   const meals = yield* MealsRepo
 
   yield* photoSlot.validate(input.photo)
-  const { analysis } = yield* runEstimate({ userId, kind: "estimate", photo: input.photo.data })
 
   const now = yield* nowIso
   const meal = yield* run(
     meals.create({
       userId,
       capturedAt: input.capturedAt ?? now,
-      aiAnalysis: analysis,
       override: Option.none(),
-      lastRefinementText: Option.none(),
       savedAt: Option.none()
     })
   )
   yield* photoSlot.attach(meal.id, input.photo)
-  return toMealView(meal)
+
+  const modelId = yield* Settings.visionModelId()
+  yield* Estimatable.estimate({ mealId: meal.id, userId, modelId, photo: input.photo.data })
+
+  return yield* viewMeal(meal.id, userId)
 })
 
 /**
- * Refine — re-run the estimator with the Member's text + the SAME photo, REPLACE the Estimate in place
- * (no history), and overwrite `lastRefinementText` (CONTEXT "Refinement"). Returns the fresh view.
+ * Re-estimate — append a new Estimate against the meal's stored photo (CONTEXT "Refinement"). With text it
+ * is a Refinement; without, a plain retry of a failed attempt. The current Estimate is always the latest
+ * "ok", so a failed re-estimate is recorded (cost + retry) WITHOUT wiping a prior good one. Returns the
+ * fresh view.
  */
-const refine = Effect.fn("Meal.refine")(function* (input: { readonly userText: string }) {
+const reestimate = Effect.fn("Meal.reestimate")(function* (input: { readonly userText?: string | undefined }) {
   const meal = yield* CurrentMeal
   const { id: userId } = yield* CurrentUser
-  const meals = yield* MealsRepo
 
   const photo = yield* photoSlot.read(meal.id)
   if (Option.isNone(photo)) return yield* new HttpApiError.NotFound()
 
-  const { analysis } = yield* runEstimate({
+  const modelId = yield* Settings.visionModelId()
+  yield* Estimatable.estimate({
+    mealId: meal.id,
     userId,
-    kind: "refinement",
+    modelId,
     photo: photo.value.bytes,
     userText: input.userText
   })
-  const now = yield* nowIso
-  const updated = yield* run(
-    meals.update(meal.id, {
-      aiAnalysis: encodeAnalysis(analysis),
-      lastRefinementText: input.userText.trim(),
-      updatedAt: now
-    })
-  )
-  return toMealView(updated)
+
+  return yield* viewMeal(meal.id, userId)
 })
 
 /**
- * Clone — re-log a Saved Meal as a brand-new, independent Meal: copy the Estimate + override + photo
- * bytes (ADR 0008), never the `savedAt` or refinement trace. Returns 201 + the new Meal.
+ * Clone — re-log a Saved Meal as a brand-new, independent Meal (ADR 0008): copy the source's CURRENT
+ * Estimate (a copy, not a re-run — no AI call, no cost), its override, and the photo bytes; never the
+ * `savedAt` or refinement trace. Returns 201 + the new Meal.
  */
 const clone = Effect.fn("Meal.clone")(function* (input: { readonly capturedAt?: string | undefined }) {
   const src = yield* CurrentMeal
   const { id: userId } = yield* CurrentUser
   const meals = yield* MealsRepo
+  const estimates = yield* EstimatesRepo
 
   const now = yield* nowIso
   const cloned = yield* run(
     meals.create({
       userId,
       capturedAt: input.capturedAt ?? now,
-      aiAnalysis: src.aiAnalysis,
-      override: src.override,
-      lastRefinementText: Option.none(),
+      override: src.override === null ? Option.none() : Option.some(src.override),
       savedAt: Option.none()
     })
   )
+
+  // Copy the source's current Estimate onto the clone — a copy, so zero tokens/latency and NO ledger entry.
+  const srcEstimate = yield* run(estimates.currentForMeal(src.id))
+  if (Option.isSome(srcEstimate)) {
+    const e = srcEstimate.value
+    yield* run(
+      estimates.create({
+        mealId: cloned.id,
+        status: "ok",
+        analysis: e.analysis,
+        refinementText: Option.none(),
+        errorCode: Option.none(),
+        modelId: e.modelId,
+        promptTokens: 0,
+        completionTokens: 0,
+        latencyMs: 0
+      })
+    )
+  }
+
   yield* photoSlot.copy(src.id, cloned.id)
-  return toMealView(cloned)
+  return yield* viewMeal(cloned.id, userId)
 })
 
 const destroy = Effect.fn("Meal.destroy")(function* () {
   const meal = yield* CurrentMeal
   const meals = yield* MealsRepo
-  yield* run(meals.delete({ id: meal.id }))
-  // Purge the photo AFTER the row is gone (dependent: :purge_later). The inference_run audit survives
-  // (decoupled). Best-effort R2 cleanup lives in purgeRecord.
+  const estimates = yield* EstimatesRepo
+  // App-level cascade (D1 has no FK cascade): drop the meal's Estimate log + the meal row together, then
+  // purge the photo (dependent: purge_later). The inference_runs ledger is NOT touched — it survives
+  // (decoupled; the bill is ground truth, ADR 0017).
+  yield* atomically([estimates.deleteForMeal(meal.id), meals.delete({ id: meal.id })])
   yield* Attachable.purgeRecord(Photo.recordType, meal.id)
 })
 
 /**
- * THE MEAL AGGREGATE — its own verbs plus the concerns mixed in. `override` groups the sub-thing
- * (Meal.override.set/.reset); save/unsave spread flat; `photo` is the bound Attachable slot
- * (Meal.photo.attach/read/copy), used by create/refine/clone above and the proxy-serve controller.
- * Consumers call `Meal.*`, never a concern directly.
+ * THE MEAL AGGREGATE — its own verbs plus the concerns mixed in. `estimate` is the estimatable concern
+ * (run via create/reestimate); `override` groups the sub-thing (Meal.override.set/.reset); save/unsave
+ * spread flat; `photo` is the bound Attachable slot (Meal.photo.attach/read/copy), used here and by the
+ * proxy-serve controller. Consumers call `Meal.*`, never a concern directly.
  */
 export const Meal = {
   index,
   show,
   create,
-  refine,
+  reestimate,
   clone,
   destroy,
   ...Saveable, // Meal.save / Meal.unsave

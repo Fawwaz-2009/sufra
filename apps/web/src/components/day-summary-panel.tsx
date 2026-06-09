@@ -30,6 +30,8 @@ export function DaySummaryPanel({
       c = 0,
       f = 0
     for (const m of meals) {
+      // A meal whose estimate hasn't succeeded yet has no totals (ADR 0017) — it counts as nothing.
+      if (m.totals === null) continue
       kcal += m.totals.kcal
       p += m.totals.proteinG
       c += m.totals.carbsG

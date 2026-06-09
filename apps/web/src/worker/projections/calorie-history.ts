@@ -1,12 +1,10 @@
 // projections/calorie-history.ts — a PROJECTION (no table; reads meals + profile_snapshots → a derived view). Reads only.
 import * as Effect from "effect/Effect"
-import * as Option from "effect/Option"
 import { MealsRepo } from "../db/meals.ts"
 import { ProfileSnapshotsRepo } from "../db/profile-snapshots.ts"
 import { run } from "../db/sql.ts"
 import { CurrentUser } from "../contract/middleware/authentication.ts"
-import type { Meal } from "../models/meal.ts"
-import { resolveTotals } from "../views/meal.ts"
+import { resolveTotals, type MealRow } from "../views/meal.ts"
 import { toProfileSnapshotView, type ProfileSnapshotView } from "../views/profile-snapshot.ts"
 import { deriveProfile, snapshotFor } from "../views/derive.ts"
 import type { CalorieBucket, CalorieHistoryBucketView } from "../views/calorie-history.ts"
@@ -40,14 +38,16 @@ export const CalorieHistory = { index } as const
 // ── the pure rollup + TZ helpers (ported from the old Hono calorie-history module; server-only, no Effect) ──
 
 const rollup = (
-  mealRows: ReadonlyArray<typeof Meal.select.Type>,
+  mealRows: ReadonlyArray<MealRow>,
   profiles: ReadonlyArray<ProfileSnapshotView>,
   query: { readonly from: string; readonly to: string; readonly bucket: CalorieBucket; readonly tz: string }
 ): ReadonlyArray<CalorieHistoryBucketView> => {
   const dailyKcal = new Map<string, number>()
   for (const m of mealRows) {
+    // A meal whose estimate hasn't succeeded yet contributes nothing to the day's calories (ADR 0017).
+    if (m.currentAnalysis === null) continue
     const localDate = formatLocalDateInTz(m.capturedAt, query.tz)
-    const { kcal } = resolveTotals(m.aiAnalysis, Option.getOrNull(m.override))
+    const { kcal } = resolveTotals(m.currentAnalysis, m.override)
     dailyKcal.set(localDate, (dailyKcal.get(localDate) ?? 0) + kcal)
   }
 

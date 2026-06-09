@@ -2,7 +2,7 @@ import * as Schema from "effect/Schema"
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup"
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint"
 import { SettingsView } from "../views/setting.ts"
-import { MODELS } from "../estimator/models.ts"
+import { VISION_MODELS } from "../views/setting.ts"
 import { HostOnly } from "./middleware/host-only.ts"
 
 /**
@@ -12,7 +12,7 @@ import { HostOnly } from "./middleware/host-only.ts"
  * bogus model. The runtime membership check is what matters; the literal cast just satisfies the tuple type.
  */
 export const UpdateSettings = Schema.Struct({
-  visionModelId: Schema.optional(Schema.Literals(MODELS.map((m) => m.id) as [string, ...Array<string>])),
+  visionModelId: Schema.optional(Schema.Literals(VISION_MODELS.map((m) => m.id) as [string, ...Array<string>])),
   familyName: Schema.optional(Schema.Trim.check(Schema.isMinLength(1), Schema.isMaxLength(40)))
 })
 

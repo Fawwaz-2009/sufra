@@ -13,7 +13,8 @@ Three things anchor this codebase. Read the relevant one **before** you act:
   **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
 - **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-`docs/adr/0001–0016` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform);
+`docs/adr/0001–0017` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
+0017 reifies the Estimate as an append-only child + settles the third-party-API convention);
 `docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
@@ -39,12 +40,14 @@ Backend **and** frontend run on **one Cloudflare Worker** (the Rails / 37signals
   (ADR 0015).
 - **Storage:** Cloudflare R2 (binding `BUCKET`) via a `Blobs` service; photos serve through the
   **authenticated Worker proxy** `GET /api/meals/:id/photo`, never a public/presigned URL (ADR 0014).
-- **Inference:** OpenRouter via the AI SDK, wrapped as an **env-swapped Effect `Estimator` service**
-  (`EstimatorLive` / `EstimatorTest`). The bare model call is `estimator/call.ts` (`callVisionModel`),
-  shared by prod AND the eval harness so they never drift.
+- **Inference:** OpenRouter via the AI SDK, baked INTO the Meal domain as the `estimatable` concern
+  (`domain/meal/estimatable/`), NOT a subsystem (ADR 0017 — the integration isn't the hero, the domain is).
+  The humble call is `estimatable/vision.ts` (`callVisionModel`, Effect-free, shared by prod AND the eval
+  harness so they never drift); the env-swapped `Vision` service (`estimatable/service.ts` —
+  `VisionLive`/`VisionTest`) is just the test stub.
 - **Monorepo:** pnpm workspaces + Turborepo. `apps/web` (SPA + Worker, kept together — the Cloudflare
   Vite plugin glues them) + `apps/evals` (promptfoo harness; imports the prod `callVisionModel` + the
-  single-source `MealAnalysis`).
+  single-source `Analysis`).
 
 ## Run it
 
@@ -93,10 +96,10 @@ apps/web/
       models/                 ── BROWSER-SAFE ── Model.Class shapes, the single source of truth; flat by concept
       views/                  ── BROWSER-SAFE ── response schemas + serializers (plain JSON) + derive.ts (Mifflin, browser-safe)
       db/                     ── server ── one repo per table (Command/makeTable) + sql.ts + table.ts
-      domain/                 ── server ── the AGGREGATE per concept (+ a concern subfolder, e.g. domain/user/{snapshots,weights,members})
+      domain/                 ── server ── the AGGREGATE per concept (+ a concern subfolder, e.g. domain/meal/estimatable/, domain/user/{snapshots,weights,members})
       controllers/ middleware/ support/  ── server ── thin handlers · scoping/auth gates · small combinators
       auth/                   ── server ── Better Auth instance (Kysely-D1 + KV) + permissions (ac/roles)
-      estimator/ blobs/       ── server ── the env-swapped AI service · the R2 blob seam
+      blobs/                  ── server ── the R2 blob seam (the AI vision call lives in domain/meal/estimatable/, not here — ADR 0017)
     client/                   browser transport: api-client.ts (getClient + getPublicClient + run), auth-client.ts, gate.ts, me.ts, setup.ts
     routes/                   ── THE FRONTEND ── TanStack file routes (index, meals/$id, onboarding, profile, progress, admin, setup, set-password, login, how-it-works)
     components/ lib/          shared UI (bottom-nav, day-summary-panel, log-weight-sheet, meal-card) · cn() · date/units
@@ -136,27 +139,35 @@ middleware), built as two separate `toWebHandler`s in `runtime.ts` and dispatche
 - **Password link (ADR 0016)** is an app-domain aggregate (`domain/password-link.ts`: issue / show / redeem),
   NOT part of the (delivery-free) Better Auth instance — the Host hands the link over out of band.
 
-## Meals lifecycle — synchronous and atomic
+## Meals lifecycle — synchronous; Estimate as an append-only child (ADR 0017)
 
-No background analysis, no `pending`/`failed` status (CONTEXT "Analysis Status"). Client POSTs a base64 photo
-→ `Meal.create` validates the image, runs the estimator (the gate — nothing persists unless it succeeds),
-THEN inserts the meal row + attaches the photo. A row exists ⟺ it has a valid Estimate. The "loading" UX is
-the client button spinner. Totals are **override-first, computed at read** (`override.field ?? sum(foods[i].field)`),
-never stored (ADR 0003). Override (PUT/DELETE) and Refinement (POST, re-runs the AI in place) are distinct
-reified sub-resources (ADR 0012).
+No background analysis, no async `pending`. Client POSTs a base64 photo → `Meal.create` validates the image,
+inserts the meal row + attaches the photo, THEN appends the first **Estimate** (a child row): `ok`, or
+`failed` (no analysis, an error code) the Member retries against the stored photo. So the meal persists even
+when the AI fails (the retry state) — create is synchronous (the spinner is the UX) but NOT atomic-gated, and
+always returns 201 + the meal (the failure is `latestStatus`/`latestErrorCode` in the view, not an HTTP
+error). A Meal has MANY Estimates over time; the **current** one is the latest `ok`. Totals are
+**override-first, computed at read** from the current Estimate (`override.field ?? sum(foods[i].field)`), never
+stored (ADR 0003). Override (PUT/DELETE) and the Estimate sub-resource (`POST /meals/:id/estimates` — text ⇒
+Refinement, none ⇒ retry; appends, never replaces) are distinct reified sub-resources (ADR 0012/0017).
 
 ## Project-specific decisions worth knowing (extend / deviate from the skill)
 
-- **One English system prompt** in the prod path (`getSystemPrompt("en")` in `EstimatorLive`); locale
+- **One English system prompt** in the prod path (`getSystemPrompt("en")` in `estimatable/vision.ts`); locale
   plumbing exists but is exercised by evals only. `callVisionModel` is shared by prod + evals (no drift).
-- **`MealAnalysis` is ONE Effect Schema** (`models/meal-analysis.ts`, browser-safe) driving three consumers:
-  the estimator derives its provider JSON Schema from it AND decodes output back through it; the `Meal` model
-  stores it as a JSON-TEXT column; the views derive Totals. No top-level totals — per-food values only.
-- **`inference_run` is a decoupled audit log** (no FK; soft `userId`) — the cost survives meal/Member
-  deletion. The Admin cost view sums it per UTC range, divided by the **Member count** (Host-excluding).
-- **Vision model selection** lives in `app_settings` (the Admin model-select writes it; `Meal.runEstimate`
-  reads `Settings.visionModelId()`, defaulted defensively). The OpenRouter key is a `wrangler secret`, NOT
-  in the admin UI.
+- **`Analysis` is ONE Effect Schema** (`models/estimate.ts`, browser-safe — a DETAIL of the Estimate, not a
+  peer concept) driving three consumers: `estimatable/vision.ts` derives its provider JSON Schema from it AND
+  decodes output back through it; the `Estimate` row stores it as a JSON-TEXT column; the views derive Totals.
+  No top-level totals — per-food values only. `notAnalyzable` is *content* (a successful "not food" verdict),
+  distinct from a `failed` Estimate (the call broke).
+- **`inference_runs` is a decoupled cost ledger** (no FK; soft `userId` + `estimateId`), SLIMMED to the
+  durable money fact (ADR 0017 — the rich per-attempt facts live on the `estimates` row). The cost survives
+  meal/Member/Estimate deletion. The Admin cost view sums it per UTC range ÷ the **Member count** (Host-excluding).
+- **Vision model selection** lives in `app_settings` (the Admin model-select writes it; the estimatable concern
+  reads `Settings.visionModelId()` → `resolveVisionModel`, which falls back to the default if a stored id goes
+  stale). The catalog (allowed values + pricing) is a detail of the setting, in `views/setting.ts`
+  (`VISION_MODELS`/`computeCost`) — browser-safe, NOT `models/`. The OpenRouter key is a `wrangler secret`,
+  NOT in the admin UI.
 - **Profile is an append-only `profile_snapshots` log** (ADR 0001) — "onboarded" = "has ≥1 snapshot" (no
   column). Derived values (Maintenance/Target/macros) are computed at read by `views/derive.ts` (browser-safe,
   shared by the worker AND the SPA). Edits take effect **next local midnight** (today's plan is sealed —
@@ -189,7 +200,12 @@ reified sub-resources (ADR 0012).
 - **Effect + Cloudflare re-platform — COMPLETE through Slice 5.** All five vertical slices landed on
   `refactor/effect-cloudflare-rebuild`: auth foundation, the Meal vertical, Member (profile/weights/`/me`),
   Admin + Setup + PasswordLink, and Progress + cleanup. The old `apps/web/worker/` (Hono/Drizzle) is deleted;
-  `apps/evals` is repointed to the new estimator. Per-slice decisions are in `docs/refactor-plan.md`.
+  `apps/evals` is repointed to the new vision call. Per-slice decisions are in `docs/refactor-plan.md`.
+- **Estimate reified as an append-only child (ADR 0017).** The `estimator/` subsystem is dissolved into the
+  Meal domain (`domain/meal/estimatable/`); the Estimate is the `estimates` child log (current = latest ok),
+  failures persist for retry, the cost ledger is slimmed, and the vision-model catalog moved to
+  `views/setting.ts`. The convention is in the skill's `references/third-party-apis.md`. Full verify green
+  (worker + frontend + evals tsc · lint · 48 tests · build).
 - **Cutover — PENDING (ops, needs Cloudflare creds).** Before flipping to `main`: create the prod + staging
   KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging
   D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.

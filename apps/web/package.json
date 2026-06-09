@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@better-auth/expo": "1.6.12",
     "@effect/sql-d1": "4.0.0-beta.74",
     "@fontsource-variable/raleway": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",

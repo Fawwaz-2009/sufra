@@ -1,14 +1,18 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Sufra",
+    "slug": "sufra",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "sufra",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Sufra connects to the development server on your local network.",
+        "NSBonjourServices": ["_expo._tcp"]
+      }
     },
     "android": {
       "adaptiveIcon": {

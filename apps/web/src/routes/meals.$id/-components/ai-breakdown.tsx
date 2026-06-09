@@ -2,8 +2,7 @@ import { useState } from "react"
 import { Sparkles, Pencil } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import type { Confidence } from "@/worker/models/meal-analysis"
-import type { MealView } from "@/worker/views/meal"
+import type { Analysis, Confidence } from "@/worker/models/estimate"
 import { ImproveEstimateSheet } from "./improve-estimate-sheet"
 
 // The Improve button's color reflects how unsure the AI was. Members never
@@ -20,12 +19,12 @@ const IMPROVE_BUTTON_STYLES: Record<Confidence, string> = {
 
 export function AiBreakdown({
   mealId,
-  aiAnalysis,
+  analysis,
   lastRefinementText,
   onRefined,
 }: {
   mealId: string
-  aiAnalysis: MealView["aiAnalysis"]
+  analysis: Analysis
   lastRefinementText: string | null
   onRefined: () => void
 }) {
@@ -46,7 +45,7 @@ export function AiBreakdown({
           onClick={() => setOpen(true)}
           className={cn(
             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
-            IMPROVE_BUTTON_STYLES[aiAnalysis.overallConfidence]
+            IMPROVE_BUTTON_STYLES[analysis.overallConfidence]
           )}
         >
           <Pencil className="size-3" strokeWidth={2.5} />
@@ -55,7 +54,7 @@ export function AiBreakdown({
       </div>
 
       <ul className="mt-3 flex flex-col divide-y divide-foreground/5">
-        {aiAnalysis.foods.map((f, idx) => (
+        {analysis.foods.map((f, idx) => (
           <li
             key={idx}
             className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0"
@@ -85,7 +84,7 @@ export function AiBreakdown({
         open={open}
         onOpenChange={setOpen}
         mealId={mealId}
-        clarifications={aiAnalysis.clarifications}
+        clarifications={analysis.clarifications}
         lastRefinementText={lastRefinementText}
         onRefined={onRefined}
       />

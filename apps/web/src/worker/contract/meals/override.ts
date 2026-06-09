@@ -3,7 +3,7 @@ import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup"
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint"
 import * as HttpApiError from "effect/unstable/httpapi/HttpApiError"
 import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema"
-import { MealOverride } from "../../models/meal-analysis.ts"
+import { MealOverride } from "../../models/meal.ts"
 import { MealScoped } from "../middleware/meal-scoped.ts"
 
 /**

@@ -8,7 +8,7 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder"
 import { api } from "./contract/api.ts"
 import { publicApi } from "./contract/public-api.ts"
 import { SqlLayer } from "./db/sql.ts"
-import { Auth, type AuthInstance } from "./auth/instance.ts"
+import { Auth, makeRequestAuth, type AuthInstance } from "./auth/instance.ts"
 import { AuthenticationLive } from "./middleware/authentication.ts"
 import { MealScopedLive } from "./middleware/meal-scoped.ts"
 import { HostOnlyLive } from "./middleware/host-only.ts"
@@ -18,17 +18,18 @@ import { WeightsRepoLayer } from "./db/weights.ts"
 import { MealsRepoLayer } from "./db/meals.ts"
 import { AttachmentsRepoLayer } from "./db/attachments.ts"
 import { InferenceRunsRepoLayer } from "./db/inference-runs.ts"
+import { EstimatesRepoLayer } from "./db/estimates.ts"
 import { AppSettingsRepoLayer } from "./db/app-settings.ts"
 import { PasswordLinksRepoLayer } from "./db/password-links.ts"
 import { BlobsLayer } from "./blobs/layers.ts"
-import { EstimatorLayer } from "./estimator/layers.ts"
+import { VisionLayer } from "./domain/meal/estimatable/service.ts"
 import { MeControllerLive } from "./controllers/me.ts"
 import { ProfileSnapshotsControllerLive } from "./controllers/profile-snapshots.ts"
 import { WeightsControllerLive } from "./controllers/weights.ts"
 import { CalorieHistoryControllerLive } from "./controllers/calorie-history.ts"
 import { MealsControllerLive } from "./controllers/meals.ts"
 import { OverrideControllerLive } from "./controllers/meals/override.ts"
-import { RefinementControllerLive } from "./controllers/meals/refinement.ts"
+import { EstimatesControllerLive } from "./controllers/meals/estimates.ts"
 import { SavedControllerLive } from "./controllers/meals/saved.ts"
 import { ClonesControllerLive } from "./controllers/meals/clones.ts"
 import { PhotoControllerLive } from "./controllers/meals/photo.ts"
@@ -50,16 +51,16 @@ const PlatformLayer = Layer.mergeAll(HttpPlatform.layer, Path.layer, Etag.layer)
 
 /**
  * Assemble BOTH Effect HttpApis into Cloudflare-Worker fetch handlers. Called ONCE per isolate (bindings
- * are stable). One `SqlClient` for the isolate; the repos share it. The repos, `Blobs`, `Estimator`, and
- * the `Auth` instance are env-static singletons merged into a single request data layer that BOTH apis
- * discharge via `provideRequest`.
+ * are stable). One `SqlClient` for the isolate; the repos share it. The repos, `Blobs`, and `Vision` are
+ * env-static singletons merged into a single request data layer that BOTH apis discharge via
+ * `provideRequest`. `Auth` rides the same data layer but is built FRESH per request (see `authValue`).
  *
  * Two web handlers come back: `handler` (the authed `api` — Authentication api-wide, HostOnly on the
  * admin/settings groups) and `publicHandler` (the unauth `publicApi` — Setup + Password-link redemption,
  * the bootstrap surface that cannot sit behind a session). `handler.ts` dispatches the known public path
  * prefixes to `publicHandler`, everything else `/api/*` to `handler`.
  */
-export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
+export const assembleHandler = (env: Bindings) => {
   const sql = SqlLayer(env.DB)
   const usersRepo = UsersRepoLayer.pipe(Layer.provide(sql))
   const profileSnapshotsRepo = ProfileSnapshotsRepoLayer.pipe(Layer.provide(sql))
@@ -67,17 +68,24 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
   const mealsRepo = MealsRepoLayer.pipe(Layer.provide(sql))
   const attachmentsRepo = AttachmentsRepoLayer.pipe(Layer.provide(sql))
   const inferenceRunsRepo = InferenceRunsRepoLayer.pipe(Layer.provide(sql))
+  const estimatesRepo = EstimatesRepoLayer.pipe(Layer.provide(sql))
   const appSettingsRepo = AppSettingsRepoLayer.pipe(Layer.provide(sql))
   const passwordLinksRepo = PasswordLinksRepoLayer.pipe(Layer.provide(sql))
   const blobs = BlobsLayer(env)
-  const estimator = EstimatorLayer(env)
-  const authValue = Layer.succeed(Auth, auth) // the shared Better Auth instance (built once)
+  const vision = VisionLayer(env)
+  // Better Auth is built FRESH per request — NOT an isolate singleton. Better Auth resolves its `$context`
+  // (the Kysely-D1 adapter) lazily on first use and binds that D1 I/O to the request that triggered it; a
+  // cached instance reused across requests deadlocks on Cloudflare (the `$context` promise never resolves —
+  // the symptom was the app hanging on skeleton loaders). `Layer.sync` here is discharged by
+  // `provideRequest` once per request, so every request-time `yield* Auth` (the admin/setup/password-link
+  // handlers' `signUpEmail`/`internalAdapter`) gets an instance whose D1 connection lives and dies within
+  // that one request. (The Authentication middleware builds its own per request via `makeRequestAuth`,
+  // because `HttpApiMiddleware` forbids a residual `Auth` requirement in its context.)
+  const authValue = Layer.sync(Auth, () => makeRequestAuth(env))
 
-  // Per-request services, discharged via provideRequest (the repos/blobs/estimator/auth are stable
-  // singletons, but the domain resolves them per-request, so they ride here together). `Auth` is in here
-  // because the admin/setup/password-link handlers `yield* Auth` at REQUEST time (calling into Better
-  // Auth) — distinct from the build-time `Layer.provide(authValue)` that the Authentication middleware
-  // captures at construction.
+  // Per-request services, discharged via provideRequest (the repos/blobs/vision are stable singletons, but
+  // the domain resolves them per-request, so they ride here together). `Auth` rides here too so it is built
+  // fresh per request (see above).
   const dataLayer = Layer.mergeAll(
     usersRepo,
     profileSnapshotsRepo,
@@ -85,10 +93,11 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     mealsRepo,
     attachmentsRepo,
     inferenceRunsRepo,
+    estimatesRepo,
     appSettingsRepo,
     passwordLinksRepo,
     blobs,
-    estimator,
+    vision,
     authValue,
     sql
   )
@@ -100,7 +109,7 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     Layer.provide(CalorieHistoryControllerLive),
     Layer.provide(MealsControllerLive),
     Layer.provide(OverrideControllerLive),
-    Layer.provide(RefinementControllerLive),
+    Layer.provide(EstimatesControllerLive),
     Layer.provide(SavedControllerLive),
     Layer.provide(ClonesControllerLive),
     Layer.provide(PhotoControllerLive),
@@ -108,10 +117,9 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
     Layer.provide(MemberPasswordLinkControllerLive),
     Layer.provide(CostControllerLive),
     Layer.provide(SettingsControllerLive),
-    Layer.provide(AuthenticationLive), // middleware impl; needs Auth
+    Layer.provide(AuthenticationLive(env)), // middleware impl; builds Better Auth per request from env
     Layer.provide(MealScopedLive.pipe(Layer.provide(mealsRepo))), // loads CurrentMeal through the user
     Layer.provide(HostOnlyLive), // role gate for the admin/settings groups (404, not 403 — ADR 0013)
-    Layer.provide(authValue),
     Layer.provide(PlatformLayer),
     HttpRouter.provideRequest(dataLayer)
   )
@@ -122,7 +130,6 @@ export const assembleHandler = (env: Bindings, auth: AuthInstance) => {
   const publicAppLayer = HttpApiBuilder.layer(publicApi).pipe(
     Layer.provide(SetupControllerLive),
     Layer.provide(PasswordLinksControllerLive),
-    Layer.provide(authValue),
     Layer.provide(PlatformLayer),
     HttpRouter.provideRequest(dataLayer)
   )

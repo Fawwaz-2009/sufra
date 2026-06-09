@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 import { del, get, post, postJson, putJson, signInAs, testEnv } from "../../support/harness.ts"
 
 /**
- * The meals lifecycle over real D1 + KV + R2 inside workerd. The estimator is the deterministic
- * `EstimatorTest` layer (ENVIRONMENT="test"), so create/refine never touch OpenRouter — they return the
+ * The meals lifecycle over real D1 + KV + R2 inside workerd. The vision seam is the deterministic
+ * `VisionTest` layer (ENVIRONMENT="test"), so create/re-estimate never touch OpenRouter — they return the
  * fixed "Test Dish" Estimate (500 kcal, 30/50/20 macros).
  */
 
@@ -46,11 +46,14 @@ describe("Meals (request)", () => {
     expect(meal.override).toBe(null)
     expect(meal.savedAt).toBe(null)
 
-    // A row exists ⟺ it has an Estimate; the photo is an attachment, not a column.
-    const mealRow = await testEnv.DB.prepare(`SELECT aiAnalysis FROM meals WHERE id = ?`).bind(meal.id).first<{
-      aiAnalysis: string
-    }>()
-    expect(mealRow?.aiAnalysis).toContain("Test Dish")
+    // The Estimate is an APPEND-ONLY child row now (ADR 0017), not a meal column; the photo is an attachment.
+    const estimate = await testEnv.DB.prepare(
+      `SELECT analysis, status FROM estimates WHERE mealId = ? ORDER BY createdAt DESC LIMIT 1`
+    )
+      .bind(meal.id)
+      .first<{ analysis: string; status: string }>()
+    expect(estimate?.status).toBe("ok")
+    expect(estimate?.analysis).toContain("Test Dish")
     const attachment = await testEnv.DB.prepare(
       `SELECT contentType FROM attachments WHERE recordType = 'meal' AND recordId = ? AND name = 'photo'`
     )
@@ -58,11 +61,11 @@ describe("Meals (request)", () => {
       .first<{ contentType: string }>()
     expect(attachment?.contentType).toBe("image/png")
 
-    // The decoupled audit recorded the estimate cost.
+    // The decoupled cost ledger recorded the estimate (kind='estimate'); it survives meal deletion.
     const runs = await testEnv.DB.prepare(
-      `SELECT kind, status FROM inference_runs WHERE userId = (SELECT id FROM users LIMIT 1)`
-    ).all<{ kind: string; status: string }>()
-    expect(runs.results.some((r) => r.kind === "estimate" && r.status === "ok")).toBe(true)
+      `SELECT kind FROM inference_runs WHERE userId = (SELECT id FROM users LIMIT 1)`
+    ).all<{ kind: string }>()
+    expect(runs.results.some((r) => r.kind === "estimate")).toBe(true)
   })
 
   it("rejects a non-image upload with 415 before estimating", async () => {
@@ -110,14 +113,20 @@ describe("Meals (request)", () => {
     expect(reset.totals.kcal).toBe(500)
   })
 
-  it("refines a meal — replaces the Estimate and records the text", async () => {
+  it("re-estimates a meal — appends an Estimate and records the refinement text", async () => {
     const cookie = await signInAs("ada")
     const meal = await createMeal(cookie)
 
-    const res = await postJson(`/api/meals/${meal.id}/refinement`, { userText: "more rice" }, cookie)
+    const res = await postJson(`/api/meals/${meal.id}/estimates`, { userText: "more rice" }, cookie)
     expect(res.status).toBe(200)
     const refined = (await res.json()) as MealView
     expect(refined.lastRefinementText).toBe("more rice")
+
+    // It APPENDED, not replaced — the meal now has two Estimates (append-only log, ADR 0017).
+    const count = await testEnv.DB.prepare(`SELECT COUNT(*) AS n FROM estimates WHERE mealId = ?`)
+      .bind(meal.id)
+      .first<{ n: number }>()
+    expect(count?.n).toBe(2)
   })
 
   it("toggles saved and lists the saved scope", async () => {

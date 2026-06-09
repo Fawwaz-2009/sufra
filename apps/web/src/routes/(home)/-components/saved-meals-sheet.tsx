@@ -34,7 +34,7 @@ export function SavedMealsSheet({
       ),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["meals"] })
-      toast.success(`Added ~${Math.round(data.totals.kcal)} kcal — ${data.aiAnalysis.dishName}`)
+      toast.success(`Added ~${Math.round(data.totals?.kcal ?? 0)} kcal — ${data.aiAnalysis?.dishName ?? "meal"}`)
       onOpenChange(false)
     },
     onError: () => {

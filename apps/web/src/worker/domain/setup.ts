@@ -5,7 +5,7 @@ import { UsersRepo } from "../db/users.ts"
 import { AppSettingsRepo } from "../db/app-settings.ts"
 import { run } from "../db/sql.ts"
 import { AlreadySetUp, type CreateSetup } from "../contract/setup.ts"
-import { DEFAULT_VISION_MODEL_ID } from "../estimator/models.ts"
+import { DEFAULT_VISION_MODEL_ID } from "../views/setting.ts"
 import { signInResponse } from "../support/session-response.ts"
 import type { SetupStatusView } from "../views/setup.ts"
 
