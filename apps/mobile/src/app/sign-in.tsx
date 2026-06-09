@@ -43,13 +43,15 @@ export default function SignInScreen() {
     }
   }
 
+  // The native iOS "filled field" shape (Apple's account sheet, system search bars): a fill + generous
+  // radius + padding-based height + NO border. backgroundColor/borderRadius/padding are UNIVERSAL style
+  // — they map to SwiftUI background/clipShape/padding modifiers on iOS (and Compose on Android), so
+  // there's no platform branching here. Padding (not a fixed height) sizes the tap target to the text.
   const inputStyle = {
     width: '100%',
-    height: 48,
-    borderWidth: 1,
-    borderRadius: Spacing.three,
+    borderRadius: 14,
     paddingHorizontal: Spacing.three,
-    borderColor: theme.backgroundSelected,
+    paddingVertical: 14,
     backgroundColor: theme.backgroundElement,
   } as const;
 
@@ -76,7 +78,7 @@ export default function SignInScreen() {
                 returnKeyType="next"
                 editable={!submitting}
                 style={inputStyle}
-                textStyle={{ fontSize: 16, color: theme.text }}
+                textStyle={{ fontSize: 17, color: theme.text }}
               />
               <TextInput
                 onChangeText={setPassword}
@@ -89,7 +91,7 @@ export default function SignInScreen() {
                 onSubmitEditing={onSubmit}
                 editable={!submitting}
                 style={inputStyle}
-                textStyle={{ fontSize: 16, color: theme.text }}
+                textStyle={{ fontSize: 17, color: theme.text }}
               />
 
               {error ? <Text textStyle={{ fontSize: 14, color: '#E5484D' }}>{error}</Text> : null}
