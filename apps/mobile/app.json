@@ -11,7 +11,9 @@
       "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Sufra connects to the development server on your local network.",
-        "NSBonjourServices": ["_expo._tcp"]
+        "NSBonjourServices": [
+          "_expo._tcp"
+        ]
       }
     },
     "android": {
@@ -21,7 +23,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.fawwaz2009.sufra"
     },
     "web": {
       "output": "static",
