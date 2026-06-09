@@ -1,7 +1,7 @@
 import { Button, Column, Host, Text, TextInput } from '@expo/ui';
 import { controlSize } from '@expo/ui/swift-ui/modifiers';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authClient } from '@/client/auth-client';
@@ -19,6 +19,8 @@ import { useTheme } from '@/hooks/use-theme';
  */
 export default function SignInScreen() {
   const theme = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
+  const fieldWidth = Math.min(screenWidth - Spacing.four * 2, MaxContentWidth);
   // React state, not @expo/ui's useNativeState: on iOS the latter is a SwiftUI @State bridge whose
   // `.value` writes drive the native field but do NOT re-render React, so derived UI (canSubmit) would
   // never recompute. The fields are uncontrolled (native owns the text); onChangeText mirrors here.
@@ -43,12 +45,13 @@ export default function SignInScreen() {
     }
   }
 
-  // The native iOS "filled field" shape (Apple's account sheet, system search bars): a fill + generous
-  // radius + padding-based height + NO border. backgroundColor/borderRadius/padding are UNIVERSAL style
-  // — they map to SwiftUI background/clipShape/padding modifiers on iOS (and Compose on Android), so
-  // there's no platform branching here. Padding (not a fixed height) sizes the tap target to the text.
+  // The native iOS "filled field" shape: fill + generous radius + padding-based height, no border.
+  // backgroundColor/borderRadius/padding are UNIVERSAL style → SwiftUI background/clipShape/padding on
+  // iOS, Compose on Android. CAVEAT (cost us a crash): universal-style dimensions must be NUMERIC —
+  // Android's Compose casts the `width`/`height` field to Int and throws on a percentage string like
+  // '100%' (iOS/SwiftUI tolerates it), so the width is computed from the window, not '100%'.
   const inputStyle = {
-    width: '100%',
+    width: fieldWidth,
     borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: 14,
