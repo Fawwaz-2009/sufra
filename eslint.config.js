@@ -12,6 +12,9 @@ export default defineConfig([
     'apps/web/src/routeTree.gen.ts',
     'apps/web/worker-configuration.d.ts',
     '.turbo',
+    // The Expo/RN app self-configures via eslint-config-expo (it needs Metro's asset `require()`,
+    // which this config's no-require-imports rule forbids). This root config is web + worker only.
+    'apps/mobile',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

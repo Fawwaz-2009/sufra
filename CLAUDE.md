@@ -47,7 +47,7 @@ Backend **and** frontend run on **one Cloudflare Worker** (the Rails / 37signals
   `VisionLive`/`VisionTest`) is just the test stub.
 - **Monorepo:** pnpm workspaces + Turborepo. `apps/web` (SPA + Worker, kept together — the Cloudflare
   Vite plugin glues them) + `apps/evals` (promptfoo harness; imports the prod `callVisionModel` + the
-  single-source `Analysis`).
+  single-source `Analysis`) + `apps/mobile` (the Expo client — see the Mobile section below).
 
 ## Run it
 
@@ -180,6 +180,34 @@ Refinement, none ⇒ retry; appends, never replaces) are distinct reified sub-re
 - **Charts are hand-rolled SVG, not Recharts** (PWA bundle size): the Day Summary ring, the Progress weight
   chart / calorie bars / BMI strip.
 
+## Mobile (`apps/mobile`) — the second client of the same Worker
+
+An Expo SDK 56 / RN 0.85 **dev-build** app (`expo-dev-client`, NOT Expo Go — NativeWind/`react-native-css`
+and the Expo modules are native code). **Expo HAS CHANGED:** read the versioned docs at
+https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+
+- **Conventions live in the skill — `references/frontend-expo.md`, read IN FULL** before touching the
+  app: `src/app/` is the ROUTE TABLE only (thin re-exports; `_layout.tsx` files are real — the gate, the
+  tab config); screens live in `src/screens/` — FLAT, one DOTTED folder per screen
+  (`screens/(app).index/`), genuine logical units extracted into colocated kind-files; cookie-replay auth
+  (`expoClient` + `usernameClient`, scheme `sufra`; no `adminClient` — authz is 404 scoping, ADR 0013);
+  RN primitives + NativeWind v5 preview, deliberately narrow (only `src/global.css` compiles through
+  `react-native-css`, via `metro-css-transformer.js`; `className` never reaches `SafeAreaView`).
+  No `@expo/ui` for product UI unless a future spike re-approves it.
+- **Server counterpart already in place** (apps/web `auth/instance.ts`): the `expo()` plugin +
+  `"sufra://"` in `trustedOrigins` — device sign-in 403s without them.
+- **Dev loop:** `cd apps/web && pnpm dev` (:5173), then `cd apps/mobile && pnpm android` / `pnpm ios`.
+  Simulator/emulator reach the API at `localhost:5173` directly. **Physical Android over USB:**
+  `adb reverse tcp:8081 tcp:8081 && adb reverse tcp:5173 tcp:5173` (Metro + API — no tunnel, no env
+  change). **Untethered / physical iOS:** cloudflared quick tunnel; set the `https` origin in BOTH
+  `apps/web/.dev.vars` (`BETTER_AUTH_URL`) and `apps/mobile/.env` (`EXPO_PUBLIC_API_URL`), restart both
+  (`EXPO_PUBLIC_*` is inlined at bundle time — `expo start -c`).
+- `pnpm android` exits right after install when another Metro already owns :8081 ("Skipping dev
+  server") — that's its normal reuse behavior, not a crash.
+- After touching Metro/NativeWind config: verify with `expo export --dev --platform android --clear`
+  (a production export misses the dev-only LogBox CSS path). After `app.json` native changes:
+  re-`prebuild`; never hand-edit `ios/`/`android/`.
+
 ## Gotchas (Effect 4-beta + the platform)
 
 - **Training data is mostly Effect 3 / older AI SDK and will be WRONG.** Verify against `node_modules`.
@@ -209,6 +237,9 @@ Refinement, none ⇒ retry; appends, never replaces) are distinct reified sub-re
 - **Cutover — PENDING (ops, needs Cloudflare creds).** Before flipping to `main`: create the prod + staging
   KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging
   D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.
+- **Mobile (Expo) client — STARTED.** `apps/mobile`: sign-in + the Today vertical (photo → Estimate →
+  Day summary) against the same Worker — cookie-replay auth, NativeWind v5 preview, the
+  route-table/`screens/` split per the skill's `frontend-expo.md`.
 
 ## Pointers
 

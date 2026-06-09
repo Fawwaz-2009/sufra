@@ -49,3 +49,4 @@ apps/evals/**/.promptfoo/
 *.njsproj
 *.sln
 *.sw?
+.serena/

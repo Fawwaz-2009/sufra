@@ -33,6 +33,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Sufra uses your photos so you can log a Meal from your library.",
+          "cameraPermission": "Sufra uses your camera so you can log a Meal from a photo."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

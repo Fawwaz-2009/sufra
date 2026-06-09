@@ -1,5 +1,9 @@
 # Sufra re-platform — handoff (Slices 2–5 + frontend)
 
+> **⚠️ SUPERSEDED — Slice 2 is now done.** Start from **`docs/refactor-handoff-2.md`** (Slices 3–5 +
+> the per-slice frontend restore). This file is kept as history; the patterns it points at in
+> `starting-fire` are still valid, but Slices 1 + 2 in *this* repo are now the closer templates.
+
 You are picking up an **in-progress re-platform** of Sufra onto the **fawwaz-coding-style**
 (Effect v4 + Cloudflare backbone). **Slice 1 (auth foundation) is DONE and verified.** Your job is
 slices 2–5 + the frontend reshape. This doc gets you running fast; it does **not** repeat the *why*

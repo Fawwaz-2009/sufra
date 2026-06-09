@@ -1,9 +1,13 @@
+import '@/global.css';
+
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 import { authClient } from '@/client/auth-client';
+import { queryClient } from '@/client/query-client';
 
 // Hold the native splash until the cached session resolves, so a signed-in user never sees the
 // sign-in screen flash. SecureStore.getItem is synchronous, so this is a brief tick.
@@ -28,14 +32,16 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!!session}>
-          <Stack.Screen name="(app)" />
-        </Stack.Protected>
-        <Stack.Protected guard={!session}>
-          <Stack.Screen name="sign-in" />
-        </Stack.Protected>
-      </Stack>
+      <QueryClientProvider client={queryClient}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Protected guard={!!session}>
+            <Stack.Screen name="(app)" />
+          </Stack.Protected>
+          <Stack.Protected guard={!session}>
+            <Stack.Screen name="sign-in" />
+          </Stack.Protected>
+        </Stack>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }
