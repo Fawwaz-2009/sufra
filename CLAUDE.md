@@ -249,13 +249,14 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   Meal detail formSheet (foods, Override editor, Improve — text ⇒ Refinement, none ⇒ retry — and delete;
   mounted in the ROOT stacks, not the tab group — NativeTabs only navigates declared triggers), the
   Onboarding wizard (the web wizard on RN primitives — pure-JS goal slider, three-field birthday), and
-  Settings (per-field edit sheets appending a snapshot effective tomorrow; sign-out; Change server) —
+  Settings (per-field edit sheets appending a snapshot effective tomorrow; Log Weight from the Weight
+  row — ADR 0007's dual-append, live Target preview via the shared derive; sign-out; Change server) —
   cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
   `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Settings is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
   was reverted after failing the iPad test — see the skill's decision record). Still web-only:
-  Saved Meals, Log Weight, Progress, Admin.
+  Saved Meals, Progress, Admin.
 
 ## Pointers
 
