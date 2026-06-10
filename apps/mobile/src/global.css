@@ -49,3 +49,6 @@
 /* Settings sections + edit sheets */
 @source inline("border-b border-zinc-100 items-start justify-end rounded-t-2xl");
 @source inline("mb-2 ml-2 pb-10 pt-5 px-2 py-2");
+
+/* Meal detail screen */
+@source inline("bg-zinc-300 flex-wrap h-1 pb-12");

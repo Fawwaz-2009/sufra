@@ -17,4 +17,11 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*', '.expo/*'],
   },
+  {
+    rules: {
+      // eslint's import resolver treats `[id]` bracket syntax as a glob character class and
+      // misreports dynamic route segments as unresolved. TypeScript resolves them correctly.
+      'import/no-unresolved': ['error', { ignore: ['\\[id\\]'] }],
+    },
+  },
 ])

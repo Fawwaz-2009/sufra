@@ -62,6 +62,7 @@ function ConnectGate() {
       <Stack.Protected guard={false}>
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="meals/[id]" />
       </Stack.Protected>
     </Stack>
   );
@@ -106,6 +107,7 @@ function SessionGate() {
       </Stack.Protected>
       <Stack.Protected guard={!!session && isOnboarded}>
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="meals/[id]" options={{ presentation: 'formSheet' }} />
       </Stack.Protected>
       <Stack.Protected guard={!!session && !isOnboarded}>
         <Stack.Screen name="onboarding" />

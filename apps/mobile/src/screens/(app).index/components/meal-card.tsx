@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { getAuthClient } from '@/client/auth-client';
@@ -6,10 +7,13 @@ import { getServerUrl } from '@/client/server';
 import type { MealListItemView } from '@sufra-web/worker/views/meal.ts';
 
 export function MealCard({ meal }: { meal: MealListItemView }) {
+  const router = useRouter();
   // The photo is Worker-proxied and authed; a bare <Image> fetch needs the replayed cookie by hand.
   const cookie = getAuthClient().getCookie();
   return (
-    <Pressable className="flex-row items-center gap-3 rounded-xl bg-zinc-100 p-3">
+    <Pressable
+      onPress={() => router.push(`/meals/${meal.id}`)}
+      className="flex-row items-center gap-3 rounded-xl bg-zinc-100 p-3">
       <Image
         source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
         style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: '#D4D4D8' }}
