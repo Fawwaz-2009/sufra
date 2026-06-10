@@ -7,7 +7,7 @@ import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/v
 import { ACTIVITY_DESCRIPTIONS, ACTIVITY_LABELS, useProfilePatch, type ProfileEdit } from '../helpers';
 import { BirthdaySheet } from './birthday-sheet';
 import { HeightSheet } from './height-sheet';
-import { LogWeightSheet } from './log-weight-sheet';
+import { LogWeightSheet } from '@/components/log-weight-sheet';
 import { OptionSheet } from './option-sheet';
 import { Row, SectionCard } from './section-card';
 

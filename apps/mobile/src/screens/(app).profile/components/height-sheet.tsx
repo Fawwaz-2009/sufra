@@ -7,7 +7,7 @@ import { cmToImperial, imperialToCm } from '@/lib/units';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/views/profile-snapshot.ts';
 import { useProfilePatch } from '../helpers';
-import { PreviewBox, SheetShell } from './sheet-shell';
+import { PreviewBox, SheetShell } from '@/components/sheet-shell';
 
 export function HeightSheet({
   visible,
