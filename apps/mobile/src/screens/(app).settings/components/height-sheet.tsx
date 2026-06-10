@@ -57,26 +57,30 @@ export function HeightSheet({
         />
       ) : (
         <View className="flex-row gap-3">
-          <LabeledInput
-            label="Feet"
-            value={String(imperial.feet)}
-            onChangeText={(v) => {
-              const n = Number(v);
-              if (Number.isFinite(n)) setCm(imperialToCm(n, imperial.inches));
-            }}
-            keyboardType="number-pad"
-            maxLength={1}
-          />
-          <LabeledInput
-            label="Inches"
-            value={String(imperial.inches)}
-            onChangeText={(v) => {
-              const n = Number(v);
-              if (Number.isFinite(n)) setCm(imperialToCm(imperial.feet, n));
-            }}
-            keyboardType="number-pad"
-            maxLength={2}
-          />
+          <View className="flex-1">
+            <LabeledInput
+              label="Feet"
+              value={String(imperial.feet)}
+              onChangeText={(v) => {
+                const n = Number(v);
+                if (Number.isFinite(n)) setCm(imperialToCm(n, imperial.inches));
+              }}
+              keyboardType="number-pad"
+              maxLength={1}
+            />
+          </View>
+          <View className="flex-1">
+            <LabeledInput
+              label="Inches"
+              value={String(imperial.inches)}
+              onChangeText={(v) => {
+                const n = Number(v);
+                if (Number.isFinite(n)) setCm(imperialToCm(imperial.feet, n));
+              }}
+              keyboardType="number-pad"
+              maxLength={2}
+            />
+          </View>
         </View>
       )}
       <PreviewBox inputs={{ ...profile, heightCm: cm }} previousTarget={previous} />

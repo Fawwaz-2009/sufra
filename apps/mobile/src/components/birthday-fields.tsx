@@ -32,39 +32,45 @@ export function BirthdayFields({
 
   return (
     <View className="flex-row gap-3">
-      <LabeledInput
-        label="Day"
-        value={day}
-        onChangeText={(v) => {
-          setDay(v);
-          emit(year, month, v);
-        }}
-        placeholder="17"
-        keyboardType="number-pad"
-        maxLength={2}
-      />
-      <LabeledInput
-        label="Month"
-        value={month}
-        onChangeText={(v) => {
-          setMonth(v);
-          emit(year, v, day);
-        }}
-        placeholder="3"
-        keyboardType="number-pad"
-        maxLength={2}
-      />
-      <LabeledInput
-        label="Year"
-        value={year}
-        onChangeText={(v) => {
-          setYear(v);
-          emit(v, month, day);
-        }}
-        placeholder="1990"
-        keyboardType="number-pad"
-        maxLength={4}
-      />
+      <View className="flex-1">
+        <LabeledInput
+          label="Day"
+          value={day}
+          onChangeText={(v) => {
+            setDay(v);
+            emit(year, month, v);
+          }}
+          placeholder="17"
+          keyboardType="number-pad"
+          maxLength={2}
+        />
+      </View>
+      <View className="flex-1">
+        <LabeledInput
+          label="Month"
+          value={month}
+          onChangeText={(v) => {
+            setMonth(v);
+            emit(year, v, day);
+          }}
+          placeholder="3"
+          keyboardType="number-pad"
+          maxLength={2}
+        />
+      </View>
+      <View className="flex-1">
+        <LabeledInput
+          label="Year"
+          value={year}
+          onChangeText={(v) => {
+            setYear(v);
+            emit(v, month, day);
+          }}
+          placeholder="1990"
+          keyboardType="number-pad"
+          maxLength={4}
+        />
+      </View>
     </View>
   );
 }
