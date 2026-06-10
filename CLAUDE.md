@@ -247,7 +247,9 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
 - **Mobile (Expo) client — core flows COMPLETE.** `apps/mobile`: the four-tier root gate (Connect →
   sign-in → Onboarding → the (app) tabs), the Today vertical (photo → Estimate → Day summary), the
   Meal detail formSheet (foods, Override editor, Improve — text ⇒ Refinement, none ⇒ retry — and delete;
-  mounted in the ROOT stacks, not the tab group — NativeTabs only navigates declared triggers), the
+  mounted in the ROOT stacks, not the tab group — NativeTabs only navigates declared triggers),
+  Saved Meals (the Save toggle on the detail; the section lists the SHARED MealCard — `src/components/`;
+  From-saved on Today clones into the selected Day, ADR 0008), the
   Onboarding wizard (the web wizard on RN primitives — pure-JS goal slider, three-field birthday), and
   Settings (per-field edit sheets appending a snapshot effective tomorrow; Log Weight from the Weight
   row — ADR 0007's dual-append, live Target preview via the shared derive; sign-out; Change server) —
@@ -256,7 +258,7 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Settings is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
   was reverted after failing the iPad test — see the skill's decision record). Still web-only:
-  Saved Meals, Progress, Admin.
+  Progress, Admin.
 
 ## Pointers
 
