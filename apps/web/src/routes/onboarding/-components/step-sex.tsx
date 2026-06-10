@@ -1,4 +1,4 @@
-import type { Sex } from "../../../../worker/profile/isomorphic/constants"
+import type { Sex } from "@/worker/models/profile-snapshot"
 import { ChoiceChip } from "./choice-chip"
 import { StepHeading } from "./step-heading"
 

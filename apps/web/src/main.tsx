@@ -6,16 +6,13 @@ import { Toaster } from "sonner"
 import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { InnerApp } from "./inner-app"
-import { AuthProvider } from "@/lib/auth-provider"
 import { queryClient } from "@/lib/query-client"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <InnerApp />
-        </AuthProvider>
+        <InnerApp />
         <Toaster
           position="top-center"
           richColors

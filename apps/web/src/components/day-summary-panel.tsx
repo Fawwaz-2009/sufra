@@ -3,9 +3,9 @@ import { Info } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 
 import { cn } from "@/lib/utils"
-import type { MealListItem } from "../../worker/meals/schema"
-import { deriveProfile } from "../../worker/profile/isomorphic/derive"
-import type { ProfileSnapshot } from "../../worker/profile/schema"
+import type { MealListItemView } from "@/worker/views/meal"
+import { deriveProfile } from "@/worker/views/derive"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 
 type Mode = "remaining" | "consumed"
 const LS_KEY = "sufra:ring-mode"
@@ -18,7 +18,7 @@ export function DaySummaryPanel({
   meals,
   profile,
 }: {
-  meals: MealListItem[]
+  meals: MealListItemView[]
   profile: ProfileSnapshot
 }) {
   const [mode, setMode] = useRingMode()
@@ -30,6 +30,8 @@ export function DaySummaryPanel({
       c = 0,
       f = 0
     for (const m of meals) {
+      // A meal whose estimate hasn't succeeded yet has no totals (ADR 0017) — it counts as nothing.
+      if (m.totals === null) continue
       kcal += m.totals.kcal
       p += m.totals.proteinG
       c += m.totals.carbsG

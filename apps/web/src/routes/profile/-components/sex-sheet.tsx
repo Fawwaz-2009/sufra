@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react"
 
 import { Sheet } from "@/components/ui/sheet"
-import type { Sex } from "../../../../worker/profile/isomorphic/constants"
-import { deriveProfile } from "../../../../worker/profile/isomorphic/derive"
-import type { ProfileSnapshot } from "../../../../worker/profile/schema"
+import type { Sex } from "@/worker/models/profile-snapshot"
+import { deriveProfile } from "@/worker/views/derive"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 import { useProfilePatch } from "../-helpers"
 import { ChipButton } from "./chip-button"
 import { PreviewBox, SheetShell } from "./sheet-shell"

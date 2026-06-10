@@ -7,11 +7,15 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
     "types": ["node"]
   },
-  "include": ["*.ts", "scorers/**/*.ts", "../web/worker/meals/estimator/**/*.ts"]
+  // The harness files. The production estimator (`callVisionModel`) + single-source `MealAnalysis` are
+  // pulled in transitively via the imports in estimator-provider.ts / promptfooconfig.ts
+  // (apps/web/src/worker/estimator + models) — same code path as the deployed Worker.
+  "include": ["*.ts", "scorers/**/*.ts"]
 }

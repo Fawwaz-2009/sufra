@@ -1,8 +1,9 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ComponentType } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { TrendingUp, House, Shield, User } from "lucide-react"
 import { createLink } from "@tanstack/react-router"
 
-import { useAuth } from "@/lib/auth-context"
+import { meQueryOptions } from "@/client/me"
 import { cn } from "@/lib/utils"
 
 type IconComp = ComponentType<{
@@ -43,8 +44,9 @@ NavItemBase.displayName = "NavItemBase"
 const NavItem = createLink(NavItemBase)
 
 export function BottomNav() {
-  const { session } = useAuth()
-  const isHost = session?.user.role === "host"
+  // `/me` is primed by the route gate on every tab this nav renders on; read role from it (no extra fetch).
+  const { data: me } = useQuery(meQueryOptions())
+  const isHost = me?.role === "host"
 
   return (
     // Bottom padding clears the iPhone home-indicator safe area. `pb-3`

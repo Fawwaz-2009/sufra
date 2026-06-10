@@ -5,7 +5,7 @@ export function todayLocal(now: Date = new Date()): Date {
 }
 
 export function parseLocalDate(s: string): Date {
-  const [y, m, d] = s.split("-").map(Number)
+  const [y, m, d] = s.split("-").map(Number) as [number, number, number]
   return new Date(y, m - 1, d)
 }
 

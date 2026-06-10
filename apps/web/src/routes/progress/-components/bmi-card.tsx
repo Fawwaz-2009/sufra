@@ -2,7 +2,7 @@ import { useMemo } from "react"
 
 import { cn } from "@/lib/utils"
 import { formatHeight, formatWeight } from "@/lib/units"
-import type { ProfileSnapshot } from "../../../../worker/profile/schema"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 
 // Universal WHO BMI bands. Bands are NOT sex-specific; height shifts only
 // the kg-axis labels under the bar (not the band breakpoints themselves).

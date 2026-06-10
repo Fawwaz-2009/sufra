@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import { Label } from "@/components/ui/label"
 import { kgToLb } from "@/lib/units"
 import { cn } from "@/lib/utils"
-import { deriveProfile } from "../../../../worker/profile/isomorphic/derive"
+import { deriveProfile } from "@/worker/views/derive"
 import type { Draft } from "../-types"
 import { StepHeading } from "./step-heading"
 

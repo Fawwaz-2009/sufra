@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import { SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { deriveProfile } from "../../../../worker/profile/isomorphic/derive"
+import { deriveProfile } from "@/worker/views/derive"
 
 // Common chrome for every Profile field-edit sheet: a title, the field-
 // specific inputs, the "starts tomorrow" affordance (ADR 0002), and the

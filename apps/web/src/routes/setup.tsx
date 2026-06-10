@@ -1,25 +1,34 @@
 import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { api } from "@/lib/api"
-import { useAuth } from "@/lib/auth-context"
+import { getPublicClient, run } from "@/client/api-client"
+import { authClient } from "@/client/auth-client"
+import { setupStatusKey, setupStatusQueryOptions } from "@/client/setup"
+import { meKey } from "@/client/me"
 import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/setup")({
-  beforeLoad: ({ context }) => {
-    if (!context.needsSetup) {
-      throw redirect({ to: context.session ? "/" : "/login" })
+  // Setup is reachable only while the deploy has no Host. Once set up, bounce to the app (or /login).
+  beforeLoad: async ({ context }) => {
+    const status = await context.queryClient.ensureQueryData(setupStatusQueryOptions())
+    if (!status.needsSetup) {
+      const { data } = await authClient.getSession()
+      throw redirect({ to: data ? "/" : "/login" })
     }
   },
   component: SetupWizard,
 })
 
+const errorMessage = (error: unknown): string =>
+  error instanceof Error && error.message ? error.message : "Couldn’t complete setup. Try again."
+
 function SetupWizard() {
-  const auth = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [step, setStep] = useState<1 | 2>(1)
   const [familyName, setFamilyName] = useState("")
   const [username, setUsername] = useState("")
@@ -50,24 +59,21 @@ function SetupWizard() {
     setSubmitError(null)
     setIsSubmitting(true)
     try {
-      const res = await api.api.setup.$post({
-        json: { familyName: trimmedFamily, username, password },
-      })
-      if (!res.ok) {
-        // Surface the actual server error code so a stale second submission
-        // (already_set_up) is recognizable instead of the vague catch-all.
-        const body = (await res
-          .json()
-          .catch(() => ({ error: "unknown" }))) as { error?: string }
-        setSubmitError(`Error: ${body.error ?? `HTTP ${res.status}`}`)
-        return
-      }
-      await auth.refresh()
-      // Refreshing the auth context updates `needsSetup` and `session`, but
-      // TSR doesn't re-fire beforeLoad on context mutation. Navigate
-      // explicitly — the root onboarding gate then routes a brand-new host
-      // to /onboarding (no profile_log row yet).
+      // Creates the first Host + seeds app_settings; the response carries the session cookie.
+      await run(
+        (await getPublicClient()).setup.create({
+          payload: { familyName: trimmedFamily, username, password },
+        })
+      )
+      // The gate reads setupStatus via ensureQueryData (which does NOT refetch-if-stale), and this route
+      // doesn't observe that query — so invalidate with refetchType "all" and await before navigating, or
+      // the next gate reads a stale needsSetup=true and loops back to /setup.
+      await queryClient.invalidateQueries({ queryKey: setupStatusKey, refetchType: "all" })
+      await queryClient.invalidateQueries({ queryKey: meKey, refetchType: "all" })
+      // The fresh Host has no Profile yet — the onboarding gate routes / → /onboarding.
       void navigate({ to: "/" })
+    } catch (e) {
+      setSubmitError(errorMessage(e))
     } finally {
       setIsSubmitting(false)
     }

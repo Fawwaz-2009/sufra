@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { copyPasswordLinkMessage } from "../-helpers"
 import { adminMembersKey } from "../-queries"
 
@@ -13,30 +13,33 @@ export function AddMemberForm() {
   const queryClient = useQueryClient()
 
   const addMember = useMutation({
+    // Member-create is pure (returns the Member); the Password link is a SEPARATE issue (ADR 0016). The add
+    // flow chains them — provision, then issue a link — but the link is BEST-EFFORT: once the Member is
+    // created they must show in the list and the create must NOT be retried (the username is now taken).
+    // So a link-issuance failure doesn't fail the whole mutation; it returns `link: null` for onSuccess to
+    // handle, and the 🔑 in the list re-issues.
     mutationFn: async (username: string) => {
-      const res = await api.api.admin.members.$post({ json: { username } })
-      const json = await res.json()
-      if (!res.ok || "error" in json) {
-        const err = "error" in json ? json.error : "failed_to_add_member"
-        throw new Error(err)
+      const client = await getClient()
+      const member = await run(client.members.create({ payload: { username } }))
+      try {
+        const link = await run(client.memberPasswordLink.create({ params: { id: member.id } }))
+        return { member, link }
+      } catch {
+        return { member, link: null }
       }
-      return json
     },
-    onSuccess: async (data) => {
-      await copyPasswordLinkMessage(
-        data.member.username ?? "",
-        data.passwordLink.token
-      )
+    onSuccess: async ({ member, link }) => {
       setNewUsername("")
-      queryClient.invalidateQueries({ queryKey: adminMembersKey })
+      queryClient.invalidateQueries({ queryKey: adminMembersKey }) // the Member is created — always reveal it
+      if (link) {
+        await copyPasswordLinkMessage(member.username, link.token)
+      } else {
+        toast.message(`${member.username} added — but the link didn't generate. Tap the 🔑 to retry.`)
+      }
     },
     onError: (e) => {
-      const code = e instanceof Error ? e.message : "failed_to_add_member"
-      toast.error(
-        code === "username_taken"
-          ? "That username is already taken."
-          : "Couldn't add member. Try again."
-      )
+      // Reached only when member-CREATE itself failed (e.g. UsernameTaken — its typed message is human).
+      toast.error(e instanceof Error && e.message ? e.message : "Couldn't add member. Try again.")
     },
   })
 

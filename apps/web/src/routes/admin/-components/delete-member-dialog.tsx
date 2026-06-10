@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { adminMembersKey, type Member } from "../-queries"
 
 export function DeleteMemberDialog({
@@ -24,12 +24,8 @@ export function DeleteMemberDialog({
   const queryClient = useQueryClient()
 
   const deleteMember = useMutation({
-    mutationFn: async (memberId: string) => {
-      const res = await api.api.admin.members[":id"].$delete({
-        param: { id: memberId },
-      })
-      if (!res.ok) throw new Error("failed_to_delete_member")
-    },
+    mutationFn: async (memberId: string) =>
+      run((await getClient()).members.destroy({ params: { id: memberId } })),
     onSuccess: () => {
       toast.success(`${member?.username ?? "Member"} deleted.`)
       onOpenChange(false)
@@ -65,7 +61,7 @@ export function DeleteMemberDialog({
           >
             {deleteMember.isPending
               ? "Deleting…"
-              : `Delete ${member?.username} and everything she logged`}
+              : `Delete ${member?.username} and everything they logged`}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

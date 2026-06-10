@@ -4,7 +4,7 @@ import { Pencil } from "lucide-react"
 
 import { LogWeightSheet } from "@/components/log-weight-sheet"
 import { formatWeight } from "@/lib/units"
-import type { ProfileSnapshot } from "../../../../worker/profile/schema"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 import {
   DEFAULT_WEIGHT_PERIOD,
   WEIGHT_PERIODS,
@@ -25,7 +25,7 @@ export function WeightCard({
 }) {
   const [logOpen, setLogOpen] = useState(false)
   const { data } = useQuery(weightsQueryOptions(period ?? DEFAULT_WEIGHT_PERIOD))
-  const weights = data?.weights ?? []
+  const weights = data ?? []
 
   const latest = weights.length > 0 ? weights[weights.length - 1]! : null
   const latestLabel = latest

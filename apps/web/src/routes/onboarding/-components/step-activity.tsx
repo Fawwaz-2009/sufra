@@ -1,5 +1,5 @@
-import type { ActivityLevel } from "../../../../worker/profile/isomorphic/constants"
-import { ACTIVITY_MULTIPLIERS } from "../../../../worker/profile/isomorphic/derive"
+import type { ActivityLevel } from "@/worker/models/profile-snapshot"
+import { ACTIVITY_MULTIPLIERS } from "@/worker/views/derive"
 import { ChoiceChip } from "./choice-chip"
 import { StepHeading } from "./step-heading"
 

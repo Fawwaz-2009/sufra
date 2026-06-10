@@ -1,4 +1,3 @@
-import { BottomNav } from "@/components/bottom-nav"
 import { AdminShell } from "./admin-shell"
 
 export function AdminError({ error }: { error: Error }) {
@@ -8,7 +7,6 @@ export function AdminError({ error }: { error: Error }) {
         <p className="font-medium">Couldn't load admin.</p>
         <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
       </div>
-      <BottomNav />
     </AdminShell>
   )
 }

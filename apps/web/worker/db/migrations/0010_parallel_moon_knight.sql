@@ -1,1 +1,0 @@
-ALTER TABLE `meal` ADD `last_refinement_text` text;

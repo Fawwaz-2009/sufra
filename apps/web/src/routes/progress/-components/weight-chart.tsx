@@ -2,31 +2,25 @@ import { useMemo, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { api } from "@/lib/api"
+import { getClient, run } from "@/client/api-client"
 import { cn } from "@/lib/utils"
 
 // Custom SVG line chart — one Weight per dot, line connects in time order.
-// Tap a dot to open a delete-confirmation popover (ADR 0007: weight_log rows
-// are user-correctable via delete; profile_log is never touched here).
+// Tap a dot to open a delete-confirmation popover (ADR 0007: weights rows
+// are user-correctable via delete; profile_snapshots is never touched here).
 //
 // No aggregation by period — a weigh-in IS the data point. Long periods just
 // show more dots. If there are 0 or 1 points, we render an axis with the
 // single dot (if any) and no connecting line.
 
-type Point = { id: number; weightKg: number; loggedAt: string }
+type Point = { id: string; weightKg: number; loggedAt: string }
 
-export function WeightChart({ weights }: { weights: Point[] }) {
-  const [activeId, setActiveId] = useState<number | null>(null)
+export function WeightChart({ weights }: { weights: ReadonlyArray<Point> }) {
+  const [activeId, setActiveId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await api.api.weights[":id"].$delete({
-        param: { id: String(id) },
-      })
-      if (!res.ok) throw new Error("delete_failed")
-      return res.json()
-    },
+    mutationFn: async (id: string) => run((await getClient()).weights.destroy({ params: { id } })),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["weights"] })
       setActiveId(null)

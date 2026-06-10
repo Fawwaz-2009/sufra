@@ -1,0 +1,43 @@
+@theme {
+  --color-red-600: #dc2626;
+  --color-emerald-800: #166534;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --spacing: 0.25rem;
+  --container-md: 28rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+}
+
+@import "tailwindcss/utilities.css" source(none);
+
+@source inline("bg-emerald-800 bg-white bg-zinc-100 bg-zinc-200 border-zinc-300 text-black text-red-600 text-white text-zinc-500 text-zinc-600 text-zinc-700");
+@source inline("border border-[10px]");
+@source inline("font-bold font-medium font-semibold");
+@source inline("gap-1 gap-2 gap-3 gap-4 gap-8 mt-2 mt-4 p-3 p-4 pb-1 pb-28 pt-4 px-4 px-5 px-6 py-10 py-12 py-4 mx-auto");
+@source inline("h-12 h-2 h-[118px] w-16 w-40 w-[118px] w-full max-w-md min-w-0 text-2xl text-3xl text-4xl text-[10px] text-[17px] text-base text-lg text-sm text-xs");
+@source inline("flex-1 flex-row items-baseline items-center items-end justify-between justify-center overflow-hidden shrink-0 text-center uppercase");
+@source inline("rounded-2xl rounded-[9999px] rounded-xl");

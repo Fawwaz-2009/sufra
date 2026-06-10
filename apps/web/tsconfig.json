@@ -1,14 +1,41 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.worker.json" }
-  ],
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // The browser side: DOM globals + React JSX. The backend uses tsconfig.worker.json
+    // (Worker globals, no DOM) — the two never share a global scope, which is what keeps
+    // workerd's Request/Response from colliding with the DOM lib's.
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+
+    "paths": { "@/*": ["./src/*"] }
+  },
+  // The frontend only. It may import the browser-safe backend slice (src/worker/contract,
+  // src/worker/models, src/worker/views) — those carry no Worker globals, so they typecheck
+  // here too via the import graph. Everything else under src/worker is backend
+  // (tsconfig.worker.json).
+  "include": [
+    "src/routes",
+    "src/main.tsx",
+    "src/inner-app.tsx",
+    "src/router.ts",
+    "src/routeTree.gen.ts",
+    "src/client",
+    "src/components",
+    "src/lib"
+  ]
 }

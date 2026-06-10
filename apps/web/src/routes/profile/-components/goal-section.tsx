@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import type { ProfileSnapshot } from "../../../../worker/profile/schema"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 import { GoalSheet } from "./goal-sheet"
 import { Row, SectionCard } from "./section-card"
 

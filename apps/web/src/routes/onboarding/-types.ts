@@ -1,7 +1,7 @@
 import type {
   ActivityLevel,
   Sex,
-} from "../../../worker/profile/isomorphic/constants"
+} from "@/worker/models/profile-snapshot"
 
 export type Draft = {
   sex: Sex | null

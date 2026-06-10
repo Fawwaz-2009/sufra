@@ -6,8 +6,7 @@ import { PoweredBy } from "@/components/powered-by"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { api } from "@/lib/api"
-import { useAuth } from "@/lib/auth-context"
+import { getPublicClient, run } from "@/client/api-client"
 import {
   isDevBypass,
   isMobile,
@@ -15,17 +14,17 @@ import {
   setUsernameHint,
 } from "@/lib/standalone"
 
-type LoaderData = { username: string; familyName: string }
-
 export const Route = createFileRoute("/set-password/$token")({
+  // Validate the token + load who it's for (404 → the link-unavailable screen). Public — possession of
+  // the token IS the credential; no session gate (the __root install-gate also exempts /set-password/*).
   loader: async ({ params }) => {
-    const res = await api.api["set-password"][":token"].$get({
-      param: { token: params.token },
-    })
-    if (!res.ok) throw notFound()
-    const json = (await res.json()) as LoaderData | { error: string }
-    if ("error" in json) throw notFound()
-    return json
+    try {
+      return await run(
+        (await getPublicClient()).passwordLinks.show({ params: { token: params.token } })
+      )
+    } catch {
+      throw notFound()
+    }
   },
   notFoundComponent: LinkInvalid,
   pendingComponent: SetPasswordPending,
@@ -34,7 +33,6 @@ export const Route = createFileRoute("/set-password/$token")({
 
 function SetPassword() {
   const data = Route.useLoaderData()
-  const auth = useAuth()
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -64,7 +62,8 @@ function SetPassword() {
     if (goesThroughInstallGate) {
       return <InstallGate postSetupUsername={data.username} />
     }
-    // Already standalone, or on desktop, or dev-bypassed — straight to app.
+    // Already standalone, or on desktop, or dev-bypassed — straight to app (a full reload picks up the
+    // session cookie the redeem set; the gate then routes a fresh Member to /onboarding).
     window.location.assign("/")
     return null
   }
@@ -84,19 +83,18 @@ function SetPassword() {
     setSubmitError(null)
     setIsSubmitting(true)
     try {
-      const res = await api.api["set-password"][":token"].$post({
-        param: { token },
-        json: { password },
-      })
-      if (!res.ok) {
-        setSubmitError("Couldn't set your password. Try again.")
-        return
-      }
-      // Cookie was set by the worker — refresh auth context. Stash the
-      // username so /login can pre-fill it in the PWA after install.
+      // Sets the password, consumes the link, and signs the Member in (the response sets the cookie).
+      await run(
+        (await getPublicClient()).passwordLinks.create({
+          params: { token },
+          payload: { password },
+        })
+      )
+      // Stash the username so /login can pre-fill it in the PWA after install.
       setUsernameHint(data.username)
-      await auth.refresh()
       setDidSet(true)
+    } catch {
+      setSubmitError("Couldn't set your password. Try again.")
     } finally {
       setIsSubmitting(false)
     }

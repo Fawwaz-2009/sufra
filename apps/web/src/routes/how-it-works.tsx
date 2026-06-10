@@ -2,12 +2,10 @@ import { useEffect } from "react"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { ArrowLeft } from "lucide-react"
 
-import { BottomNav } from "@/components/bottom-nav"
-import { ACTIVITY_MULTIPLIERS } from "../../worker/profile/isomorphic/derive"
+import { ACTIVITY_MULTIPLIERS } from "@/worker/views/derive"
 
-// Static methodology page. Excluded from the onboarding gate (see __root.tsx)
-// so it can be linked from the wizard's ⓘ icons and from anywhere a Member
-// wants to verify the math.
+// Static methodology page. Auth-optional + ungated (no beforeLoad) so it can be linked from the
+// wizard's ⓘ icons, the Day Summary panel, and anywhere a Member wants to verify the math.
 const CANONICAL_URL = "https://sufra.fawwaz.dev/how-it-works"
 
 export const Route = createFileRoute("/how-it-works")({
@@ -206,7 +204,6 @@ target = maintenance + direction × weekly_rate × 1100`}
 
         <PoweredBy />
       </main>
-      <BottomNav />
     </div>
   )
 }

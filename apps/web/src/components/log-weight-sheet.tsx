@@ -10,13 +10,13 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { api } from "@/lib/api"
-import { useAuth } from "@/lib/auth-context"
+import { getClient, run } from "@/client/api-client"
+import { meKey } from "@/client/me"
 import { tomorrowLocalDate } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import { kgToLb, lbToKg } from "@/lib/units"
-import { deriveProfile } from "../../worker/profile/isomorphic/derive"
-import type { ProfileSnapshot } from "../../worker/profile/schema"
+import { deriveProfile } from "@/worker/views/derive"
+import type { ProfileSnapshotView as ProfileSnapshot } from "@/worker/views/profile-snapshot"
 
 // Shared Log Weight sheet — rendered from both Profile and Progress. Posts to
 // /api/weights, which atomically writes a `weight_log` row (the measurement
@@ -46,24 +46,24 @@ export function LogWeightSheet({
       ? String(Math.round(profile.weightKg * 10) / 10)
       : String(Math.round(kgToLb(profile.weightKg)))
   )
-  const auth = useAuth()
   const queryClient = useQueryClient()
   const previousTarget = useMemo(() => deriveProfile(profile).targetKcal, [profile])
 
   const mutation = useMutation({
-    mutationFn: async (vars: { weightKg: number; unit: "kg" | "lb" }) => {
-      const res = await api.api.weights.$post({
-        json: {
-          weightKg: vars.weightKg,
-          displayWeightUnit: vars.unit,
-          effectiveFrom: tomorrowLocalDate(),
-        },
-      })
-      if (!res.ok) throw new Error("log_failed")
-      return res.json()
-    },
+    mutationFn: async (vars: { weightKg: number; unit: "kg" | "lb" }) =>
+      run(
+        (await getClient()).weights.create({
+          payload: {
+            weightKg: vars.weightKg,
+            displayWeightUnit: vars.unit,
+            effectiveFrom: tomorrowLocalDate()
+          }
+        })
+      ),
     onSuccess: async () => {
-      await auth.refresh()
+      // The dual-append wrote a tomorrow snapshot too, so refresh /me (the Profile + Day Summary) along
+      // with the weight series + calorie history.
+      await queryClient.invalidateQueries({ queryKey: meKey })
       await queryClient.invalidateQueries({ queryKey: ["weights"] })
       await queryClient.invalidateQueries({ queryKey: ["calorie-history"] })
       toast.success("Logged")

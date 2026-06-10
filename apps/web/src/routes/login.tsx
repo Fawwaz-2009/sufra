@@ -9,8 +9,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PoweredBy } from "@/components/powered-by"
-import { authClient } from "@/lib/auth-client"
-import { useAuth } from "@/lib/auth-context"
+import { authClient } from "@/client/auth-client"
 import { clearUsernameHint, readUsernameHint } from "@/lib/standalone"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
@@ -26,14 +25,14 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export const Route = createFileRoute("/login")({
-  beforeLoad: ({ context }) => {
-    if (context.session) throw redirect({ to: "/" })
+  beforeLoad: async () => {
+    const { data } = await authClient.getSession()
+    if (data) throw redirect({ to: "/" })
   },
   component: LoginPage,
 })
 
 function LoginPage() {
-  const auth = useAuth()
   const navigate = useNavigate()
   const [submitError, setSubmitError] = useState<string | null>(null)
   // Pre-fill the username if it survived from a recent password-link
@@ -68,7 +67,6 @@ function LoginPage() {
     // Clear the hint — it's a single-use bridge across the browser → PWA
     // handoff, not a persistent preference.
     clearUsernameHint()
-    await auth.refresh()
     void navigate({ to: "/" })
   }
 

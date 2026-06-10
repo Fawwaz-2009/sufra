@@ -19,7 +19,7 @@ export function CaloriesCard({
   const { data } = useQuery(
     calorieHistoryQueryOptions(period ?? DEFAULT_CALORIE_PERIOD)
   )
-  const buckets = data?.buckets ?? []
+  const buckets = data ?? []
 
   const daysWithData = buckets.reduce((acc, b) => acc + b.daysWithData, 0)
   const totalKcal = buckets.reduce((acc, b) => acc + b.kcalAvg * b.daysWithData, 0)

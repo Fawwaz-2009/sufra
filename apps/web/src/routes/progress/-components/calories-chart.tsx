@@ -19,7 +19,7 @@ export function CaloriesChart({
   buckets,
   period,
 }: {
-  buckets: Bucket[]
+  buckets: ReadonlyArray<Bucket>
   period: CaloriePeriod
 }) {
   const dims = { width: 640, height: 200, padL: 36, padR: 12, padT: 12, padB: 28 }
@@ -125,8 +125,8 @@ function shouldLabel(period: CaloriePeriod, i: number, n: number): boolean {
 }
 
 function formatBucketLabel(bucketStart: string, period: CaloriePeriod): string {
-  const [y, m, d] = bucketStart.split("-").map(Number)
-  const date = new Date(y, m - 1, d)
+  const p = bucketStart.split("-")
+  const date = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]))
   if (period === "7D") {
     return date.toLocaleDateString(undefined, { weekday: "short" })
   }

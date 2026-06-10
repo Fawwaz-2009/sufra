@@ -113,17 +113,21 @@ The PRD should be judged against these outcomes, not against feature count.
 
 Shared login form, role-based routing after authentication. Same URL for both roles; the server determines where to send each post-login.
 
+**Identity / person split (ADR 0010).** Better Auth's credential table is renamed `identities` and split from an app-owned `users` person table that **shares the same primary key** — one id per human, the universal ownership anchor every resource references as `userId`. `role` / `banned` / `username` live on `identities` (the credential — Better Auth's lifecycle); the `users` row is the thin Member-as-person aggregate root (`id`, `createdAt`, `updatedAt`) that owns the Member's `profile_snapshots` + `weights` collections (§6.7, ADR 0011). "Onboarded" is **derived** from "has ≥1 profile_snapshot," not a column. A `user.create.after` hook provisions the `users` row idempotently (`INSERT OR IGNORE` on the shared id). The request-scoped `CurrentUser = { id, username, role }` is the bridge controllers read; the app SELECTs `username` from `identities` read-only by the shared id, never mirroring it.
+
+**Grafana-style provisioning, no email.** Better Auth runs on the **Kysely-D1 dialect** (the Drizzle adapter is dropped); sessions live in **Cloudflare KV** (`secondaryStorage`, `Math.max(ttl, 60)` clamp) to avoid D1 read-after-write login flicker; the instance is built once per isolate (cached at module scope — reverses the old per-request `createAuth`). Setup creates the first Host; the Host provisions Members by username; no email anywhere. The `username` + `admin` plugins are retained.
+
 **First deploy (Setup wizard).** Worker comes up, D1 has zero users. First visit triggers a 2-step wizard. Step 1 — host names the Sufra ("What do you call your sufra?", free-text up to 40 chars, live preview "the {family_name} Sufra"). Step 2 — host picks a username and a password (min 6 chars). Submit creates the host record with `role = 'host'`, initializes `app_settings`, sets a session cookie, redirects to Day view. The wizard only ever runs when zero hosts exist.
 
-**Provisioning Members (Password link flow).** From admin, host types a username and clicks Add. The server creates the `user` row with `role = 'user'` (no `account` row yet) and a `password_link` row (opaque base64url token, 24h TTL, UNIQUE on `userId`). The client immediately copies a pre-baked share message to the clipboard — `"Hi {username}, here's your link to join Sufra:\n{url}"` — and toasts a confirmation that surfaces the 24h expiry. Host pastes the message wherever (WhatsApp, iMessage, group chat). No email is ever involved. The Member sets their own password at the link page; the Host never knows it.
+**Provisioning Members (Password link flow).** Member-create stays pure — it creates the `identities` row (`role = 'member'`) + the provisioned `users` person row and returns the member, nothing else. The Password link is a separate app-domain aggregate (`domain/password-link.ts` with `issue` / `show` / `redeem`), **not** baked into the Better Auth instance (the BA config stays delivery-free — nothing is delivered; the Host hands the link over out of band). From admin, the host types a username and clicks Add, then issues the link via the member's singular `password-link` sub-resource — `POST /admin/members/:id/password-link` (create = issue/regenerate; first-issue and reset are the same path; optional `DELETE` = revoke). `issue` writes a `password_link` row (opaque base64url token, 24h TTL, UNIQUE on `userId`) and returns the token. The client immediately copies a pre-baked share message to the clipboard — `"Hi {username}, here's your link to join Sufra:\n{url}"` — and toasts a confirmation that surfaces the 24h expiry. Host pastes the message wherever (WhatsApp, iMessage, group chat). No email is ever involved. The Member sets their own password at the link page; the Host never knows it.
 
-**Password link page.** Unauthenticated, lives at `/set-password/<token>`. Validates the token + TTL, greets the Member with the family-Sufra name + username, prompts for a password (6+) and a confirmation. On submit: writes the password hash via better-auth, signs the Member in (set-cookie), deletes the password_link row, navigates to Day view. The page sets a `noindex,nofollow` meta tag — the link is a credential, not a discoverable page. On invalid / expired token, shows a stub page telling the Member to ask the Host for a new link.
+**Password link page.** The friendly `/set-password/<token>` is the PAGE (presentation); the resource is the public token-addressed `password-links`. Unauthenticated. `GET /password-links/:token` validates the token + TTL and returns `{ username, familyName }` (404 if invalid/expired), greeting the Member with the family-Sufra name + username; the page prompts for a password (6+) and a confirmation. On submit, `POST /password-links/:token/password` writes the password hash via better-auth (internal hash + `updatePassword`), consumes (deletes) the `password_link` row, signs the Member in (set-cookie), navigates to Day view. The page sets a `noindex,nofollow` meta tag — the link is a credential, not a discoverable page. On invalid / expired token, shows a stub page telling the Member to ask the Host for a new link. See ADR 0016.
 
 **Member first sign-in.** Password link → form submitted → "Add to Home Screen" prompt with platform-specific instructions → onboarding flow (when M2 lands) → Day view.
 
-**Steady-state.** httpOnly cookie carries an opaque session token, validated against D1 on every request. 90-day rolling expiry, configurable.
+**Steady-state.** httpOnly cookie carries an opaque session token, validated against the KV session store on every request. 90-day rolling expiry, configurable.
 
-**Password reset.** Same mechanism as invite. Host clicks the 🔑 icon on an existing Member's row → fresh `password_link` issued (UPSERT replaces any prior one) → message copied to clipboard. Member sets a new password at the link; their old password keeps working until they redeem. "Invite" and "reset" are the same operation in the data model; only the underlying account state differs.
+**Password reset.** Same mechanism as invite — the same `POST /admin/members/:id/password-link` path. Host clicks the 🔑 icon on an existing Member's row → fresh `password_link` issued (UPSERT replaces any prior one) → message copied to clipboard. Member sets a new password at the link; their old password keeps working until they redeem. "Invite" and "reset" are the same operation in the data model; only the underlying account state differs.
 
 **Host forgets their password.** Broken-glass recovery: a `wrangler`-callable admin endpoint gated by a deploy-time secret. Documented in the README. Ugly but honest about what no-email means.
 
@@ -131,7 +135,7 @@ Shared login form, role-based routing after authentication. Same URL for both ro
 
 **Brute-force protection.** Per-username and per-IP rate limiting with progressive lockout. Cloudflare's built-in rate limiting as a second layer.
 
-**Storage.** Auth tables are managed by better-auth (with the `username` plugin, no email): `user` (id, username, role, createdAt, …), `session`, `account` (holds the scrypt password hash), `verification` (unused but created by the library). Role is a custom field on `user`; profile data (age, height, weight, goal, activity) lives in a separate 1-1 `user_profile` table we own. Password links live in `password_link` (id, userId UNIQUE, token UNIQUE, createdBy, createdAt, expiresAt; cascades on user delete).
+**Storage.** Auth tables are managed by better-auth on the Kysely-D1 dialect (with the `username` + `admin` plugins, no email): `identities` (id, username, role, banned, createdAt, …), `account` (holds the scrypt password hash), `verification` (unused but created by the library); sessions live in Cloudflare KV, not D1. The app owns the `users` person table (id shared 1-1 with `identities`, createdAt, updatedAt) as the Member aggregate root — its `profile_snapshots` (append-only; renamed from `profile_log`) and `weights` (`weight_log`) collections hold body metrics, goal, and activity (no `user_profile` table; ADR 0011). Password links live in `password_link` (id, userId UNIQUE, token UNIQUE, createdBy, createdAt, expiresAt; cascades on user delete) as their own app-domain aggregate (ADR 0016).
 
 ### 6.2 Onboarding (Member, first launch)
 
@@ -174,7 +178,7 @@ Internally, the estimate decomposes into two components: food identification and
 
 **Saving is a marker on the existing Meal row, not a separate copy.** Members tap a bookmark in the Meal detail page header to flag a Meal as saved; tap again to unsave. MealCard itself carries no bookmark glyph in v1 — saved-status is communicated by filtering (Profile / picker sheet) and is invisible on the Day view list. The state lives in `meal.saved_at` (nullable timestamp). One column, one truth, one edit surface. See **ADR 0008** for the full rationale.
 
-**Editing a Saved Meal IS editing the source Meal.** Members navigate from the Profile's Saved Meals section into the existing `/meals/:id` page — same UI, same `PATCH /api/meals/:id/override` and `POST /api/meals/:id/refine` endpoints. This means correcting a Saved Meal's Estimate or Override **retroactively updates the Day on which it was originally logged**. Per-Meal totals were always derived per-read (ADR 0003), so the change propagates naturally. Past Day Targets stay sealed (ADR 0002 — `profile_log` is untouched).
+**Editing a Saved Meal IS editing the source Meal.** Members navigate from the Profile's Saved Meals section into the existing `/meals/:id` page — same UI, same `PUT`/`DELETE /api/meals/:id/override` (set / reset) and `POST /api/meals/:id/refinement` endpoints. This means correcting a Saved Meal's Estimate or Override **retroactively updates the Day on which it was originally logged**. Per-Meal totals were always derived per-read (ADR 0003), so the change propagates naturally. Past Day Targets stay sealed (ADR 0002 — `profile_log` is untouched).
 
 **Re-logging clones the source Meal in full** (the e-commerce basket pattern): a brand-new `meal` row is inserted with `ai_analysis` and `override` copied from the source, `captured_at = now` (or the selected Day), and the source's photo R2 object copied to a new key under the new Meal. Clone and source are independent thereafter — deleting either does not affect the other. The cloned Meal starts unsaved (no inherited `saved_at`). Bypasses AI inference.
 
@@ -186,10 +190,10 @@ Internally, the estimate decomposes into two components: food identification and
 
 **Cloned Meals are indistinguishable from freshly-photographed Meals in the UI** — same universal `~` kcal prefix every MealCard already carries, no special marker, no back-link to the source row. Once cloned, the new Meal IS a regular Meal log; there is no lineage tracking ("show all clones of this Meal" is not a v1 query path).
 
-**Endpoints:**
-- `GET /api/meals/saved` — list filtered by `saved_at IS NOT NULL`, ordered DESC.
-- `PATCH /api/meals/:id/saved` — toggle (server flips current state).
-- `POST /api/meals/clone` — body `{ sourceMealId, capturedAt? }` → new MealDetail.
+**Endpoints (reified per ADR 0012 — non-CRUD verbs become noun sub-resources of the Meal):**
+- `GET /api/meals?saved` — the saved list is a scope on the meals index (`saved_at IS NOT NULL`, ordered DESC).
+- `POST` / `DELETE /api/meals/:id/saved` — the singular `saved` sub-resource (`Meal.save` / `Meal.unsave`; 204 both). Replaces the old toggle.
+- `POST /api/meals/:id/clones` — the plural create-only `clones` sub-resource (`Meal.clone`; 201 + the new independent Meal). Body `{ capturedAt? }`. The result is a first-class Meal managed via `/meals` — there is no retained `clones` collection to `show` or `destroy`.
 
 ### 6.6 Day view + Week strip + Day summary panel
 
@@ -236,7 +240,7 @@ Separate `/admin` route accessible only to `role = 'host'`. Reached from a botto
 - **Instance settings.** Family-Sufra name (the value entered during Setup, editable here).
 - **Optional deficit safety bounds toggle** (deferred polish).
 
-Members have no path to this surface — the Admin tab in the bottom nav is rendered only when `session.user.role === "host"`, and `/api/admin/*` is gated by a 403-on-non-host middleware regardless of client state.
+Members have no path to this surface — the Admin tab in the bottom nav is rendered only when `CurrentUser.role === "host"`, and the `/api/admin/*` resources are host-scoped by a `HostOnly` gate that **404s** (not 403s) for non-hosts regardless of client state. Authorization is uniform 404 scoping throughout Sufra — role is just another scoping predicate, a miss never leaks existence (visibility == capability; see ADR 0013).
 
 ### 6.10 Localization — DEFERRED TO V2
 
@@ -306,21 +310,25 @@ Closing copy carries the honest framing: "For specific goals or medical conditio
 
 ## 8. Architecture & Tech Decisions
 
+> **Re-platform (ADRs 0009–0016).** Sufra's backend has been rebuilt onto the Effect + Cloudflare house style: Effect v4; `Model.Class` as the single source of truth; the `Command<A>` persistence model (`makeTable` CRUD + named Command-returning reads, `run` / `atomically`) — no ORM query builder exposed to callers; an `HttpApi` contract with thin `HttpApiBuilder` controllers; domain aggregates composed of `-able` concerns; and the layered `worker/` tree (`contract/` · `models/` · `views/` · `db/` · `domain/` · `controllers/` · `middleware/` · `auth/` · `estimator/` · `blobs/`, composed in `server.ts`). Auth runs on the Kysely-D1 dialect with KV sessions and the `identities`/`users` split (§6.1). Media is the `attachable` model served through the authenticated Worker proxy (one polymorphic `attachments` table; the meal photo is an optional `photo` slot). The frontend stays a TanStack Router SPA + PWA but adopts the typed Effect `HttpApiClient` derived from `worker/contract` — Expo-forward (the `contract`/`models`/`views` layers are browser-safe so they lift into a shared `packages/contract` when a native app lands). The Hono + Drizzle + Hono-RPC + per-request-`createAuth` description in §8.1–§8.4 below is **superseded** and retained only as the historical v1 shape.
+
 ### 8.1 Stack
 
-- **Frontend:** Vite + React + TanStack Router + TanStack Query + vite-plugin-pwa + Tailwind + shadcn + sonner (toasts)
+- **Frontend:** Vite + React + TanStack Router + TanStack Query + vite-plugin-pwa + Tailwind + shadcn + sonner (toasts). Data seam is the typed Effect `HttpApiClient` derived from `worker/contract` (replaces the former Hono RPC client and the raw-`fetch` hatches).
 - **i18n:** _Deferred to v2._ v1 ships English-only; logical CSS properties used throughout as a free habit so v2 RTL is a stylesheet flip, not a refactor.
-- **Backend:** Hono on Cloudflare Workers, with Hono RPC for end-to-end type safety
-- **Single Worker** serving both static assets (the built React bundle) and `/api/*` routes
-- **Database:** Cloudflare D1 (SQLite-compatible); schema versioned and migrated via Wrangler
-- **Storage:** Cloudflare R2 for meal photos, accessed via authenticated Worker routes (no public bucket exposure; no S3 presigned URLs in v1)
-- **Inference:** OpenRouter (host's key, configured at deploy); Gemini 2.5 Flash as default vision model
-- **Auth:** better-auth with the `username` plugin (no email), `signUp` disabled (admin-provisioned accounts only); sessions in D1; scrypt hashing (Web Crypto, no WASM)
+- **Backend:** ~~Hono on Cloudflare Workers, with Hono RPC for end-to-end type safety~~ **Superseded** — Effect v4 on Cloudflare Workers; `HttpApi` contract + thin `HttpApiBuilder` controllers; `Model.Class` + the `Command` persistence model; domain aggregates of concerns (see the re-platform note above and ADR 0009).
+- **Single Worker** serving both static assets (the built React bundle) and `/api/*` routes. `server.ts` is the composer; a two-seam handler routes `/api/auth/*` → Better Auth, `/api/*` → the Effect handler, else the SPA.
+- **Database:** Cloudflare D1 (SQLite-compatible); schema versioned and migrated via Wrangler. The Drizzle migration baseline was nuked and reset (no data migration) — `0001_better_auth.sql` from the BA CLI + clean domain migrations (ADR 0009).
+- **Storage:** Cloudflare R2 for meal photos via the `attachable` media model — one polymorphic `attachments` table, a `Blobs` transport service (`put`/`get`/`delete`), served through the authenticated Worker proxy `GET /meals/:id/photo` (no public bucket exposure; no S3 presigned URLs in v1; see ADR 0014)
+- **Inference:** OpenRouter (host's key, configured at deploy); Gemini 2.5 Flash as default vision model. The estimator is an Effect service leaf the eval harness still imports unchanged.
+- **Auth:** ~~better-auth with the `username` plugin (no email), `signUp` disabled; sessions in D1; scrypt hashing~~ **Superseded** — better-auth (`username` + `admin` plugins, no email) on the **Kysely-D1 dialect**, sessions in **Cloudflare KV** (`secondaryStorage`), one instance per isolate; the `identities`/`users` split (§6.1, ADR 0010); scrypt hashing (Web Crypto, no WASM)
 - **Deploy:** `wrangler deploy` from the repo
 
 ### 8.2 Why this shape
 
-TanStack Start (the SSR meta-framework) was considered and rejected. Its build pipeline currently doesn't play cleanly with vite-plugin-pwa — workarounds exist but are brittle, and SSR's value is minimal for an authenticated PWA opened from a home-screen icon. TanStack Router gives us file-based, type-safe routing without the build friction. Server context (secrets, D1, OpenRouter calls) lives in Hono routes under `/api/*` on the same Worker. Hono RPC bridges the seam with full type inference; client code does `client.api.meals.analyze.$post(...)` with autocomplete and return types.
+> **Superseded by the re-platform note above and ADR 0009.** The Hono + Hono-RPC reasoning below is the historical v1 rationale.
+
+TanStack Start (the SSR meta-framework) was considered and rejected. Its build pipeline currently doesn't play cleanly with vite-plugin-pwa — workarounds exist but are brittle, and SSR's value is minimal for an authenticated PWA opened from a home-screen icon. TanStack Router gives us file-based, type-safe routing without the build friction. The frontend stays a SPA (NOT Start/SSR), Expo-forward (ADR 0015). Server context (secrets, D1, OpenRouter calls) lives in Effect controllers under `/api/*` on the same Worker; the typed `HttpApiClient` bridges the seam with full type inference. _(Historically this was Hono RPC: `client.api.meals.analyze.$post(...)`.)_
 
 ### 8.3 LLM provider abstraction
 
@@ -476,6 +484,8 @@ _Exit:_ shippable in English. Another host could deploy a fresh Sufra instance f
 16. **Adaptive daily targets — explicitly opt-in only, with transparency, never in v1.** Some competitor apps (Cal AI, MacroFactor flavors) silently adjust the daily kcal target based on prior-days' actuals — "weekly calorie banking" — which produces values like 1700/2000/1800 against a stated 2000 goal. This is opaque from the Member's perspective and contradicts Sufra's honest-framing principle. **v1 ships a fixed daily target.** If v2 adds smoothing or HealthKit-style activity adjustments, it must be: (a) explicit opt-in in Profile, (b) accompanied by a "How is today's target derived?" tooltip on the Day view showing the math, (c) toggleable off without losing historical data.
 
 17. **Dev-server clipboard fallback.** The modern `navigator.clipboard.writeText` API requires a secure context (HTTPS / localhost / 127.0.0.1). Production over Cloudflare is always HTTPS — no issue. Local dev served over LAN IP (e.g. `10.x.x.x:5173` for mobile testing) is plain HTTP and the modern API throws. The Members section uses a `document.execCommand("copy")` legacy fallback so the password-link copy works during phone-on-LAN dogfooding. Note: `execCommand` is deprecated; if it's removed by browsers in the future, the alternative is to run dev with the Vite Cloudflare tunnel (`t + enter`) which is HTTPS, or set up local HTTPS certs. Not a v1 blocker.
+
+18. **Override + Refinement interaction — parked UX enhancement.** When a Refinement runs while overridden fields exist, the override-wins resolution already does the right thing (`override.field ?? sum(foods.field)` — the manual values keep showing, the fresh Estimate sits underneath). The parked enhancement is purely informational: surface a subtle inline notice on the Improve sheet listing the overridden fields — e.g. "your manual values for kcal, protein will keep showing until you reset them" — so the Member isn't surprised that a refine didn't visibly move those numbers. Pure UX; no model impact (resolution semantics are unchanged; the `× edited` badge per field from #10 already affords the reset). Deferred — flag, don't build, until dogfooding shows the confusion is real.
 
 ### Risks
 
