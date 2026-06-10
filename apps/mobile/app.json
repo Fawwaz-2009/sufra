@@ -9,13 +9,14 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.fawwaz2009.sufra",
+      "supportsTablet": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Sufra connects to the development server on your local network.",
         "NSBonjourServices": [
           "_expo._tcp"
         ]
-      },
-      "bundleIdentifier": "com.fawwaz2009.sufra"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,10 +26,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.fawwaz2009.sufra",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "package": "com.fawwaz2009.sufra"
     },
     "web": {
       "output": "static",
