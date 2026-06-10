@@ -246,6 +246,8 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.
 - **Mobile (Expo) client — core flows COMPLETE.** `apps/mobile`: the four-tier root gate (Connect →
   sign-in → Onboarding → the (app) tabs), the Today vertical (photo → Estimate → Day summary), the
+  Meal detail formSheet (foods, Override editor, Improve — text ⇒ Refinement, none ⇒ retry — and delete;
+  mounted in the ROOT stacks, not the tab group — NativeTabs only navigates declared triggers), the
   Onboarding wizard (the web wizard on RN primitives — pure-JS goal slider, three-field birthday), and
   Settings (per-field edit sheets appending a snapshot effective tomorrow; sign-out; Change server) —
   cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
