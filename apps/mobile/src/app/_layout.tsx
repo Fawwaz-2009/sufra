@@ -3,8 +3,8 @@ import '@/global.css';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { AppState, Platform, useColorScheme, type AppStateStatus } from 'react-native';
+import { focusManager, QueryClientProvider } from '@tanstack/react-query';
 
 import { authClient } from '@/client/auth-client';
 import { queryClient } from '@/client/query-client';
@@ -20,6 +20,14 @@ SplashScreen.preventAutoHideAsync();
  * swaps to sign-in. Further tiers (onboarding, host-only admin) nest here later (M3/M4) as additional
  * guards reading the same session.
  */
+// RN has no window focus events — bridge AppState so return-from-background counts as focus
+// (with staleTime 30s, reopening the app refetches a stale Day summary automatically).
+function onAppStateChange(status: AppStateStatus) {
+  if (Platform.OS !== 'web') {
+    focusManager.setFocused(status === 'active');
+  }
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { data: session, isPending } = authClient.useSession();
@@ -27,6 +35,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isPending) SplashScreen.hideAsync();
   }, [isPending]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', onAppStateChange);
+    return () => subscription.remove();
+  }, []);
 
   if (isPending) return null;
 
