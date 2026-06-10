@@ -19,7 +19,7 @@ import type { MealOverride } from '@sufra-web/worker/models/meal.ts';
 
 import { FoodsBreakdown } from './components/foods-breakdown';
 import { MealPhoto } from './components/meal-photo';
-import { mealDetailKey, mealQueryOptions } from './queries';
+import { mealDetailKey, mealQueryOptions, savedMealsKey, savedMealMutationFn } from './queries';
 
 type OverrideKey = 'kcal' | 'proteinG' | 'carbsG' | 'fatG';
 const OVERRIDE_KEYS: readonly OverrideKey[] = ['kcal', 'proteinG', 'carbsG', 'fatG'];
@@ -91,6 +91,7 @@ export default function MealDetailScreen() {
               </Text>
               <Text className="text-sm text-zinc-500">{time}</Text>
             </View>
+            <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
           </View>
 
           {meal.aiAnalysis ? (
@@ -111,6 +112,37 @@ export default function MealDetailScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// BookmarkButton — Saved Meal toggle (POST save / DELETE unsave, ADR 0012)
+// ---------------------------------------------------------------------------
+
+function BookmarkButton({ mealId, saved }: { mealId: string; saved: boolean }) {
+  const queryClient = useQueryClient();
+
+  const toggle = useMutation({
+    mutationKey: ['meal', mealId, 'saved'],
+    mutationFn: savedMealMutationFn(mealId, saved),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mealDetailKey(mealId) });
+      void queryClient.invalidateQueries({ queryKey: savedMealsKey() });
+    },
+  });
+
+  return (
+    <Pressable
+      onPress={() => toggle.mutate()}
+      disabled={toggle.isPending}
+      accessibilityRole="button"
+      accessibilityLabel={saved ? 'Remove from saved meals' : 'Save meal for re-logging'}
+      accessibilityState={{ selected: saved }}
+      className={`h-9 items-center justify-center rounded-[9999px] px-3 border${saved ? ' bg-emerald-800 border-emerald-800' : ' bg-white border-zinc-300'}${toggle.isPending ? ' opacity-50' : ''}`}>
+      <Text className={`text-xs font-semibold${saved ? ' text-white' : ' text-zinc-700'}`}>
+        {saved ? 'Saved' : 'Save'}
+      </Text>
+    </Pressable>
   );
 }
 

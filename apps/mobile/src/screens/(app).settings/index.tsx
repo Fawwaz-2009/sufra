@@ -12,14 +12,15 @@ import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 import { AboutYouSection } from './components/about-you-section';
 import { AccountSection } from './components/account-section';
 import { GoalSection } from './components/goal-section';
+import { SavedMealsSection } from './components/saved-meals-section';
 import { YourNumbersSection } from './components/your-numbers-section';
 
 /**
  * Settings — the native counterpart of the web Profile page: the latest snapshot's values in
  * sections, per-field edit sheets appending a snapshot effective tomorrow (ADR 0002), the derived
- * numbers, and the account actions (sign out; change server, ADR 0018). Saved Meals stays web-only
- * for now. Sign-out lives in the header's top-right, like web (body-anchored buttons get pushed
- * off-screen as sections grow).
+ * numbers, the account actions (sign out; change server, ADR 0018), and Saved Meals (list +
+ * log-from-saved + remove, last like web). Sign-out lives in the header's top-right, like web
+ * (body-anchored buttons get pushed off-screen as sections grow).
  */
 export default function SettingsScreen() {
   const meQuery = useQuery(meQueryOptions());
@@ -71,6 +72,7 @@ export default function SettingsScreen() {
               hasPending={latest.effectiveFrom > todayStr}
             />
             <AccountSection username={me?.username ?? ''} />
+            <SavedMealsSection />
           </>
         )}
       </ScrollView>

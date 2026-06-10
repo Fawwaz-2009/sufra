@@ -6,13 +6,22 @@ import { getAuthClient } from '@/client/auth-client';
 import { getServerUrl } from '@/client/server';
 import type { MealListItemView } from '@sufra-web/worker/views/meal.ts';
 
-export function MealCard({ meal }: { meal: MealListItemView }) {
+export function MealCard({
+  meal,
+  onPress,
+}: {
+  meal: MealListItemView;
+  /** Override the default navigate-to-detail behaviour. */
+  onPress?: () => void;
+}) {
   const router = useRouter();
   // The photo is Worker-proxied and authed; a bare <Image> fetch needs the replayed cookie by hand.
   const cookie = getAuthClient().getCookie();
+  const handlePress = onPress ?? (() => router.push(`/meals/${meal.id}`));
+
   return (
     <Pressable
-      onPress={() => router.push(`/meals/${meal.id}`)}
+      onPress={handlePress}
       className="flex-row items-center gap-3 rounded-xl bg-zinc-100 p-3">
       <Image
         source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
@@ -20,6 +29,8 @@ export function MealCard({ meal }: { meal: MealListItemView }) {
         contentFit="cover"
       />
 
+      {/* flex-1 (not just min-w-0): RN's default flexShrink is 0, so without it this column
+          sizes to its text and pushes the kcal column off the card edge in narrow contexts. */}
       <View className="min-w-0 flex-1 gap-1">
         <Text
           numberOfLines={1}

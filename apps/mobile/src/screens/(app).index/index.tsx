@@ -27,10 +27,11 @@ import {
 } from '@/lib/date';
 import { prepareMealPhoto } from '@/lib/meal-photo';
 import { snapshotFor } from '@sufra-web/worker/views/derive.ts';
+import { MealCard } from '@/components/meal-card';
 
 import { DayHeader } from './components/day-header';
 import { DayStrip } from './components/day-strip';
-import { MealCard } from './components/meal-card';
+import { SavedMealsSheet } from './components/saved-meals-sheet';
 import { SummaryPanel, type RingMode } from './components/summary-panel';
 import { buildSummary } from './helpers';
 
@@ -39,6 +40,7 @@ export default function TodayScreen() {
   const [ringMode, setRingMode] = useState<RingMode>('remaining');
   // Selected day is screen state, not URL state — there is no URL on native.
   const [selectedDay, setSelectedDay] = useState<Date>(() => todayLocal());
+  const [savedSheetOpen, setSavedSheetOpen] = useState(false);
 
   const today = todayLocal();
   const ws = weekStart(selectedDay);
@@ -187,6 +189,16 @@ export default function TodayScreen() {
             </Text>
           </Pressable>
         </View>
+        <Pressable
+          onPress={() => setSavedSheetOpen(true)}
+          className="h-12 w-full items-center justify-center rounded-[9999px] border border-zinc-300 px-4">
+          <Text className="text-base font-medium text-zinc-700">From saved</Text>
+        </Pressable>
+        <SavedMealsSheet
+          visible={savedSheetOpen}
+          onClose={() => setSavedSheetOpen(false)}
+          capturedAt={isViewingToday ? undefined : localDateForCapture(selectedDay)}
+        />
 
         <View className="mt-2 flex-row items-center justify-between">
           <Text className="text-xs font-bold uppercase text-zinc-500">Meals</Text>
