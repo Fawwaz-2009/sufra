@@ -14,7 +14,8 @@
         "NSBonjourServices": [
           "_expo._tcp"
         ]
-      }
+      },
+      "bundleIdentifier": "com.fawwaz2009.sufra"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +25,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.fawwaz2009.sufra"
+      "package": "com.fawwaz2009.sufra",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
