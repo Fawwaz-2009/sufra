@@ -76,24 +76,34 @@ export function MembersList() {
             {m.username}
           </Text>
 
-          {/* Re-issue Password link (ADR 0016) */}
-          <Pressable
-            accessibilityLabel={`Share password link for ${m.username}`}
-            disabled={generateLink.isPending && generateLink.variables === m.id}
-            onPress={() => generateLink.mutate(m.id)}
-            className="h-9 w-9 items-center justify-center rounded-[9999px]"
-          >
-            <Text className="text-base">🔑</Text>
-          </Pressable>
+          {/* Hosts are listed (the full household) but get NO actions — the server's Member-scoped
+              gates 404 them anyway (ADR 0013); the badge says why. */}
+          {m.role === 'host' ? (
+            <View className="rounded-[9999px] bg-zinc-100 px-3 py-1">
+              <Text className="text-xs font-medium text-zinc-500">Host</Text>
+            </View>
+          ) : (
+            <>
+              {/* Re-issue Password link (ADR 0016) */}
+              <Pressable
+                accessibilityLabel={`Share password link for ${m.username}`}
+                disabled={generateLink.isPending && generateLink.variables === m.id}
+                onPress={() => generateLink.mutate(m.id)}
+                className="h-9 w-9 items-center justify-center rounded-[9999px]"
+              >
+                <Text className="text-base">🔑</Text>
+              </Pressable>
 
-          {/* Delete Member — confirm via native Alert */}
-          <Pressable
-            accessibilityLabel={`Delete ${m.username}`}
-            onPress={() => confirmDelete(m)}
-            className="h-9 w-9 items-center justify-center rounded-[9999px]"
-          >
-            <Text className="text-base">🗑️</Text>
-          </Pressable>
+              {/* Delete Member — confirm via native Alert */}
+              <Pressable
+                accessibilityLabel={`Delete ${m.username}`}
+                onPress={() => confirmDelete(m)}
+                className="h-9 w-9 items-center justify-center rounded-[9999px]"
+              >
+                <Text className="text-base">🗑️</Text>
+              </Pressable>
+            </>
+          )}
         </View>
       ))}
     </View>

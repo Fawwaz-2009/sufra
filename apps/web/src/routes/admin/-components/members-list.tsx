@@ -42,25 +42,35 @@ export function MembersList({
           <span className="min-w-0 flex-1 truncate text-sm font-medium">
             {m.username}
           </span>
-          <button
-            type="button"
-            aria-label={`Copy password link for ${m.username}`}
-            onClick={() => generateLink.mutate(m.id)}
-            disabled={
-              generateLink.isPending && generateLink.variables === m.id
-            }
-            className="rounded-full p-2 text-muted-foreground hover:bg-foreground/5 hover:text-foreground disabled:opacity-50"
-          >
-            <KeyRound className="size-5" strokeWidth={2.5} />
-          </button>
-          <button
-            type="button"
-            aria-label={`Delete ${m.username}`}
-            onClick={() => onDelete(m)}
-            className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash className="size-5" strokeWidth={2.5} />
-          </button>
+          {/* Hosts are listed (the full household) but get NO actions — the server's Member-scoped
+              gates 404 them anyway (ADR 0013); the badge says why. */}
+          {m.role === "host" ? (
+            <span className="rounded-full bg-foreground/10 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              Host
+            </span>
+          ) : (
+            <>
+              <button
+                type="button"
+                aria-label={`Copy password link for ${m.username}`}
+                onClick={() => generateLink.mutate(m.id)}
+                disabled={
+                  generateLink.isPending && generateLink.variables === m.id
+                }
+                className="rounded-full p-2 text-muted-foreground hover:bg-foreground/5 hover:text-foreground disabled:opacity-50"
+              >
+                <KeyRound className="size-5" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                aria-label={`Delete ${m.username}`}
+                onClick={() => onDelete(m)}
+                className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash className="size-5" strokeWidth={2.5} />
+              </button>
+            </>
+          )}
         </li>
       ))}
     </ul>

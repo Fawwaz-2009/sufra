@@ -19,10 +19,11 @@ const CountRow = Schema.Struct({ n: Schema.Int })
  *  - `delete`      — remove ONE user row by id (the member-delete cascade; composed with the meal/
  *    snapshot/weight/link deletes in `User.members.destroy`).
  *  - `countHosts`   — the Setup gate ("zero Hosts → needs Setup").
- *  - `countMembers` — the Member count (role = member, Host-EXCLUDING per CONTEXT, matching `listMembers`)
- *    — the divisor for the per-Member inference-cost average.
- *  - `listMembers` / `findMember` — the Admin member list + the role-scoped 404 gate (verifies
- *    `role = member`, so the Host can't delete/issue-link against themselves or a missing account).
+ *  - `countMembers` — the Member count (role = member, Host-EXCLUDING per CONTEXT) — the divisor for
+ *    the per-Member inference-cost average.
+ *  - `listAccounts` — the Admin list: the FULL household (Hosts included, role projected for the badge).
+ *  - `findMember` — the role-scoped 404 gate (verifies `role = member`, so the Host can't
+ *    delete/issue-link against themselves or a missing account).
  *  - `usernameOf`  — the credential handle for a userId (the public password-link show).
  */
 const make = Effect.gen(function* () {
@@ -46,11 +47,10 @@ const make = Effect.gen(function* () {
     decode: (rows) => Schema.decodeUnknownEffect(CountRow)(rows[0]).pipe(Effect.orDie, Effect.map((r) => r.n))
   })
 
-  const listMembers = (): Command<ReadonlyArray<MemberView>> => ({
+  const listAccounts = (): Command<ReadonlyArray<MemberView>> => ({
     statement: Effect.sync(() => sql`
-      SELECT u.id AS id, i.username AS username, u.createdAt AS createdAt
+      SELECT u.id AS id, i.username AS username, i.role AS role, u.createdAt AS createdAt
       FROM users AS u JOIN "identities" AS i ON i.id = u.id
-      WHERE i.role = 'member'
       ORDER BY u.createdAt ASC
     `),
     decode: (rows) => Schema.decodeUnknownEffect(Schema.Array(MemberView))(rows).pipe(Effect.orDie)
@@ -58,7 +58,7 @@ const make = Effect.gen(function* () {
 
   const findMember = (id: string): Command<Option.Option<MemberView>> => ({
     statement: Effect.sync(() => sql`
-      SELECT u.id AS id, i.username AS username, u.createdAt AS createdAt
+      SELECT u.id AS id, i.username AS username, i.role AS role, u.createdAt AS createdAt
       FROM users AS u JOIN "identities" AS i ON i.id = u.id
       WHERE u.id = ${id} AND i.role = 'member'
     `),
@@ -91,7 +91,7 @@ const make = Effect.gen(function* () {
     delete: del,
     countHosts,
     countMembers,
-    listMembers,
+    listAccounts,
     findMember,
     usernameOf,
     usernameExists

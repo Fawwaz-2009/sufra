@@ -17,7 +17,9 @@ import * as Attachable from "../concerns/attachable.ts"
  * aggregate, so these are its host-facing verbs (distinct from the user-scoped `snapshots`/`weights`),
  * reached as `User.members.*`. The `HostOnly` gate (ADR 0013) sits in front; a non-host never reaches here.
  *
- *  - index   — list the Members (the credential `username` joined live from `identities`).
+ *  - index   — list the FULL household, Hosts included (the credential `username`/`role` joined live
+ *    from `identities`; the client badges Hosts and offers no actions on them — the action gates below
+ *    stay Member-scoped regardless).
  *  - create  — provision a Member by username via `signUpEmail` with an UNREACHABLE placeholder password
  *    (the real one is set later via a Password link — the create stays PURE, ADR 0016). Fires the
  *    user.create.after hook (the `users` row). A taken username is a clean 409.
@@ -33,7 +35,7 @@ import * as Attachable from "../concerns/attachable.ts"
  */
 export const index = Effect.fn("User.members.index")(function* () {
   const users = yield* UsersRepo
-  return yield* run(users.listMembers())
+  return yield* run(users.listAccounts())
 })
 
 export const create = Effect.fn("User.members.create")(function* (input: { readonly username: string }) {
@@ -60,6 +62,7 @@ export const create = Effect.fn("User.members.create")(function* (input: { reado
   return toMemberView({
     id: created.user.id,
     username: input.username,
+    role: "member", // the create path only ever provisions Members (the sole Host comes from Setup)
     createdAt: new Date(created.user.createdAt).toISOString()
   })
 })

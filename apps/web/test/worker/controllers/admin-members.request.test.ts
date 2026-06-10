@@ -3,12 +3,14 @@ import { cookieHeaderFrom, del, get, post, postJson, signInAs, testEnv } from ".
 
 /**
  * Admin members over real D1 (ADR 0011/0013) — the Host's instance-wide view of the household accounts,
- * behind the HostOnly 404-gate (a non-host gets the SAME 404 a non-owner does — never a 403). Create is
- * pure (returns the Member; the Password link is a separate issue). Delete cascades the Member's data
- * (D1 has no FK cascade — every delete is explicit) and the credential.
+ * behind the HostOnly 404-gate (a non-host gets the SAME 404 a non-owner does — never a 403). The list
+ * is the FULL household (Hosts included, badged by `role`), but the action gates stay Member-scoped —
+ * delete/link against a host 404s. Create is pure (returns the Member; the Password link is a separate
+ * issue). Delete cascades the Member's data (D1 has no FK cascade — every delete is explicit) and the
+ * credential.
  */
 
-type Member = { id: string; username: string; createdAt: string }
+type Member = { id: string; username: string; role: "host" | "member"; createdAt: string }
 
 const ONBOARD = {
   effectiveFrom: "2026-06-08",
@@ -37,14 +39,20 @@ describe("Admin members (request)", () => {
 
   it("lists, creates, and rejects a duplicate username", async () => {
     const host = await signInAs("chef", { role: "host" })
-    expect(await (await get("/api/admin/members", host)).json()).toEqual([]) // the Host isn't a Member
+    // The list is the full household — the Host appears in their own list, badged by role.
+    const initial = (await (await get("/api/admin/members", host)).json()) as ReadonlyArray<Member>
+    expect(initial.map((m) => [m.username, m.role])).toEqual([["chef", "host"]])
 
     const created = await postJson("/api/admin/members", { username: "kid" }, host)
     expect(created.status).toBe(201)
-    expect(((await created.json()) as Member).username).toBe("kid")
+    const kid = (await created.json()) as Member
+    expect([kid.username, kid.role]).toEqual(["kid", "member"])
 
     const list = (await (await get("/api/admin/members", host)).json()) as ReadonlyArray<Member>
-    expect(list.map((m) => m.username)).toEqual(["kid"])
+    expect(list.map((m) => [m.username, m.role])).toEqual([
+      ["chef", "host"],
+      ["kid", "member"]
+    ])
 
     expect((await postJson("/api/admin/members", { username: "kid" }, host)).status).toBe(409)
   })
