@@ -23,7 +23,7 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/settings.png')}
+          src={require('@/assets/images/tabIcons/person.png')}
           renderingMode="template"
         />
       </NativeTabs.Trigger>
