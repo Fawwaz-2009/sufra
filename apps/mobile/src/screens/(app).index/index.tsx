@@ -15,38 +15,71 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getClient, run } from '@/client/api-client';
 import { authClient } from '@/client/auth-client';
 import { queryClient } from '@/client/query-client';
-import { formatLocalDate, todayLocal, todayRangeUtc } from '@/lib/date';
+import {
+  addDays,
+  diffInLocalDays,
+  formatLocalDate,
+  isSameLocalDay,
+  localDateForCapture,
+  selectedDayLabel,
+  todayLocal,
+  weekRange,
+  weekStart,
+} from '@/lib/date';
 import { prepareMealPhoto } from '@/lib/meal-photo';
 import { snapshotFor } from '@sufra-web/worker/views/derive.ts';
 
+import { DayHeader } from './components/day-header';
+import { DayStrip } from './components/day-strip';
 import { MealCard } from './components/meal-card';
 import { SummaryPanel, type RingMode } from './components/summary-panel';
 import { buildSummary } from './helpers';
 
-const mealsKey = ['meals', 'today'] as const;
 const meKey = ['me'] as const;
 
 export default function TodayScreen() {
   const query = useQueryClient();
   const [ringMode, setRingMode] = useState<RingMode>('remaining');
+  // Selected day is screen state, not URL state — there is no URL on native.
+  const [selectedDay, setSelectedDay] = useState<Date>(() => todayLocal());
+
+  const today = todayLocal();
+  const ws = weekStart(selectedDay);
 
   const meQuery = useQuery({
     queryKey: meKey,
     queryFn: async () => run((await getClient()).me.show()),
   });
 
+  // Fetch the whole week and filter to the selected Day client-side — the web's choice;
+  // navigating within a week stays warm, only a week flip refetches.
   const mealsQuery = useQuery({
-    queryKey: mealsKey,
+    queryKey: ['meals', 'week', formatLocalDate(ws)],
     queryFn: async () => {
-      const { from, to } = todayRangeUtc();
+      const { from, to } = weekRange(ws);
       return run((await getClient()).meals.index({ query: { from, to } }));
     },
   });
 
+  const isViewingToday = isSameLocalDay(selectedDay, today);
+  const canGoNext = diffInLocalDays(selectedDay, today) < 0;
+
+  const goPrevWeek = () => setSelectedDay(addDays(selectedDay, -7));
+  const goNextWeek = () => {
+    const next = addDays(selectedDay, 7);
+    setSelectedDay(diffInLocalDays(next, today) > 0 ? today : next);
+  };
+
   const uploadMutation = useMutation({
     mutationFn: async (asset: ImagePicker.ImagePickerAsset) => {
       const photo = await prepareMealPhoto(asset);
-      return run((await getClient()).meals.create({ payload: { photo } }));
+      // Capturing on a past Day backdates the meal into that Day (noon-anchored).
+      const capturedAt = isViewingToday ? undefined : localDateForCapture(selectedDay);
+      return run(
+        (await getClient()).meals.create({
+          payload: { photo, ...(capturedAt ? { capturedAt } : {}) },
+        })
+      );
     },
     onSuccess: () => query.invalidateQueries({ queryKey: ['meals'] }),
     onError: (error: unknown) => {
@@ -58,12 +91,19 @@ export default function TodayScreen() {
     },
   });
 
-  const meals = mealsQuery.data ?? [];
-  const activeProfile = useMemo(() => {
+  const mealsForSelectedDay = (mealsQuery.data ?? []).filter((m) =>
+    isSameLocalDay(new Date(m.capturedAt), selectedDay)
+  );
+  // The snapshot ACTIVE ON the selected Day drives the summary — past Days show their
+  // historical Target (ADR 0002/0003).
+  const daySnapshot = useMemo(() => {
     const profiles = meQuery.data?.profiles ?? [];
-    return snapshotFor(profiles, formatLocalDate(todayLocal()));
-  }, [meQuery.data?.profiles]);
-  const summary = activeProfile ? buildSummary(meals, activeProfile) : null;
+    return snapshotFor(profiles, formatLocalDate(selectedDay));
+  }, [meQuery.data?.profiles, selectedDay]);
+  const summary = daySnapshot ? buildSummary(mealsForSelectedDay, daySnapshot) : null;
+  // No snapshot + no profiles at all = not onboarded (the panel's setup copy). No snapshot on a
+  // Day BEFORE the first snapshot = hide the panel, like web — the Member is onboarded.
+  const isOnboarded = (meQuery.data?.profiles.length ?? 0) > 0;
   const refreshing = meQuery.isRefetching || mealsQuery.isRefetching;
 
   async function takePhoto() {
@@ -123,20 +163,22 @@ export default function TodayScreen() {
             }}
           />
         }>
-        <View className="items-center gap-1 pb-1">
-          <Text className="text-base font-semibold text-black">Today</Text>
-          <Text className="text-sm text-zinc-500">
-            {new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).format(
-              new Date()
-            )}
-          </Text>
-        </View>
-
-        <SummaryPanel
-          ringMode={ringMode}
-          setRingMode={setRingMode}
-          summary={summary}
+        <DayHeader
+          label={selectedDayLabel(selectedDay, today)}
+          onPrev={goPrevWeek}
+          onNext={goNextWeek}
+          canGoNext={canGoNext}
         />
+        <DayStrip
+          weekStartDate={ws}
+          selectedDay={selectedDay}
+          today={today}
+          onSelect={setSelectedDay}
+        />
+
+        {!isOnboarded || summary ? (
+          <SummaryPanel ringMode={ringMode} setRingMode={setRingMode} summary={summary} />
+        ) : null}
 
         <View className="flex-row gap-3">
           <Pressable
@@ -168,16 +210,20 @@ export default function TodayScreen() {
           <View className="items-center py-10">
             <ActivityIndicator />
           </View>
-        ) : meals.length === 0 ? (
+        ) : mealsForSelectedDay.length === 0 ? (
           <View className="items-center gap-2 rounded-xl bg-zinc-100 px-6 py-12">
-            <Text className="font-medium text-black">No meals logged yet</Text>
-            <Text className="text-center text-sm text-zinc-500">
-              Tap Take photo to photograph your first one.
+            <Text className="font-medium text-black">
+              {isViewingToday ? 'No meals logged yet' : 'No meals logged this day.'}
             </Text>
+            {isViewingToday ? (
+              <Text className="text-center text-sm text-zinc-500">
+                Tap Take photo to photograph your first one.
+              </Text>
+            ) : null}
           </View>
         ) : (
           <View className="gap-3">
-            {meals.map((meal) => (
+            {mealsForSelectedDay.map((meal) => (
               <MealCard key={meal.id} meal={meal} />
             ))}
           </View>
