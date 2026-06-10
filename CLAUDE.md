@@ -253,13 +253,17 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   Onboarding wizard (the web wizard on RN primitives — pure-JS goal slider, three-field birthday), and
   Profile — the tab formerly named Settings, renamed for web parity — (per-field edit sheets appending
   a snapshot effective tomorrow; Log Weight from the Weight row — ADR 0007's dual-append, live Target
-  preview via the shared derive; the Saved Meals section; sign-out; Change server) —
+  preview via the shared derive; the Saved Meals section; sign-out; Change server), and
+  Progress (a third tab — Today / Progress / Profile, web parity; the web's hand-rolled charts
+  ported onto `react-native-svg`: the Weight line chart — tap a dot ⇒ native Alert ⇒ delete, ADR
+  0007 — the server-colored calorie bars, the BMI strip as plain percent-positioned Views;
+  `screens/(app).progress/helpers.ts` keeps the `['weights', p]` / `['calorie-history', p]` query-key
+  shapes LogWeightSheet invalidates) —
   cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
   `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Profile is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
-  was reverted after failing the iPad test — see the skill's decision record). Still web-only:
-  Progress, Admin.
+  was reverted after failing the iPad test — see the skill's decision record). Still web-only: Admin.
 
 ## Pointers
 
