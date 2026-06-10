@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -9,6 +9,14 @@ const DURATION = 600;
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
+
+  // The entering keyframe's withCallback is the normal dismissal, but a cold-start race can skip
+  // the entering animation entirely — leaving the opaque overlay over live UI forever. The timeout
+  // guarantees dismissal either way.
+  useEffect(() => {
+    const fallback = setTimeout(() => setVisible(false), DURATION + 1400);
+    return () => clearTimeout(fallback);
+  }, []);
 
   if (!visible) return null;
 
@@ -39,6 +47,7 @@ export function AnimatedSplashOverlay() {
           scheduleOnRN(setVisible, false);
         }
       })}
+      pointerEvents="none"
       style={styles.backgroundSolidColor}
     />
   );
