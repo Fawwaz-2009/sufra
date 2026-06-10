@@ -13,8 +13,9 @@ Three things anchor this codebase. Read the relevant one **before** you act:
   **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
 - **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-`docs/adr/0001–0017` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
-0017 reifies the Estimate as an append-only child + settles the third-party-API convention);
+`docs/adr/0001–0018` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
+0017 reifies the Estimate as an append-only child + settles the third-party-API convention; 0018 makes the
+native client backend-agnostic — the server origin is user state, bring-your-own backend);
 `docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
@@ -196,6 +197,10 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   No `@expo/ui` for product UI unless a future spike re-approves it.
 - **Server counterpart already in place** (apps/web `auth/instance.ts`): the `expo()` plugin +
   `"sufra://"` in `trustedOrigins` — device sign-in 403s without them.
+- **The native client is backend-agnostic (ADR 0018):** v1 is free + bring-your-own backend — the server
+  origin is USER STATE (a first-run Connect screen → probe via the public setup-status endpoint → store in
+  SecureStore), not a build-time constant; `EXPO_PUBLIC_API_URL` is just the dev prefill. Wire changes to
+  `worker/{contract,models,views}` stay ADDITIVE (the store app drifts against self-hosted backends).
 - **Dev loop:** `cd apps/web && pnpm dev` (:5173), then `cd apps/mobile && pnpm android` / `pnpm ios`.
   Simulator/emulator reach the API at `localhost:5173` directly. **Physical Android over USB:**
   `adb reverse tcp:8081 tcp:8081 && adb reverse tcp:5173 tcp:5173` (Metro + API — no tunnel, no env
@@ -244,6 +249,6 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
 ## Pointers
 
 - House style: `~/.claude/skills/fawwaz-coding-style/` · Glossary: `CONTEXT.md` · Product: `PRD.md`
-- ADRs: `docs/adr/0001–0016` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
+- ADRs: `docs/adr/0001–0018` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
 - Better Auth: https://www.better-auth.com/docs · TanStack Router: https://tanstack.com/router/latest
 - Cloudflare Vite plugin: https://developers.cloudflare.com/workers/vite-plugin/
