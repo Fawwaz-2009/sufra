@@ -69,9 +69,6 @@ export function MembersList() {
           key={m.id}
           className="flex-row items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
         >
-          {/* Avatar placeholder */}
-          <View className="h-8 w-8 rounded-[9999px] bg-zinc-200" />
-
           <Text numberOfLines={1} className="min-w-0 flex-1 text-sm font-medium text-black">
             {m.username}
           </Text>
@@ -89,18 +86,18 @@ export function MembersList() {
                 accessibilityLabel={`Share password link for ${m.username}`}
                 disabled={generateLink.isPending && generateLink.variables === m.id}
                 onPress={() => generateLink.mutate(m.id)}
-                className="h-9 w-9 items-center justify-center rounded-[9999px]"
+                className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-base">🔑</Text>
+                <Text className="text-sm font-medium text-zinc-600">Link</Text>
               </Pressable>
 
               {/* Delete Member — confirm via native Alert */}
               <Pressable
                 accessibilityLabel={`Delete ${m.username}`}
                 onPress={() => confirmDelete(m)}
-                className="h-9 w-9 items-center justify-center rounded-[9999px]"
+                className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-base">🗑️</Text>
+                <Text className="text-sm font-medium text-red-600">Delete</Text>
               </Pressable>
             </>
           )}

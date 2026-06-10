@@ -38,7 +38,6 @@ export function MembersList({
           key={m.id}
           className="flex items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10"
         >
-          <span className="size-8 shrink-0 rounded-full bg-foreground/10" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium">
             {m.username}
           </span>
