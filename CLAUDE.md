@@ -194,7 +194,9 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   (`expoClient` + `usernameClient`, scheme `sufra`; no `adminClient` — authz is 404 scoping, ADR 0013);
   RN primitives + NativeWind v5 preview, deliberately narrow (only `src/global.css` compiles through
   `react-native-css`, via `metro-css-transformer.js`; `className` never reaches `SafeAreaView`).
-  No `@expo/ui` for product UI unless a future spike re-approves it.
+  **`@expo/ui` universal components own the SYSTEM surfaces** (settings/forms, pickers, date dialogs,
+  bottom sheets — Settings is the reference); brand surfaces (Today, Onboarding, sign-in) stay
+  RN+NativeWind. The patterns + sharp edges are in the skill's `frontend-expo.md` §`@expo/ui`.
 - **Server counterpart already in place** (apps/web `auth/instance.ts`): the `expo()` plugin +
   `"sufra://"` in `trustedOrigins` — device sign-in 403s without them.
 - **The native client is backend-agnostic (ADR 0018):** v1 is free + bring-your-own backend — the server
@@ -249,7 +251,9 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
   `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
-  gone. Still web-only: Saved Meals, Log Weight, Progress, Admin.
+  gone. Settings is `@expo/ui`-native (the native-feel spike — FieldGroup rows, option BottomSheets
+  committing inline, the Material date dialog; Android-verified, iOS pending). Still web-only:
+  Saved Meals, Log Weight, Progress, Admin.
 
 ## Pointers
 
