@@ -4,22 +4,18 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AppState, Platform, useColorScheme, type AppStateStatus } from 'react-native';
-import { focusManager, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClientProvider, useQuery } from '@tanstack/react-query';
 
-import { authClient } from '@/client/auth-client';
+import { getAuthClient } from '@/client/auth-client';
+import { meQueryOptions } from '@/client/me';
 import { queryClient } from '@/client/query-client';
+import { setServerUrl, useServerUrl } from '@/client/server';
+import { GateError, GateLoading } from '@/components/gate-status';
 
 // Hold the native splash until the cached session resolves, so a signed-in user never sees the
 // sign-in screen flash. SecureStore.getItem is synchronous, so this is a brief tick.
 SplashScreen.preventAutoHideAsync();
 
-/**
- * The root auth gate. `Stack.Protected` renders the (app) shell when there's a session and the
- * sign-in screen otherwise — client-side UX only; the Worker's `Authentication` middleware stays the
- * real gate on every `/api/*` call. Sign-out flips `useSession()` back to no-session and the gate
- * swaps to sign-in. Further tiers (onboarding, host-only admin) nest here later (M3/M4) as additional
- * guards reading the same session.
- */
 // RN has no window focus events — bridge AppState so return-from-background counts as focus
 // (with staleTime 30s, reopening the app refetches a stale Day summary automatically).
 function onAppStateChange(status: AppStateStatus) {
@@ -28,33 +24,95 @@ function onAppStateChange(status: AppStateStatus) {
   }
 }
 
+/**
+ * The root gate, tiered top-down (ADR 0018 + frontend-expo.md): no server origin → Connect; no
+ * session → sign-in; no Profile snapshot → Onboarding; else the (app) shell. The origin is USER
+ * STATE, so the session tier can only mount once it exists — `SessionGate` is a separate component
+ * (its `useSession()` needs the origin-keyed auth client) and is remounted via `key` when the origin
+ * changes, so a server switch never reuses hooks bound to the old client. Client-side UX only; the
+ * Worker's `Authentication` middleware stays the real gate on every `/api/*` call.
+ */
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { data: session, isPending } = authClient.useSession();
-
-  useEffect(() => {
-    if (!isPending) SplashScreen.hideAsync();
-  }, [isPending]);
+  const serverUrl = useServerUrl();
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
     return () => subscription.remove();
   }, []);
 
-  if (isPending) return null;
-
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={!!session}>
-            <Stack.Screen name="(app)" />
-          </Stack.Protected>
-          <Stack.Protected guard={!session}>
-            <Stack.Screen name="sign-in" />
-          </Stack.Protected>
-        </Stack>
+        {serverUrl ? <SessionGate key={serverUrl} /> : <ConnectGate />}
       </QueryClientProvider>
     </ThemeProvider>
+  );
+}
+
+/** First run (or after Change server): only the Connect screen is reachable. */
+function ConnectGate() {
+  useEffect(() => {
+    void SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="connect" />
+      <Stack.Protected guard={false}>
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="(app)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
+/**
+ * Past Connect: the session + onboarding tiers. The onboarding tier mirrors web's `requireOnboarded`
+ * ("has ≥1 snapshot" via `/me` — ADR 0001/0011); the same primed query is what the wizard invalidates
+ * to flip the gate. Sign-out flips `useSession()` and the gate swaps to sign-in.
+ */
+function SessionGate() {
+  const { data: session, isPending } = getAuthClient().useSession();
+  const meQuery = useQuery({ ...meQueryOptions(), enabled: !!session });
+
+  // The splash holds through BOTH reads on a cold start (cached session → /me), so an onboarded
+  // Member lands straight on Today with no sign-in or wizard flash.
+  const settled = !isPending && (!session || !meQuery.isPending);
+  useEffect(() => {
+    if (settled) void SplashScreen.hideAsync();
+  }, [settled]);
+
+  if (isPending) return null;
+  if (session && meQuery.isPending) return <GateLoading />;
+  if (session && meQuery.isError) {
+    return (
+      <GateError
+        onRetry={() => void meQuery.refetch()}
+        onChangeServer={() => {
+          queryClient.clear();
+          setServerUrl(null);
+        }}
+      />
+    );
+  }
+
+  const isOnboarded = meQuery.data?.isOnboarded ?? false;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={false}>
+        <Stack.Screen name="connect" />
+      </Stack.Protected>
+      <Stack.Protected guard={!!session && isOnboarded}>
+        <Stack.Screen name="(app)" />
+      </Stack.Protected>
+      <Stack.Protected guard={!!session && !isOnboarded}>
+        <Stack.Screen name="onboarding" />
+      </Stack.Protected>
+      <Stack.Protected guard={!session}>
+        <Stack.Screen name="sign-in" />
+      </Stack.Protected>
+    </Stack>
   );
 }

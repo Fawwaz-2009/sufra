@@ -1,17 +1,17 @@
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
 
-import { API_URL } from '@/client/api-client';
-import { authClient } from '@/client/auth-client';
+import { getAuthClient } from '@/client/auth-client';
+import { getServerUrl } from '@/client/server';
 import type { MealListItemView } from '@sufra-web/worker/views/meal.ts';
 
 export function MealCard({ meal }: { meal: MealListItemView }) {
   // The photo is Worker-proxied and authed; a bare <Image> fetch needs the replayed cookie by hand.
-  const cookie = authClient.getCookie();
+  const cookie = getAuthClient().getCookie();
   return (
     <Pressable className="flex-row items-center gap-3 rounded-xl bg-zinc-100 p-3">
       <Image
-        source={{ uri: `${API_URL}${meal.photoUrl}`, headers: { Cookie: cookie } }}
+        source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
         style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: '#D4D4D8' }}
         contentFit="cover"
       />

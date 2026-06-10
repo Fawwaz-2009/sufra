@@ -242,9 +242,14 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
 - **Cutover — PENDING (ops, needs Cloudflare creds).** Before flipping to `main`: create the prod + staging
   KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging
   D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.
-- **Mobile (Expo) client — STARTED.** `apps/mobile`: sign-in + the Today vertical (photo → Estimate →
-  Day summary) against the same Worker — cookie-replay auth, NativeWind v5 preview, the
-  route-table/`screens/` split per the skill's `frontend-expo.md`.
+- **Mobile (Expo) client — core flows COMPLETE.** `apps/mobile`: the four-tier root gate (Connect →
+  sign-in → Onboarding → the (app) tabs), the Today vertical (photo → Estimate → Day summary), the
+  Onboarding wizard (the web wizard on RN primitives — pure-JS goal slider, three-field birthday), and
+  Settings (per-field edit sheets appending a snapshot effective tomorrow; sign-out; Change server) —
+  cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
+  `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
+  public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
+  gone. Still web-only: Saved Meals, Log Weight, Progress, Admin.
 
 ## Pointers
 

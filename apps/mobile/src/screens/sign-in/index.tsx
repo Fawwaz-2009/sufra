@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { authClient } from '@/client/auth-client';
+import { getAuthClient } from '@/client/auth-client';
 
 export default function SignInScreen() {
   const [username, setUsername] = useState('');
@@ -24,7 +24,7 @@ export default function SignInScreen() {
     if (!canSubmit) return;
     setError(null);
     setSubmitting(true);
-    const result = await authClient.signIn.username({
+    const result = await getAuthClient().signIn.username({
       username: username.trim(),
       password,
     });

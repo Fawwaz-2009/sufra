@@ -21,6 +21,23 @@ export function isSameLocalDay(a: Date, b: Date): boolean {
   return formatLocalDate(a) === formatLocalDate(b);
 }
 
+// A Profile edit takes effect NEXT local midnight — today's plan is sealed (ADR 0002).
+export function tomorrowLocalDate(now: Date = new Date()): string {
+  return formatLocalDate(addDays(todayLocal(now), 1));
+}
+
+// The web leans on <input type="date"> for calendar validity; native birthday entry is bare numeric
+// fields, so validity (a real calendar date, not in the future, within 110 years) checks here.
+export function isValidBirthday(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split('-').map(Number) as [number, number, number];
+  const date = new Date(y, m - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return false;
+  const today = new Date();
+  const oldest = new Date(today.getFullYear() - 110, today.getMonth(), today.getDate());
+  return date <= today && date >= oldest;
+}
+
 export function diffInLocalDays(a: Date, b: Date): number {
   const aMs = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
   const bMs = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();

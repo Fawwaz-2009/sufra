@@ -13,8 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getClient, run } from '@/client/api-client';
-import { authClient } from '@/client/auth-client';
-import { queryClient } from '@/client/query-client';
+import { meQueryOptions } from '@/client/me';
 import {
   addDays,
   diffInLocalDays,
@@ -35,8 +34,6 @@ import { MealCard } from './components/meal-card';
 import { SummaryPanel, type RingMode } from './components/summary-panel';
 import { buildSummary } from './helpers';
 
-const meKey = ['me'] as const;
-
 export default function TodayScreen() {
   const query = useQueryClient();
   const [ringMode, setRingMode] = useState<RingMode>('remaining');
@@ -46,10 +43,7 @@ export default function TodayScreen() {
   const today = todayLocal();
   const ws = weekStart(selectedDay);
 
-  const meQuery = useQuery({
-    queryKey: meKey,
-    queryFn: async () => run((await getClient()).me.show()),
-  });
+  const meQuery = useQuery(meQueryOptions());
 
   // Fetch the whole week and filter to the selected Day client-side — the web's choice;
   // navigating within a week stays warm, only a week flip refetches.
@@ -143,11 +137,6 @@ export default function TodayScreen() {
     uploadMutation.mutate(asset);
   }
 
-  async function signOut() {
-    await authClient.signOut();
-    queryClient.clear();
-  }
-
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
     <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
@@ -229,11 +218,6 @@ export default function TodayScreen() {
           </View>
         )}
 
-        <Pressable
-          onPress={signOut}
-          className="mt-4 h-12 w-40 items-center justify-center rounded-[9999px] border border-zinc-300">
-          <Text className="text-base font-medium text-zinc-700">Sign out</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

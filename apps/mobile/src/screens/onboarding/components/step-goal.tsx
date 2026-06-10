@@ -1,0 +1,147 @@
+import { useMemo } from 'react';
+import { Pressable, Text, View } from 'react-native';
+
+import { GoalSlider } from '@/components/goal-slider';
+import { kgToLb } from '@/lib/units';
+import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
+import type { Draft } from '../types';
+import { StepHeading } from './step-heading';
+
+export function StepGoal({
+  draft,
+  onGoalWeightChange,
+  onRateChange,
+}: {
+  draft: Draft;
+  onGoalWeightChange: (kg: number) => void;
+  onRateChange: (r: number) => void;
+}) {
+  const current = draft.weightKg ?? 70;
+  // Slider operates in integer kg; the Member's actual weight may be
+  // fractional (e.g. 93.5). The thumb position uses the rounded value;
+  // the "Current" label below shows the real fractional value.
+  const currentRounded = Math.round(current);
+  const goal = draft.goalWeightKg ?? current;
+  // Asymmetric range: lose more than you gain, in realistic chunks.
+  // Floored/capped at the schema's absolute bounds (30 / 300 kg).
+  const min = Math.max(30, currentRounded - 60);
+  const max = Math.min(300, currentRounded + 30);
+  const isMaintain = Math.abs(goal - current) < 0.5;
+  const direction = goal < current ? 'Lose' : goal > current ? 'Gain' : 'Maintain';
+  const diffKg = Math.abs(goal - current);
+  const currentDisplay =
+    draft.displayWeightUnit === 'kg'
+      ? `${Math.round(current * 10) / 10} kg`
+      : `${Math.round(kgToLb(current))} lb`;
+
+  const preview = useMemo(() => {
+    if (
+      !draft.sex ||
+      !draft.birthday ||
+      draft.heightCm == null ||
+      draft.weightKg == null ||
+      !draft.activityLevel ||
+      draft.goalWeightKg == null
+    ) {
+      return null;
+    }
+    return deriveProfile({
+      sex: draft.sex,
+      birthday: draft.birthday,
+      heightCm: draft.heightCm,
+      weightKg: draft.weightKg,
+      activityLevel: draft.activityLevel,
+      goalWeightKg: draft.goalWeightKg,
+      weeklyRateKg: draft.weeklyRateKg,
+    });
+  }, [
+    draft.sex,
+    draft.birthday,
+    draft.heightCm,
+    draft.weightKg,
+    draft.activityLevel,
+    draft.goalWeightKg,
+    draft.weeklyRateKg,
+  ]);
+
+  const etaWeeks = !isMaintain && draft.weeklyRateKg > 0 ? diffKg / draft.weeklyRateKg : null;
+
+  return (
+    <View className="gap-6">
+      <StepHeading title="Your goal" subtitle="Pick a goal weight. Slide to current to maintain." />
+
+      <View className="gap-3">
+        <View className="flex-row items-baseline justify-between">
+          <Text className="text-sm font-medium text-black">{direction}</Text>
+          <Text className="text-2xl font-semibold text-black">{goal} kg</Text>
+        </View>
+        <GoalSlider min={min} max={max} value={Math.round(goal)} onChange={onGoalWeightChange} />
+        <View className="flex-row justify-between">
+          <Text className="text-[10px] text-zinc-500">{min} kg</Text>
+          <Text className="text-[10px] text-zinc-500">Current: {currentDisplay}</Text>
+          <Text className="text-[10px] text-zinc-500">{max} kg</Text>
+        </View>
+      </View>
+
+      {!isMaintain ? (
+        <View className="gap-2">
+          <Text className="text-sm font-medium text-black">How fast?</Text>
+          <View className="flex-row gap-2">
+            <RateChip
+              label="Slowly"
+              sub="~0.25 kg/wk"
+              selected={draft.weeklyRateKg === 0.25}
+              onPress={() => onRateChange(0.25)}
+            />
+            <RateChip
+              label="Moderately"
+              sub="~0.5 kg/wk"
+              selected={draft.weeklyRateKg === 0.5}
+              onPress={() => onRateChange(0.5)}
+            />
+          </View>
+        </View>
+      ) : null}
+
+      {preview ? (
+        <View className="rounded-xl border border-zinc-200 bg-white p-4">
+          <Text className="text-xs uppercase text-zinc-500">Daily target</Text>
+          <View className="mt-1 flex-row items-baseline gap-1">
+            <Text className="text-3xl font-semibold text-black">{preview.targetKcal}</Text>
+            <Text className="text-sm text-zinc-500">kcal</Text>
+          </View>
+          {etaWeeks != null ? (
+            <Text className="mt-2 text-xs text-zinc-500">
+              At this rate, ~{Math.round(etaWeeks)} weeks to reach your goal.
+            </Text>
+          ) : null}
+          <Text className="mt-3 text-xs text-zinc-500">
+            P {preview.macros.proteinG}g · C {preview.macros.carbsG}g · F {preview.macros.fatG}g
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function RateChip({
+  label,
+  sub,
+  selected,
+  onPress,
+}: {
+  label: string;
+  sub: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityState={{ selected }}
+      className={`flex-1 gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-black bg-zinc-100' : 'border-zinc-200'}`}>
+      <Text className="text-sm font-medium text-black">{label}</Text>
+      <Text className="text-[10px] text-zinc-500">{sub}</Text>
+    </Pressable>
+  );
+}
