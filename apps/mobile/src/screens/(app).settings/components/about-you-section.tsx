@@ -7,10 +7,11 @@ import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/v
 import { ACTIVITY_DESCRIPTIONS, ACTIVITY_LABELS, useProfilePatch, type ProfileEdit } from '../helpers';
 import { BirthdaySheet } from './birthday-sheet';
 import { HeightSheet } from './height-sheet';
+import { LogWeightSheet } from './log-weight-sheet';
 import { OptionSheet } from './option-sheet';
 import { Row, SectionCard } from './section-card';
 
-type OpenSheet = 'sex' | 'birthday' | 'height' | 'activity';
+type OpenSheet = 'sex' | 'birthday' | 'height' | 'weight' | 'activity';
 
 const SEX_OPTIONS = [
   { value: 'male', label: 'Male' },
@@ -59,7 +60,11 @@ export function AboutYouSection({ profile }: { profile: ProfileSnapshot }) {
         value={formatHeight(profile.heightCm, profile.displayHeightUnit)}
         onPress={() => setOpen('height')}
       />
-      <Row label="Weight" value={formatWeight(profile.weightKg, profile.displayWeightUnit)} />
+      <Row
+        label="Weight"
+        value={formatWeight(profile.weightKg, profile.displayWeightUnit)}
+        onPress={() => setOpen('weight')}
+      />
       <Row
         label="Activity"
         value={ACTIVITY_LABELS[profile.activityLevel]}
@@ -90,6 +95,7 @@ export function AboutYouSection({ profile }: { profile: ProfileSnapshot }) {
       />
       <BirthdaySheet visible={open === 'birthday'} onClose={close} profile={profile} />
       <HeightSheet visible={open === 'height'} onClose={close} profile={profile} />
+      <LogWeightSheet visible={open === 'weight'} onClose={close} profile={profile} />
     </SectionCard>
   );
 }
