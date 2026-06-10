@@ -258,12 +258,18 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   ported onto `react-native-svg`: the Weight line chart — tap a dot ⇒ native Alert ⇒ delete, ADR
   0007 — the server-colored calorie bars, the BMI strip as plain percent-positioned Views;
   `screens/(app).progress/helpers.ts` keeps the `['weights', p]` / `['calorie-history', p]` query-key
-  shapes LogWeightSheet invalidates) —
+  shapes LogWeightSheet invalidates), and Admin (NOT a tab — the approved tab order stays Today /
+  Progress / Profile; a Host-only row in Profile's Account section pushes the root-mounted
+  `screens/admin/` — the meal-detail precedent; the row is UX only, the real gate is the server's
+  404 scoping, ADR 0013. Cost card, vision-model select, Members add/link/delete; the native share
+  sheet replaces the web's clipboard for the Password-link handover, the URL targeting the connected
+  server origin per ADR 0018) —
   cookie-replay auth, NativeWind v5 preview, the route-table/`screens/` split per the skill's
   `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Profile is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
-  was reverted after failing the iPad test — see the skill's decision record). Still web-only: Admin.
+  was reverted after failing the iPad test — see the skill's decision record). Nothing is web-only
+  anymore — the native client has full feature parity.
 
 ## Pointers
 
