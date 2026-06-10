@@ -71,7 +71,7 @@ export default function ProfileScreen() {
               macros={derived.macros}
               hasPending={latest.effectiveFrom > todayStr}
             />
-            <AccountSection username={me?.username ?? ''} />
+            <AccountSection username={me?.username ?? ''} isHost={me?.role === 'host'} />
             <SavedMealsSection />
           </>
         )}

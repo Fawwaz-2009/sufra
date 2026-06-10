@@ -63,6 +63,7 @@ function ConnectGate() {
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="(app)" />
         <Stack.Screen name="meals/[id]" />
+        <Stack.Screen name="admin" />
       </Stack.Protected>
     </Stack>
   );
@@ -108,6 +109,10 @@ function SessionGate() {
       <Stack.Protected guard={!!session && isOnboarded}>
         <Stack.Screen name="(app)" />
         <Stack.Screen name="meals/[id]" options={{ presentation: 'formSheet' }} />
+        {/* Pushed over the tabs (NativeTabs only navigates declared triggers — same as the meal
+            detail). The Host-only gate is the Profile row + the server's uniform 404 scoping
+            (ADR 0013); a member deep-linking here just sees empty queries 404. */}
+        <Stack.Screen name="admin" />
       </Stack.Protected>
       <Stack.Protected guard={!!session && !isOnboarded}>
         <Stack.Screen name="onboarding" />

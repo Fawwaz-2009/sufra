@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
 import { getAuthClient } from '@/client/auth-client';
@@ -5,7 +6,8 @@ import { queryClient } from '@/client/query-client';
 import { getServerUrl, setServerUrl } from '@/client/server';
 import { Row, SectionCard } from './section-card';
 
-export function AccountSection({ username }: { username: string }) {
+export function AccountSection({ username, isHost }: { username: string; isHost: boolean }) {
+  const router = useRouter();
   // Changing servers signs out first (the SecureStore cookie jar is shared across origins — a stale
   // cookie must not replay against the next backend), clears the query cache, then drops the origin;
   // the root gate flips back to Connect (ADR 0018).
@@ -38,6 +40,8 @@ export function AccountSection({ username }: { username: string }) {
     <SectionCard label="Account">
       <Row label="Username" value={username} />
       <Row label="Server" value={getServerUrl() ?? ''} onPress={changeServer} />
+      {/* The row is UX only — the real Host gate is the server's uniform 404 scoping (ADR 0013). */}
+      {isHost && <Row label="Admin" value="" onPress={() => router.push('/admin')} />}
     </SectionCard>
   );
 }

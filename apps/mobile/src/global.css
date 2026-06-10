@@ -56,3 +56,6 @@
 
 /* Progress screen (charts + period chips) */
 @source inline("border-zinc-500");
+
+/* Admin screen (model radio dot + member avatar) */
+@source inline("h-4 w-4 h-8 w-8");
