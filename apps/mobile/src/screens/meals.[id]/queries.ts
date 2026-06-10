@@ -24,7 +24,7 @@ export function mealQueryOptions(id: string) {
   });
 }
 
-/** Saved Meals list — `GET /meals?saved`. Shared by the detail screen and Settings. */
+/** Saved Meals list — `GET /meals?saved`. Shared by the detail screen and Profile. */
 export function savedMealsQueryOptions() {
   return queryOptions({
     queryKey: savedMealsKey(),

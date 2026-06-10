@@ -8,7 +8,7 @@ const SLIDER_HEIGHT = 40;
 /**
  * A pure-JS slider for the goal weight (the web's <input type="range">) — RN core has no <Slider>
  * and the community one is a native module (a dev-client rebuild), so the track is a PanResponder.
- * Shared by the onboarding goal step and the Settings goal sheet.
+ * Shared by the onboarding goal step and the Profile goal sheet.
  *
  * Absolute positioning: the value tracks the finger's position on the track, on tap AND drag — so
  * there is no gesture-session state at all. The fill/thumb children are pointerEvents="none", which

@@ -24,7 +24,7 @@ export type ProfileEdit = Partial<{
   weeklyRateKg: number;
 }>;
 
-// Shared mutation used by every Settings sheet. Merges the changed field over the latest snapshot
+// Shared mutation used by every Profile sheet. Merges the changed field over the latest snapshot
 // (read from the cached `/me`) into a COMPLETE snapshot effective tomorrow, POSTs it, and invalidates
 // `/me`. The web's hook returns a boolean and toasts; native sheets read `isError` off the mutation
 // and close on success via `mutateAsync`.

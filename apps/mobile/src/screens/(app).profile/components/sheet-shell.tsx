@@ -12,7 +12,7 @@ import {
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 
 /**
- * Common chrome for every Settings field-edit sheet — the native stand-in for the web's shadcn
+ * Common chrome for every Profile field-edit sheet — the native stand-in for the web's shadcn
  * bottom sheet: an RN Modal sliding a card up from the bottom, the field-specific inputs, the
  * "starts tomorrow" affordance (ADR 0002), and the Cancel / Save buttons with their disabled /
  * saving states. Tap on the dimmed backdrop dismisses.

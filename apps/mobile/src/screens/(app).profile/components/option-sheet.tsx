@@ -1,7 +1,7 @@
 import { Modal, Pressable, Text, View } from 'react-native';
 
 /**
- * A single-select bottom sheet for Settings' single-tap fields (Sex, Activity) — the INLINE-COMMIT
+ * A single-select bottom sheet for Profile's single-tap fields (Sex, Activity) — the INLINE-COMMIT
  * pattern (the established mobile idiom, kept from the @expo/ui spike): tapping an option commits
  * immediately and closes, no Save ceremony. Safe because same-day edits upsert the same
  * effective-tomorrow snapshot (ADR 0002), so repeat taps collapse into one row.

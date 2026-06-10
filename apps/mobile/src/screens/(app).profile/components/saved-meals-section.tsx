@@ -6,7 +6,7 @@ import { savedMealsQueryOptions } from '@/screens/meals.[id]/queries';
 
 /**
  * SAVED MEALS section — lists each Saved Meal as a MealCard (default onPress → detail).
- * Positioned last on the Settings screen (mirrors the web Profile page order).
+ * Positioned last on the Profile screen, like web.
  */
 export function SavedMealsSection() {
   const savedQuery = useQuery(savedMealsQueryOptions());

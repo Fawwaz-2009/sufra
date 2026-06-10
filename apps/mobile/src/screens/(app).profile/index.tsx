@@ -16,13 +16,13 @@ import { SavedMealsSection } from './components/saved-meals-section';
 import { YourNumbersSection } from './components/your-numbers-section';
 
 /**
- * Settings — the native counterpart of the web Profile page: the latest snapshot's values in
+ * Profile — the native counterpart of the web Profile page: the latest snapshot's values in
  * sections, per-field edit sheets appending a snapshot effective tomorrow (ADR 0002), the derived
- * numbers, the account actions (sign out; change server, ADR 0018), and Saved Meals (list +
- * log-from-saved + remove, last like web). Sign-out lives in the header's top-right, like web
+ * numbers, the account actions (sign out; change server, ADR 0018), and Saved Meals (shared
+ * MealCards, tap => the detail; last like web). Sign-out lives in the header's top-right, like web
  * (body-anchored buttons get pushed off-screen as sections grow).
  */
-export default function SettingsScreen() {
+export default function ProfileScreen() {
   const meQuery = useQuery(meQueryOptions());
   const me = meQuery.data;
   // The gate's onboarding tier guarantees a snapshot by the time this tab renders (profiles[0] is
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
         }>
         <View className="flex-row items-start justify-between gap-3">
           <View>
-            <Text className="text-2xl font-semibold text-black">Settings</Text>
+            <Text className="text-2xl font-semibold text-black">Profile</Text>
             <Text className="text-sm text-zinc-500">Your account and plan</Text>
           </View>
           <Pressable

@@ -8,7 +8,7 @@ import { LabeledInput } from '@/components/labeled-input';
  * web's <input type="date"> sends (a calendar picker would mean a new native module — a dev-client
  * rebuild). Emits the assembled string when all three fields have content, '' otherwise; calendar
  * validity (a real date, not future, within 110 years) is the caller's check via `isValidBirthday`.
- * Shared by the onboarding birthday step and the Settings birthday sheet.
+ * Shared by the onboarding birthday step and the Profile birthday sheet.
  */
 export function BirthdayFields({
   value,
