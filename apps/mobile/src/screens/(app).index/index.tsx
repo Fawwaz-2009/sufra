@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as ImagePicker from 'expo-image-picker';
+import type * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import {
@@ -29,11 +29,13 @@ import {
   weekStart,
 } from '@/lib/date';
 import { prepareMealPhoto } from '@/lib/meal-photo';
+import { pickMealPhotoAsset } from '@/lib/photo-source';
 import { snapshotFor } from '@sufra-web/worker/views/derive.ts';
 import { MealCard } from '@/components/meal-card';
 
 import { DayHeader } from './components/day-header';
 import { DayStrip } from './components/day-strip';
+import { DescribeSheet } from './components/describe-sheet';
 import { SavedMealsSheet } from './components/saved-meals-sheet';
 import { SummaryPanel, type RingMode } from './components/summary-panel';
 import { buildSummary } from './helpers';
@@ -44,6 +46,7 @@ export default function TodayScreen() {
   // Selected day is screen state, not URL state — there is no URL on native.
   const [selectedDay, setSelectedDay] = useState<Date>(() => todayLocal());
   const [savedSheetOpen, setSavedSheetOpen] = useState(false);
+  const [describeOpen, setDescribeOpen] = useState(false);
 
   const today = todayLocal();
   const ws = weekStart(selectedDay);
@@ -105,41 +108,10 @@ export default function TodayScreen() {
   const isOnboarded = (meQuery.data?.profiles.length ?? 0) > 0;
   const refreshing = meQuery.isRefetching || mealsQuery.isRefetching;
 
-  async function takePhoto() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Camera access required', 'Allow camera access to log a Meal from a photo.');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 1,
-      allowsEditing: false,
-    });
-    uploadPickedAsset(result);
-  }
-
-  async function pickFromLibrary() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Photo access required', 'Allow photo access to choose a Meal photo.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 1,
-      allowsEditing: false,
-    });
-    uploadPickedAsset(result);
-  }
-
-  function uploadPickedAsset(result: ImagePicker.ImagePickerResult) {
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    if (!asset) return;
-    uploadMutation.mutate(asset);
+  // The photo door — ONE button, the native action sheet folds the library into it (ADR 0019 entry).
+  async function logFromPhoto() {
+    const asset = await pickMealPhotoAsset();
+    if (asset) uploadMutation.mutate(asset);
   }
 
   return (
@@ -174,28 +146,36 @@ export default function TodayScreen() {
           <SummaryPanel ringMode={ringMode} setRingMode={setRingMode} summary={summary} />
         ) : null}
 
-        {/* Primary CTA */}
+        {/* The three creation doors (ADR 0019), all visible — photo is the hot path, the action sheet
+            folds the library into it; Describe and From saved are peer buttons, not buried links. */}
         <Pressable
           disabled={uploadMutation.isPending}
-          onPress={takePhoto}
+          onPress={() => void logFromPhoto()}
           className="h-12 w-full items-center justify-center rounded-[9999px] bg-flame">
           <Text className="text-[17px] font-semibold text-white">
-            {uploadMutation.isPending ? 'Estimating...' : 'Take photo'}
+            {uploadMutation.isPending ? 'Estimating...' : 'Photo'}
           </Text>
         </Pressable>
-
-        {/* Secondary actions */}
-        <View className="flex-row justify-center gap-8">
+        <View className="flex-row gap-3">
           <Pressable
             disabled={uploadMutation.isPending}
-            onPress={pickFromLibrary}>
-            <Text className="text-base font-medium text-flame-deep">Choose from library</Text>
+            onPress={() => setDescribeOpen(true)}
+            className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-surface">
+            <Text className="text-base font-medium text-flame-deep">Describe</Text>
           </Pressable>
-          <Pressable onPress={() => setSavedSheetOpen(true)}>
+          <Pressable
+            disabled={uploadMutation.isPending}
+            onPress={() => setSavedSheetOpen(true)}
+            className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-surface">
             <Text className="text-base font-medium text-flame-deep">From saved</Text>
           </Pressable>
         </View>
 
+        <DescribeSheet
+          visible={describeOpen}
+          onClose={() => setDescribeOpen(false)}
+          capturedAt={isViewingToday ? undefined : localDateForCapture(selectedDay)}
+        />
         <SavedMealsSheet
           visible={savedSheetOpen}
           onClose={() => setSavedSheetOpen(false)}
@@ -225,7 +205,7 @@ export default function TodayScreen() {
             </Text>
             {isViewingToday ? (
               <Text className="text-center text-sm text-ink-soft">
-                Tap Take photo to photograph your first one.
+                Log your first one — snap a photo or describe it.
               </Text>
             ) : null}
           </View>

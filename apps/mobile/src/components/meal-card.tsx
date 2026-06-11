@@ -25,11 +25,24 @@ export function MealCard({
     <Pressable
       onPress={handlePress}
       className="w-full overflow-hidden rounded-2xl border border-line bg-white">
-      <Image
-        source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
-        style={{ width: '100%', height: 190, backgroundColor: Palette.track }}
-        contentFit="cover"
-      />
+      {meal.hasPhoto === false ? (
+        // A text-created Meal (ADR 0019): the branded placeholder keeps the list's media rhythm.
+        // `hasPhoto` ABSENT means an old backend — every pre-0019 meal has a photo, so render it.
+        <View
+          className="w-full items-center justify-center"
+          style={{ height: 190, backgroundColor: Palette.track }}>
+          <Image
+            source={require('@/assets/images/sufra-circle.png')}
+            style={{ width: 56, height: 56, opacity: 0.35 }}
+          />
+        </View>
+      ) : (
+        <Image
+          source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
+          style={{ width: '100%', height: 190, backgroundColor: Palette.track }}
+          contentFit="cover"
+        />
+      )}
 
       <View className="px-3 pt-2 pb-3">
         {/* Name + kcal row */}

@@ -13,9 +13,10 @@ Three things anchor this codebase. Read the relevant one **before** you act:
   **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
 - **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-`docs/adr/0001–0018` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
+`docs/adr/0001–0019` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
 0017 reifies the Estimate as an append-only child + settles the third-party-API convention; 0018 makes the
-native client backend-agnostic — the server origin is user state, bring-your-own backend);
+native client backend-agnostic — the server origin is user state, bring-your-own backend; 0019 adds the
+userText creation door — the description rides the Estimate, the Meal keeps one shape);
 `docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
@@ -140,22 +141,30 @@ middleware), built as two separate `toWebHandler`s in `runtime.ts` and dispatche
 - **Password link (ADR 0016)** is an app-domain aggregate (`domain/password-link.ts`: issue / show / redeem),
   NOT part of the (delivery-free) Better Auth instance — the Host hands the link over out of band.
 
-## Meals lifecycle — synchronous; Estimate as an append-only child (ADR 0017)
+## Meals lifecycle — synchronous; Estimate as an append-only child (ADR 0017); two creation doors (ADR 0019)
 
-No background analysis, no async `pending`. Client POSTs a base64 photo → `Meal.create` validates the image,
-inserts the meal row + attaches the photo, THEN appends the first **Estimate** (a child row): `ok`, or
-`failed` (no analysis, an error code) the Member retries against the stored photo. So the meal persists even
-when the AI fails (the retry state) — create is synchronous (the spinner is the UX) but NOT atomic-gated, and
-always returns 201 + the meal (the failure is `latestStatus`/`latestErrorCode` in the view, not an HTTP
-error). A Meal has MANY Estimates over time; the **current** one is the latest `ok`. Totals are
+No background analysis, no async `pending`. Client POSTs a base64 photo **and/or a `userText` description
+(at least one — ADR 0019)** → `Meal.create` validates the image when present, inserts the meal row +
+attaches the photo, THEN appends the first **Estimate** (a child row): `ok`, or `failed` (no analysis, an
+error code) the Member retries against the stored source. So the meal persists even when the AI fails (the
+retry state) — create is synchronous (the spinner is the UX) but NOT atomic-gated, and always returns 201 +
+the meal (the failure is `latestStatus`/`latestErrorCode` in the view, not an HTTP error). **The userText
+rides the first Estimate row's `refinement_text`** (CONTEXT "User text" — no `description` column, the Meal
+keeps one shape); a photo-less re-run is text-only against the latest attempt's text (a bare retry re-runs
+the description). A Meal has MANY Estimates over time; the **current** one is the latest `ok`. Totals are
 **override-first, computed at read** from the current Estimate (`override.field ?? sum(foods[i].field)`), never
-stored (ADR 0003). Override (PUT/DELETE) and the Estimate sub-resource (`POST /meals/:id/estimates` — text ⇒
-Refinement, none ⇒ retry; appends, never replaces) are distinct reified sub-resources (ADR 0012/0017).
+stored (ADR 0003). Override (PUT/DELETE), the Estimate sub-resource (`POST /meals/:id/estimates` — text ⇒
+Refinement, none ⇒ retry; appends, never replaces), and the photo (`POST /meals/:id/photo` — add/replace,
+NEVER re-estimates) are distinct reified sub-resources (ADR 0012/0017/0019). Views carry an additive
+`hasPhoto?` (absent = old backend = true); `photoUrl` stays non-nullable (an old client's list decode must
+survive text Meals).
 
 ## Project-specific decisions worth knowing (extend / deviate from the skill)
 
-- **One English system prompt** in the prod path (`getSystemPrompt("en")` in `estimatable/vision.ts`); locale
-  plumbing exists but is exercised by evals only. `callVisionModel` is shared by prod + evals (no drift).
+- **One source-aware English system prompt** in the prod path (`getSystemPrompt(locale, source)` in
+  `estimatable/vision.ts` — `source: "photo" | "text"` swaps only the framing + notAnalyzable wording, the
+  photo assembly byte-identical to the eval-pinned prompt); locale plumbing exists but is exercised by evals
+  only. `callVisionModel` is shared by prod + evals (no drift).
 - **`Analysis` is ONE Effect Schema** (`models/estimate.ts`, browser-safe — a DETAIL of the Estimate, not a
   peer concept) driving three consumers: `estimatable/vision.ts` derives its provider JSON Schema from it AND
   decodes output back through it; the `Estimate` row stores it as a JSON-TEXT column; the views derive Totals.
@@ -268,12 +277,18 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   `frontend-expo.md`. The Connect tier implements ADR 0018 (origin in SecureStore, probed via the
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Profile is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
-  was reverted after failing the iPad test — see the skill's decision record). Nothing is web-only
-  anymore — the native client has full feature parity.
+  was reverted after failing the iPad test — see the skill's decision record). Nothing is web-only.
+- **Meal-creation entry redesign (ADR 0019) — backend + mobile DONE; web UI catch-up PENDING.** Today
+  has three visible doors: Photo (native action sheet folds the library in) · Describe (textarea sheet →
+  `POST /meals { userText }`) · From saved. Photo-less Meals render the basket placeholder (list) / the
+  Add-photo target (detail); photo Meals get a corner Edit chip — both `POST /meals/:id/photo`, never
+  re-estimating. Against an old backend the Describe path maps the 400 to "update your deployment" (no
+  capability probe). **The web Today still has the old two-button entry and no Describe — the
+  nothing-is-mobile-only parity invariant is deliberately broken until the web catches up.**
 
 ## Pointers
 
 - House style: `~/.claude/skills/fawwaz-coding-style/` · Glossary: `CONTEXT.md` · Product: `PRD.md`
-- ADRs: `docs/adr/0001–0018` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
+- ADRs: `docs/adr/0001–0019` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
 - Better Auth: https://www.better-auth.com/docs · TanStack Router: https://tanstack.com/router/latest
 - Cloudflare Vite plugin: https://developers.cloudflare.com/workers/vite-plugin/

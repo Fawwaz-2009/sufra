@@ -83,7 +83,7 @@ export default function MealDetailScreen() {
           <View className="h-1 w-10 rounded-[9999px] bg-track" />
         </View>
 
-        <MealPhoto photoUrl={meal.photoUrl} />
+        <MealPhoto meal={meal} onChanged={onSaved} />
 
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-start justify-between gap-3">
@@ -95,6 +95,12 @@ export default function MealDetailScreen() {
             </View>
             <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
           </View>
+
+          {/* A text-created Meal shows what the Member wrote — the description IS its source material
+              (CONTEXT "User text"); the Improve sheet prefills the same text. */}
+          {meal.hasPhoto === false && meal.lastRefinementText ? (
+            <Text className="text-sm text-ink-soft">“{meal.lastRefinementText}”</Text>
+          ) : null}
 
           {meal.aiAnalysis ? (
             <>
