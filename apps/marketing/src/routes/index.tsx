@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -7,360 +8,240 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
+const CLONE_COMMAND =
+  'git clone https://github.com/Fawwaz-2009/sufra && cd sufra && pnpm install && pnpm bootstrap'
+
+const AGENT_PROMPT =
+  'Deploy Sufra (https://github.com/Fawwaz-2009/sufra) to my Cloudflare account: clone it, run pnpm install and pnpm bootstrap, then walk me through the Setup wizard and adding my household as Members.'
+
 function Home() {
   return (
     <main className="page">
       <header className="gutter">
         <nav className="nav reveal" style={{ ['--i' as never]: 0 }}>
           <a href="/" className="nav__mark" aria-label="Sufra home">
-            <img
-              src="/sufra-mark.png"
-              alt=""
-              className="nav__glyph"
-              width={32}
-              height={32}
-              aria-hidden="true"
-            />
+            <FlameGlyph />
             <span>Sufra</span>
           </a>
           <div className="nav__links">
-            <a href="#deploy" className="nav__cta nav__cta--primary">
-              Get started ↓
-            </a>
+            <Link to="/how-it-works" className="nav__cta">
+              How it works
+            </Link>
             <a
               href="https://github.com/Fawwaz-2009/sufra"
               className="nav__cta"
               rel="noopener"
             >
-              Source ↗
+              GitHub ↗
+            </a>
+            <a href="#deploy" className="nav__cta nav__cta--primary">
+              Deploy
             </a>
           </div>
         </nav>
       </header>
 
-      <article className="article gutter">
-        <section className="hero reveal" style={{ ['--i' as never]: 1 }}>
-          <p className="hero__lede">
-            A sufra is a table set for the people you love.{' '}
-            <em>Sufra the app</em> is a photo-first calorie tracker for the
-            people at yours. Open-source, deployed to your own Cloudflare
-            account, never phoning home.
-          </p>
-          <div className="hero__meta">
-            <span>v0.1 · MIT · dogfooding</span>
-          </div>
-        </section>
-
-        <section className="reveal" style={{ ['--i' as never]: 2 }}>
-          <h2 className="h-section h-section--first">What it does.</h2>
-          <p>
-            You photograph a meal. The model recognises the dish, names it{' '}
-            <em>kabsa, fattoush, mansaf</em> rather than{' '}
-            <em>"rice with chicken"</em>, and returns a calorie estimate broken
-            down per food, with the things it's unsure about written out as
-            questions you can answer.
-          </p>
-          <p>
-            You can override the totals directly, or refine the estimate by
-            telling the model what it missed (<em>the chicken was closer to
-            200g, no olive oil</em>). Days bucket on your phone's current
-            timezone, so when you travel, "today" travels with you. Weights
-            graph against your body, not someone else's average.
-          </p>
-        </section>
-
-        <section className="reveal screens-section" style={{ ['--i' as never]: 3 }}>
-          <h2 className="h-section">See it.</h2>
-          <p>
-            <em>Three things, in the order you'll do them.</em>
-          </p>
-          <div className="screens">
-            <figure className="screen">
-              <div className="screen__frame">
-                <img
-                  src="/screens/day.png"
-                  alt="Day view with calorie ring showing 1553 kcal remaining, three macro bars, and two logged meals."
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="screen__caption">
-                Today at a glance. What's left, what's eaten.
-              </figcaption>
-            </figure>
-            <figure className="screen">
-              <div className="screen__frame">
-                <img
-                  src="/screens/meal.png"
-                  alt="Meal detail page for chocolate gelato. Large photo, override fields for calories and macros."
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="screen__caption">
-                Override anything. The AI's number stays as a placeholder.
-              </figcaption>
-            </figure>
-            <figure className="screen">
-              <div className="screen__frame">
-                <img
-                  src="/screens/improve.png"
-                  alt="Improve this estimate bottom sheet. The AI's specific uncertainties listed as questions, plus a freeform textarea."
-                  loading="lazy"
-                />
-              </div>
-              <figcaption className="screen__caption">
-                When the AI's unsure, it tells you. Answer what you know.
-              </figcaption>
-            </figure>
-          </div>
-        </section>
-
-        <section className="reveal" style={{ ['--i' as never]: 4 }}>
-          <h2 className="h-section">Who it's for.</h2>
-          <p>
-            Two people, on purpose. The <strong>Host</strong> is you. You have
-            a Cloudflare account and an evening. You deploy once, hold the API
-            key, and provision accounts for the people at your table. You are
-            the support team. You eat too.
-          </p>
-          <p>
-            The <strong>Members</strong> are your household. They get a URL and
-            a username. They never enter an API key, never see an admin panel.
-            They sign in, take a photo, see a number, and put their phone down.
-            Their mental model is <em>"the food app"</em>, not <em>"the LLM
-            wrapper my partner deployed"</em>.
-          </p>
-        </section>
-
-        <section className="reveal" style={{ ['--i' as never]: 5 }}>
-          <h2 className="h-section">How it works.</h2>
-          <ol className="steps">
-            <li>
-              <span className="steps__num">1.0</span>
-              <div>
-                <h3 className="steps__title">Photograph.</h3>
-                <p className="steps__body">
-                  Default action on opening the PWA is the camera. One
-                  prominent shutter, one secondary "pick from library". No
-                  hunting for "log meal".
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="steps__num">2.0</span>
-              <div>
-                <h3 className="steps__title">Estimate.</h3>
-                <p className="steps__body">
-                  The Worker calls your OpenRouter key with the photo. The
-                  prompt is tuned for Middle Eastern, Levantine, and Gulf
-                  cuisine alongside the global default. Per-food breakdown
-                  arrives in ~3–5s. Photo is only written to R2 after the
-                  model succeeds.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="steps__num">3.0</span>
-              <div>
-                <h3 className="steps__title">Clarify, if needed.</h3>
-                <p className="steps__body">
-                  The estimate carries a small "Improve" affordance, coloured
-                  by the model's own confidence. Tap it and the model's
-                  uncertainties become questions: <em>Closer to 1 cup or
-                  1.5?</em> Answer the ones you know. The estimate re-runs.
-                </p>
-              </div>
-            </li>
-            <li>
-              <span className="steps__num">4.0</span>
-              <div>
-                <h3 className="steps__title">Log, or override.</h3>
-                <p className="steps__body">
-                  Accept the number, or type your own (the AI value stays as
-                  placeholder so you can revert). Bookmark a meal to re-log it
-                  later without a photo. Move on to the rest of your day.
-                </p>
-              </div>
-            </li>
-          </ol>
-          <p className="steps__more">
-            <Link to="/how-it-works" className="link-cta">
-              Read the methodology{' '}
-              <span className="link-cta__arrow">→</span>
-            </Link>
-          </p>
-        </section>
-
-        <section className="reveal" style={{ ['--i' as never]: 6 }}>
-          <h2 className="h-section">The stack.</h2>
-          <p style={{ marginBottom: 'var(--space-md)' }}>
-            One Worker, your data, no vendors with a seat at your table.
-          </p>
-          <table className="spec">
-            <tbody>
-              <tr>
-                <th scope="row">Frontend</th>
-                <td>
-                  Vite + React 19 + TanStack Router + Tailwind v4
-                  <span className="muted">
-                    PWA. Installable from the browser, no app store.
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Backend</th>
-                <td>
-                  Hono on Cloudflare Workers
-                  <span className="muted">
-                    Single Worker serves the SPA and <code>/api/*</code>
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Database</th>
-                <td>
-                  Cloudflare D1 (SQLite) via Drizzle
-                  <span className="muted">
-                    Your D1, your rows. Migrations checked in.
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Storage</th>
-                <td>
-                  Cloudflare R2
-                  <span className="muted">
-                    Meal photos, accessed via authenticated Worker routes.
-                    Never a public bucket.
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Inference</th>
-                <td>
-                  OpenRouter (your key)
-                  <span className="muted">
-                    Pick any vision model OpenRouter routes to. You pay for
-                    what your household uses, not a per-seat subscription.
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Auth</th>
-                <td>
-                  better-auth, scrypt, no email
-                  <span className="muted">
-                    Host-provisioned accounts via single-use password links.
-                    No magic-link emails, no SMTP server to run.
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">License</th>
-                <td>
-                  MIT
-                  <span className="muted">
-                    Fork it. Run it. Modify it. Charge your relatives nothing.
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section
-          id="deploy"
-          className="reveal"
-          style={{ ['--i' as never]: 7 }}
-        >
-          <h2 className="h-section">Deploy it.</h2>
-          <p>
-            Two things you'll need: a Cloudflare account, and an OpenRouter
-            API key. That's the whole list.
-          </p>
-
-          <p
-            className="aside"
-            style={{ marginTop: 'var(--space-xl)' }}
-          >
-            One command walks you through the rest. It provisions D1 and R2 in
-            your account, generates a session secret, applies migrations,
-            deploys. About 90 seconds.
-          </p>
-
-          <div
-            className="code"
-            style={{ marginBlock: 'var(--space-lg) var(--space-md)' }}
-          >
-            <span className="code__label">Terminal</span>
-            <pre>
-              <code>
-                <span className="prompt">$</span>git clone
-                https://github.com/Fawwaz-2009/sufra && cd sufra{`\n`}
-                <span className="prompt">$</span>pnpm install{`\n`}
-                <span className="prompt">$</span>pnpm bootstrap
-              </code>
-            </pre>
+      {/* Hero — the product is the artwork */}
+      <section className="band gutter" style={{ paddingBlockEnd: 0 }}>
+        <div className="band__inner">
+          <div className="hero reveal" style={{ ['--i' as never]: 1 }}>
+            <h1 className="hero__lede">
+              Photo in. <em>Calories out.</em>
+            </h1>
+            <p className="hero__sub">
+              Sufra is an open-source, photo-first calorie tracker for your
+              household. You deploy it once on your own Cloudflare account.
+              No subscription, no telemetry, no one else's servers.
+            </p>
+            <div className="cta-row">
+              <a href="#deploy" className="btn btn--primary">
+                Deploy it ↓
+              </a>
+              <a
+                href="https://github.com/Fawwaz-2009/sufra"
+                className="btn btn--ghost"
+                rel="noopener"
+              >
+                Source on GitHub ↗
+              </a>
+            </div>
+            <div className="hero__meta">
+              <span>v0.1 · MIT · self-hosted</span>
+            </div>
           </div>
 
-          <p>
-            Open the deployed URL. The Setup wizard runs once. Name your
-            Sufra, pick a username and password. From there:{' '}
-            <em>admin → add Member → copy the password link → hand it to your
-            household.</em> WhatsApp, iMessage, a sticky note on the fridge.
-            No email is ever sent because there is no email server to send it.
-          </p>
-        </section>
+          <div className="phones reveal" style={{ ['--i' as never]: 2 }}>
+            <PhoneToday />
+            <PhoneMeal />
+          </div>
+        </div>
+      </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 8 }}>
-          <h2 className="h-section">What isn't here.</h2>
-          <p style={{ marginBottom: 'var(--space-md)' }}>
-            Negative space matters. v1 ships without these on purpose.
-          </p>
-          <ul className="absent">
-            <li>
-              Social features. No streaks visible to anyone but the Member
-              themselves.
-            </li>
-            <li>Telemetry, analytics, anything that phones home.</li>
-            <li>
-              Native iOS or Android apps. PWA only. Add to Home Screen and
-              live there.
-            </li>
-            <li>Email infrastructure. Notifications. Magic links.</li>
-            <li>
-              Ads, surveillance, anyone monetising what your household eats.
-            </li>
-          </ul>
-        </section>
+      {/* Feature 1 — cuisine-first recognition */}
+      <section className="band band--surface gutter">
+        <div className="band__inner feature">
+          <div>
+            <p className="feature__kicker">Recognition</p>
+            <h2 className="feature__title">It knows kabsa.</h2>
+            <p className="feature__body">
+              One photo and the model names the dish - <em>kabsa, fattoush,
+              mansaf</em> - not "rice with chicken". Calories arrive broken
+              down per food, tuned for Middle Eastern tables alongside the
+              global default.
+            </p>
+          </div>
+          <div className="feature__visual">
+            <MealBreakdownMock />
+          </div>
+        </div>
+      </section>
 
-        <section className="reveal" style={{ ['--i' as never]: 9 }}>
-          <h2 className="h-section">About the name.</h2>
-          <p>
-            <em>Sufra (سفرة)</em> is the Arabic word for the dining table, but
-            it means more than the furniture. A sufra is the spread of food
-            laid out, the act of gathering, the hospitality of feeding the
-            people you love.
+      {/* Feature 2 — clarification */}
+      <section className="band gutter">
+        <div className="band__inner feature feature--flip">
+          <div>
+            <p className="feature__kicker">Honesty</p>
+            <h2 className="feature__title">When it's not sure, it asks.</h2>
+            <p className="feature__body">
+              Uncertainty becomes questions, not silent guesses. Answer the
+              ones you know and the estimate re-runs with your answers folded
+              in.
+            </p>
+          </div>
+          <div className="feature__visual">
+            <ImproveMock />
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 3 — override-first */}
+      <section className="band band--surface gutter">
+        <div className="band__inner feature">
+          <div>
+            <p className="feature__kicker">Control</p>
+            <h2 className="feature__title">Your number always wins.</h2>
+            <p className="feature__body">
+              Override any value. The AI's estimate stays as the placeholder
+              underneath, so you can always put it back.
+            </p>
+          </div>
+          <div className="feature__visual">
+            <OverrideMock />
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 4 — the household */}
+      <section className="band gutter">
+        <div className="band__inner feature feature--flip">
+          <div>
+            <p className="feature__kicker">Household</p>
+            <h2 className="feature__title">One Worker. The whole family.</h2>
+            <p className="feature__body">
+              You hold the API key and hand out single-use password links -
+              WhatsApp, iMessage, a sticky note on the fridge. No email
+              server exists, so none is ever sent. Your household sees{' '}
+              <em>"the food app"</em>, not a deployment.
+            </p>
+          </div>
+          <div className="feature__visual">
+            <HouseholdMock />
+          </div>
+        </div>
+      </section>
+
+      {/* Costs */}
+      <section className="band band--surface gutter">
+        <div className="band__inner costs">
+          <h2 className="costs__title">What it runs on.</h2>
+          <p className="costs__sub">
+            The self-hoster's first question, answered before the ask.
           </p>
-          <p>
-            The app is named after it because it exists to help you stay{' '}
-            <em>at</em> the sufra: to keep showing up at the table, while
-            staying aware of what you're eating. Middle Eastern cuisine is a
-            first-class citizen in the food recognition, not an afterthought.
-            You don't need to be Arab to have a sufra. Every household has a
-            table.
+          <div className="costs__grid">
+            <div className="cost">
+              <p className="cost__head">Cloudflare</p>
+              <p className="cost__value">Free tier</p>
+              <p className="cost__note">
+                One Worker, D1, R2. A household's meals and photos fit inside
+                the free allowances - no paid plan to start.
+              </p>
+            </div>
+            <div className="cost">
+              <p className="cost__head">Inference</p>
+              <p className="cost__value">Per photo, your key</p>
+              <p className="cost__note">
+                One vision call per estimate, on whatever OpenRouter model
+                you pick. The admin view shows the spend per month, per
+                Member.
+              </p>
+            </div>
+            <div className="cost">
+              <p className="cost__head">Your time</p>
+              <p className="cost__value">One evening, once</p>
+              <p className="cost__note">
+                Deploy, run the Setup wizard, hand out links. Updates are a
+                git pull and a redeploy.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Deploy — the dark action band */}
+      <section id="deploy" className="band band--dark gutter">
+        <div className="band__inner">
+          <h2 className="deploy__title">
+            One evening. <em>Once.</em>
+          </h2>
+          <p className="deploy__sub">
+            Two things you'll need: a Cloudflare account and an OpenRouter
+            API key. One command provisions D1 and R2, generates a session
+            secret, applies migrations, deploys. About 90 seconds.
           </p>
-        </section>
-      </article>
+          <div className="deploy__grid">
+            <div className="code">
+              <span className="code__label">Terminal</span>
+              <CopyButton text={CLONE_COMMAND} />
+              <pre>
+                <code>
+                  <span className="prompt">$</span>git clone
+                  https://github.com/Fawwaz-2009/sufra && cd sufra{`\n`}
+                  <span className="prompt">$</span>pnpm install{`\n`}
+                  <span className="prompt">$</span>pnpm bootstrap
+                </code>
+              </pre>
+            </div>
+            <div className="code">
+              <span className="code__label">Or hand it to your coding agent</span>
+              <CopyButton text={AGENT_PROMPT} />
+              <pre>
+                <code className="code__prose">{AGENT_PROMPT}</code>
+              </pre>
+            </div>
+          </div>
+          <p className="deploy__after">
+            Open the deployed URL and the Setup wizard runs once. From there:{' '}
+            <em>admin → add Member → copy the password link → hand it to
+            your household.</em>
+          </p>
+        </div>
+      </section>
+
+      {/* The name */}
+      <section className="band gutter">
+        <p className="nameline">
+          <strong>Sufra (سفرة)</strong> is the spread a family gathers
+          around - the food, the act, the hospitality. You don't need to be
+          Arab to have one. Every household has a table.
+        </p>
+      </section>
 
       <footer className="foot gutter">
         <div className="foot__inner">
           <p className="foot__line">
-            Sufra · a photo-first calorie tracker for households. Built on
-            Cloudflare Workers, D1, and R2. Inference via OpenRouter, host's
-            key, host's bill. MIT licensed. No telemetry. No email. v0.1, in
-            dogfood. Made by{' '}
+            Made by{' '}
             <a
-              href="https://fawwaz.dev/sufra"
+              href="https://fawwaz.dev/#sufra"
               className="foot__creator"
               rel="noopener"
             >
@@ -377,6 +258,10 @@ function Home() {
               github.com/Fawwaz-2009/sufra
             </a>
             <span className="dot">·</span>
+            <Link to="/how-it-works" className="foot__github">
+              methodology
+            </Link>
+            <span className="dot">·</span>
             <span>MIT</span>
             <span className="dot">·</span>
             <span>2026</span>
@@ -384,5 +269,268 @@ function Home() {
         </div>
       </footer>
     </main>
+  )
+}
+
+/** The flat ember mark — flame in a rounded square (the photoreal basket icon stays on the app). */
+function FlameGlyph() {
+  return (
+    <svg className="nav__glyph" viewBox="0 0 30 30" aria-hidden="true">
+      <rect width="30" height="30" rx="8" fill="#E45527" />
+      <path
+        d="M15 6.2c2 2.8 5 5 5 8.4 0 3.2-2.2 5.6-5 5.6s-5-2.4-5-5.6c0-1.6.6-2.9 1.6-4.2.3 1.1 1 1.9 1.9 2.3-.5-2.4.2-4.6 1.5-6.5z"
+        fill="#fff"
+      />
+    </svg>
+  )
+}
+
+/** The Daylight Today screen, recreated — the ring + a photo meal card. */
+function PhoneToday() {
+  const r = 64
+  const c = 2 * Math.PI * r
+  return (
+    <div className="phone phone--left" aria-hidden="true">
+      <div className="phone__screen">
+        <div>
+          <div className="mock-title">Today</div>
+        </div>
+        <div className="mring">
+          <svg width={150} height={150} viewBox="0 0 150 150">
+            <defs>
+              <linearGradient id="ember" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#E45527" />
+                <stop offset="1" stopColor="#F0883F" />
+              </linearGradient>
+            </defs>
+            <circle cx="75" cy="75" r={r} stroke="#EBE7E1" strokeWidth="12" fill="none" />
+            <circle
+              cx="75"
+              cy="75"
+              r={r}
+              stroke="url(#ember)"
+              strokeWidth="12"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray={`${c * 0.62} ${c}`}
+              transform="rotate(-90 75 75)"
+            />
+          </svg>
+          <div className="mring__center">
+            <div className="mring__value">1 553</div>
+            <div className="mring__label">left</div>
+          </div>
+        </div>
+        <div className="mmacros">
+          <div className="mmacro">
+            <span className="mock-caps">Protein</span>
+            <span className="mmacro__val">82 / 120g</span>
+            <div className="mmacro__bar">
+              <div className="mmacro__fill" style={{ width: '68%', background: '#45929A' }} />
+            </div>
+          </div>
+          <div className="mmacro">
+            <span className="mock-caps">Carbs</span>
+            <span className="mmacro__val">140 / 240g</span>
+            <div className="mmacro__bar">
+              <div className="mmacro__fill" style={{ width: '58%', background: '#D99A36' }} />
+            </div>
+          </div>
+          <div className="mmacro">
+            <span className="mock-caps">Fat</span>
+            <span className="mmacro__val">51 / 64g</span>
+            <div className="mmacro__bar">
+              <div className="mmacro__fill" style={{ width: '80%', background: '#E45527' }} />
+            </div>
+          </div>
+        </div>
+        <div className="mpill">Take photo</div>
+        <div className="mcard">
+          <div className="mcard__photo" />
+          <div className="mcard__bar">
+            <div className="mcard__row">
+              <span className="mcard__name">Kabsa</span>
+              <span className="mcard__kcal">
+                ~620 <small>kcal</small>
+              </span>
+            </div>
+            <div className="mcard__macros">P 34g · C 78g · F 22g</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** The Daylight meal detail, recreated — big photo + per-food breakdown. */
+function PhoneMeal() {
+  return (
+    <div className="phone phone--right" aria-hidden="true">
+      <div className="phone__screen">
+        <div
+          className="mcard__photo mcard__photo--b"
+          style={{ height: 190, borderRadius: 22 }}
+        />
+        <div>
+          <div className="mock-title">Kabsa</div>
+          <div className="mcard__macros" style={{ marginTop: 4 }}>
+            Today, 1:40 PM
+          </div>
+        </div>
+        <div>
+          <div className="mfood">
+            <span className="mfood__name">Basmati rice</span>
+            <span className="mfood__qty">1.5 cups</span>
+            <span className="mfood__kcal">320</span>
+          </div>
+          <div className="mfood">
+            <span className="mfood__name">Chicken thigh</span>
+            <span className="mfood__qty">200g</span>
+            <span className="mfood__kcal">410</span>
+          </div>
+          <div className="mfood">
+            <span className="mfood__name">Toasted almonds</span>
+            <span className="mfood__qty">15g</span>
+            <span className="mfood__kcal">90</span>
+          </div>
+          <div className="mtotal">
+            <span className="mcard__name">Total</span>
+            <span className="mtotal__kcal">~820</span>
+          </div>
+        </div>
+        <div className="mpill">Improve this estimate</div>
+      </div>
+    </div>
+  )
+}
+
+function MealBreakdownMock() {
+  return (
+    <div className="mock-panel" aria-hidden="true">
+      <div className="mcard__photo" style={{ borderRadius: 14 }} />
+      <div>
+        <div className="mock-title" style={{ fontSize: 19 }}>
+          Kabsa
+        </div>
+      </div>
+      <div>
+        <div className="mfood">
+          <span className="mfood__name">Basmati rice</span>
+          <span className="mfood__qty">1.5 cups</span>
+          <span className="mfood__kcal">320</span>
+        </div>
+        <div className="mfood">
+          <span className="mfood__name">Chicken thigh</span>
+          <span className="mfood__qty">200g</span>
+          <span className="mfood__kcal">410</span>
+        </div>
+        <div className="mfood">
+          <span className="mfood__name">Toasted almonds</span>
+          <span className="mfood__qty">15g</span>
+          <span className="mfood__kcal">90</span>
+        </div>
+        <div className="mtotal">
+          <span className="mcard__name">Total</span>
+          <span className="mtotal__kcal">~820</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ImproveMock() {
+  return (
+    <div className="mock-panel" aria-hidden="true">
+      <span className="mock-caps">Improve this estimate</span>
+      <div className="mq">
+        <p className="mq__q">Was the rice closer to 1 cup or 1.5?</p>
+        <div className="mchips">
+          <span className="mchip">1 cup</span>
+          <span className="mchip mchip--on">1.5 cups</span>
+          <span className="mchip">Not sure</span>
+        </div>
+      </div>
+      <div className="mq">
+        <p className="mq__q">Any oil or ghee in the rice?</p>
+        <div className="mchips">
+          <span className="mchip mchip--on">A little</span>
+          <span className="mchip">A lot</span>
+          <span className="mchip">None</span>
+        </div>
+      </div>
+      <div className="mpill">Re-run the estimate</div>
+    </div>
+  )
+}
+
+function OverrideMock() {
+  return (
+    <div className="mock-panel" aria-hidden="true">
+      <span className="mock-caps">Override</span>
+      <div className="mfield">
+        <span className="mfield__label">Calories</span>
+        <div className="mfield__input">
+          <span className="mfield__typed">540</span>
+          <span className="mfield__ghost">AI said ~620</span>
+        </div>
+      </div>
+      <div className="mfield">
+        <span className="mfield__label">Protein</span>
+        <div className="mfield__input">
+          <span className="mfield__ghost">34g</span>
+        </div>
+      </div>
+      <div className="mcard__macros">
+        Clear the field and the AI's number is back.
+      </div>
+    </div>
+  )
+}
+
+function HouseholdMock() {
+  return (
+    <div className="mock-panel mhouse" aria-hidden="true">
+      <span className="mock-caps">Members</span>
+      <div className="mavatars">
+        <span className="mavatar" style={{ background: '#E45527' }}>
+          F
+        </span>
+        <span className="mavatar" style={{ background: '#45929A' }}>
+          N
+        </span>
+        <span className="mavatar" style={{ background: '#D99A36' }}>
+          S
+        </span>
+        <span className="mavatar" style={{ background: '#75706A' }}>
+          L
+        </span>
+      </div>
+      <span className="mock-caps">Password link, single use</span>
+      <span className="mlink">https://sufra.your.house/set-password#k7…</span>
+      <div className="mcard__macros">
+        Hand it over however your family already talks.
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Copy-to-clipboard for the deploy command and the agent prompt. Silent
+ * success: the label flips to "Copied" for two seconds, no toast.
+ */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      className="code__copy"
+      onClick={() => {
+        void navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }}
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
   )
 }
