@@ -160,7 +160,6 @@ function SessionGate() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={false}>
         <Stack.Screen name="connect" />
-        <Stack.Screen name="paywall" />
       </Stack.Protected>
       <Stack.Protected guard={!!session && isOnboarded}>
         <Stack.Screen name="(app)" />
@@ -169,6 +168,8 @@ function SessionGate() {
             detail). The Host-only gate is the Profile row + the server's uniform 404 scoping
             (ADR 0013); a member deep-linking here just sees empty queries 404. */}
         <Stack.Screen name="admin" />
+        {/* The early unlock, pushed from Profile's trial row (the screen's `trial` mode). */}
+        <Stack.Screen name="paywall" options={{ presentation: 'formSheet' }} />
       </Stack.Protected>
       <Stack.Protected guard={!!session && !isOnboarded}>
         <Stack.Screen name="onboarding" />

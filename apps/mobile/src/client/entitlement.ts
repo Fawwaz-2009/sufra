@@ -33,6 +33,9 @@ export type Entitlement =
 const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
 const gated = Platform.OS === 'ios' && !!apiKey;
 
+/** Whether this build enforces the unlock — surfaces (the Profile row) hide on bypassed builds. */
+export const unlockGated = gated;
+
 if (Platform.OS === 'ios' && !apiKey) {
   console.warn('EXPO_PUBLIC_REVENUECAT_IOS_KEY is unset — the unlock gate is BYPASSED in this build.');
 }
@@ -109,6 +112,13 @@ export async function purchaseUnlock(): Promise<void> {
   set(derive(customerInfo));
 }
 
-export async function restorePurchases(): Promise<void> {
-  set(derive(await Purchases.restorePurchases()));
+/** Returns the post-restore entitlement so the paywall can say "nothing to restore" honestly. */
+export async function restorePurchases(): Promise<Entitlement> {
+  const next = derive(await Purchases.restorePurchases());
+  set(next);
+  return next;
+}
+
+export function trialDaysLeft(endsAt: Date): number {
+  return Math.max(1, Math.ceil((endsAt.getTime() - Date.now()) / 86_400_000));
 }

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
 import { getAuthClient } from '@/client/auth-client';
+import { trialDaysLeft, unlockGated, useEntitlement } from '@/client/entitlement';
 import { queryClient } from '@/client/query-client';
 import { getServerUrl, setServerUrl } from '@/client/server';
 import { Row, SectionCard } from './section-card';
@@ -42,6 +43,33 @@ export function AccountSection({ username, isHost }: { username: string; isHost:
       <Row label="Server" value={getServerUrl() ?? ''} onPress={changeServer} labelClassName="text-flame" />
       {/* The row is UX only — the real Host gate is the server's uniform 404 scoping (ADR 0013). */}
       {isHost && <Row label="Admin" value="" onPress={() => router.push('/admin')} labelClassName="text-flame" />}
+      <UnlockRow />
     </SectionCard>
   );
+}
+
+/**
+ * The purchase state, VoiceInk-style ("N days left in trial" + a way to buy): during the trial the
+ * row pushes the paywall's early-unlock sheet; once purchased it's a quiet fact. Hidden on builds
+ * where the gate is bypassed (Android, missing key) — there's nothing to sell there.
+ */
+function UnlockRow() {
+  const router = useRouter();
+  const entitlement = useEntitlement();
+  if (!unlockGated) return null;
+
+  if (entitlement.kind === 'trial') {
+    const days = trialDaysLeft(entitlement.endsAt);
+    return (
+      <Row
+        label="Unlock Sufra"
+        value={`Trial · ${days} day${days === 1 ? '' : 's'} left`}
+        onPress={() => router.push('/paywall')}
+        labelClassName="text-flame"
+      />
+    );
+  }
+  if (entitlement.kind === 'unlocked') return <Row label="Sufra" value="Unlocked" />;
+  // 'loading' (a cold-start tick) — and the gate never lets 'trialAvailable'/'expired' reach here.
+  return null;
 }
