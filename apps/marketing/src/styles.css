@@ -247,6 +247,15 @@ pre {
   padding-block: clamp(3rem, 7vw, 5.5rem) 0;
 }
 
+.hero__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ember-deep);
+  margin-bottom: var(--space-md);
+}
+
 .hero__lede {
   font-family: var(--font-display);
   font-weight: 800;
@@ -280,6 +289,80 @@ pre {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-ink-3);
+}
+
+/* The dev row — a terminal one-liner + the native-client badge, under the CTAs */
+.hero__dev {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm) var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.hero__term {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink-2);
+  background: var(--color-surface);
+  border: var(--rule);
+  border-radius: 999px;
+  padding: 0.6em 1.1em;
+  max-width: 100%;
+}
+
+.hero__term code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero__term .prompt {
+  color: var(--color-ember);
+  user-select: none;
+}
+
+.hero__term .code__copy {
+  position: static;
+  color: var(--color-ink-2);
+  border-color: var(--color-track);
+  background: var(--color-paper);
+  flex-shrink: 0;
+}
+
+.hero__term .code__copy:hover {
+  color: var(--color-ember-deep);
+  border-color: var(--color-ember);
+}
+
+.badge-ios {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  background: var(--color-ink);
+  color: #fff;
+  border-radius: 12px;
+  padding: 7px 16px 8px;
+  line-height: 1.25;
+}
+
+.badge-ios__top {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b8b0a6;
+}
+
+.badge-ios__main {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .cta-row {

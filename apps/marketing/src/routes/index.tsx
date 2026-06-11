@@ -45,13 +45,14 @@ function Home() {
       <section className="band gutter" style={{ paddingBlockEnd: 0 }}>
         <div className="band__inner">
           <div className="hero reveal" style={{ ['--i' as never]: 1 }}>
+            <p className="hero__eyebrow">Open source · Self-hosted · v0.1</p>
             <h1 className="hero__lede">
               Photo in. <em>Calories out.</em>
             </h1>
             <p className="hero__sub">
-              Sufra is an open-source, photo-first calorie tracker for your
-              household. You deploy it once on your own Cloudflare account.
-              No subscription, no telemetry, no one else's servers.
+              A photo-first calorie tracker for your household, running on
+              your own Cloudflare account. No subscription, no telemetry, no
+              one else's servers.
             </p>
             <div className="cta-row">
               <a href="#deploy" className="btn btn--primary">
@@ -65,8 +66,21 @@ function Home() {
                 Source on GitHub ↗
               </a>
             </div>
-            <div className="hero__meta">
-              <span>v0.1 · MIT · self-hosted</span>
+            <div className="hero__dev">
+              <div className="hero__term">
+                <span className="prompt">$</span>
+                <code>git clone …/Fawwaz-2009/sufra && pnpm bootstrap</code>
+                <CopyButton text={CLONE_COMMAND} />
+              </div>
+              <div
+                className="badge-ios"
+                aria-label="Native iOS app coming to the App Store"
+              >
+                <span className="badge-ios__top">Native iOS app</span>
+                <span className="badge-ios__main">
+                  Coming to the App Store
+                </span>
+              </div>
             </div>
           </div>
 
