@@ -8,7 +8,6 @@
     "scheme": "sufra",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.fawwaz2009.sufra",
       "supportsTablet": true,
       "infoPlist": {
@@ -20,10 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#F6E8D5",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.fawwaz2009.sufra"
@@ -44,17 +41,22 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "backgroundColor": "#F6E8D5",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c492a4b0-b813-4c7e-8218-1ff58cc2af8f"
+      }
+    },
+    "owner": "fawwaz-2009"
   }
 }
