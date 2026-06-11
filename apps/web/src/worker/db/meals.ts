@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import * as Option from "effect/Option"
 import * as Schema from "effect/Schema"
-import { Meal } from "../models/meal.ts"
+import { Meal, Photo } from "../models/meal.ts"
 import { MealRow } from "../views/meal.ts"
 import { makeTable } from "./table.ts"
 import { type Command } from "./sql.ts"
@@ -18,7 +18,9 @@ import { type Command } from "./sql.ts"
  *
  * Every read JOINS the meal's Estimate log (ADR 0017): `cur` is the CURRENT Estimate (latest "ok") for
  * its `analysis`; `lat` is the latest ATTEMPT (any status) for the retry signal (`status`/`errorCode`) +
- * the last Refinement note. Reads decode into `MealRow` (the `views/meal.ts` shape the serializers map).
+ * the last Refinement note. The photo slot is LEFT-JOINED for its key (`photoKey` — null on a
+ * text-created Meal, ADR 0019), matched on the `Photo` slot consts so reader and writer agree by
+ * reference. Reads decode into `MealRow` (the `views/meal.ts` shape the serializers map).
  */
 const make = Effect.gen(function* () {
   const { sql, create, update, updateWhere, delete: del } = yield* makeTable(Meal, "meals")
@@ -33,9 +35,10 @@ const make = Effect.gen(function* () {
   }): Command<ReadonlyArray<MealRow>> => ({
     statement: Effect.sync(() => sql`
       SELECT m.id AS id, m.capturedAt AS capturedAt, m.override AS override, m.savedAt AS savedAt,
-             cur.analysis AS currentAnalysis,
+             a.key AS photoKey, cur.analysis AS currentAnalysis,
              lat.refinementText AS lastRefinementText, lat.status AS latestStatus, lat.errorCode AS latestErrorCode
       FROM meals m
+      LEFT JOIN attachments a ON a.recordType = ${Photo.recordType} AND a.recordId = m.id AND a.name = ${Photo.name}
       LEFT JOIN estimates cur ON cur.id =
         (SELECT id FROM estimates WHERE mealId = m.id AND status = 'ok' ORDER BY createdAt DESC LIMIT 1)
       LEFT JOIN estimates lat ON lat.id =
@@ -49,9 +52,10 @@ const make = Effect.gen(function* () {
   const saved = (scope: { readonly userId: string }): Command<ReadonlyArray<MealRow>> => ({
     statement: Effect.sync(() => sql`
       SELECT m.id AS id, m.capturedAt AS capturedAt, m.override AS override, m.savedAt AS savedAt,
-             cur.analysis AS currentAnalysis,
+             a.key AS photoKey, cur.analysis AS currentAnalysis,
              lat.refinementText AS lastRefinementText, lat.status AS latestStatus, lat.errorCode AS latestErrorCode
       FROM meals m
+      LEFT JOIN attachments a ON a.recordType = ${Photo.recordType} AND a.recordId = m.id AND a.name = ${Photo.name}
       LEFT JOIN estimates cur ON cur.id =
         (SELECT id FROM estimates WHERE mealId = m.id AND status = 'ok' ORDER BY createdAt DESC LIMIT 1)
       LEFT JOIN estimates lat ON lat.id =
@@ -68,9 +72,10 @@ const make = Effect.gen(function* () {
   }): Command<Option.Option<MealRow>> => ({
     statement: Effect.sync(() => sql`
       SELECT m.id AS id, m.capturedAt AS capturedAt, m.override AS override, m.savedAt AS savedAt,
-             cur.analysis AS currentAnalysis,
+             a.key AS photoKey, cur.analysis AS currentAnalysis,
              lat.refinementText AS lastRefinementText, lat.status AS latestStatus, lat.errorCode AS latestErrorCode
       FROM meals m
+      LEFT JOIN attachments a ON a.recordType = ${Photo.recordType} AND a.recordId = m.id AND a.name = ${Photo.name}
       LEFT JOIN estimates cur ON cur.id =
         (SELECT id FROM estimates WHERE mealId = m.id AND status = 'ok' ORDER BY createdAt DESC LIMIT 1)
       LEFT JOIN estimates lat ON lat.id =

@@ -48,7 +48,7 @@ export const estimateErrorMessage = (code: string | null): string => {
     case "rate-limited":
       return "The vision service is busy right now. Try again in a moment."
     case "schema-parse-failed":
-      return "The AI couldn't read this meal. Try another photo or refine it."
+      return "The AI couldn't read this meal. Add more detail and try again."
     default:
       return "Couldn't reach the vision service. Try again."
   }
@@ -72,6 +72,9 @@ export const MealRow = Schema.Struct({
   capturedAt: Schema.String,
   override: Schema.NullOr(Schema.fromJsonString(MealOverride)),
   savedAt: Schema.NullOr(Schema.String),
+  // The photo slot's joined R2 key — null for a text-created Meal (ADR 0019). Only its presence reaches
+  // the wire (`hasPhoto`); the bytes always serve through the proxy (ADR 0014).
+  photoKey: Schema.NullOr(Schema.String),
   currentAnalysis: Schema.NullOr(Schema.fromJsonString(Analysis)),
   lastRefinementText: Schema.NullOr(Schema.String),
   latestStatus: Schema.NullOr(EstimateStatus),
@@ -79,12 +82,21 @@ export const MealRow = Schema.Struct({
 })
 export type MealRow = typeof MealRow.Type
 
+/**
+ * `hasPhoto` is OPTIONAL by the additive-wire rule (ADR 0018/0019): this backend always emits it, but an
+ * OLD backend doesn't — so a new client treats ABSENT as true (every pre-0019 meal has a photo), and an
+ * old client ignores the new field. `photoUrl` stays non-nullable + always minted: making it nullable
+ * would break a deployed store app's entire list decode the moment one text-created Meal exists; clients
+ * that honor `hasPhoto === false` simply never fetch it (it would 404).
+ */
+
 /** The Day-view list item. `dishName`/`overallConfidence`/`totals` are null for a meal whose estimate
  *  hasn't succeeded yet; `latestStatus` lets the list show a "needs retry" affordance. */
 export const MealListItemView = Schema.Struct({
   id: Schema.String,
   capturedAt: Schema.String,
   photoUrl: Schema.String,
+  hasPhoto: Schema.optional(Schema.Boolean),
   dishName: Schema.NullOr(Schema.String),
   overallConfidence: Schema.NullOr(Confidence),
   latestStatus: Schema.NullOr(EstimateStatus),
@@ -98,6 +110,7 @@ export const MealView = Schema.Struct({
   id: Schema.String,
   capturedAt: Schema.String,
   photoUrl: Schema.String,
+  hasPhoto: Schema.optional(Schema.Boolean),
   aiAnalysis: Schema.NullOr(Analysis),
   override: Schema.NullOr(MealOverride),
   savedAt: Schema.NullOr(Schema.String),
@@ -116,6 +129,7 @@ export const toMealView = (row: MealRow): MealView => ({
   id: row.id,
   capturedAt: row.capturedAt,
   photoUrl: photoUrl(row.id),
+  hasPhoto: row.photoKey !== null,
   aiAnalysis: row.currentAnalysis,
   override: row.override,
   savedAt: row.savedAt,
@@ -130,6 +144,7 @@ export const toMealListItemView = (row: MealRow): MealListItemView => ({
   id: row.id,
   capturedAt: row.capturedAt,
   photoUrl: photoUrl(row.id),
+  hasPhoto: row.photoKey !== null,
   dishName: row.currentAnalysis ? row.currentAnalysis.dishName : null,
   overallConfidence: row.currentAnalysis ? row.currentAnalysis.overallConfidence : null,
   latestStatus: row.latestStatus,

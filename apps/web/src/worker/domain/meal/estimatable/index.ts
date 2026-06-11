@@ -21,8 +21,12 @@ export const estimate = Effect.fn("Estimatable.estimate")(function* (input: {
   readonly mealId: string
   readonly userId: string
   readonly modelId: string
-  readonly photo: Uint8Array
-  readonly userText?: string
+  /** Absent = the text source (ADR 0019): Vision runs on `userText` alone. */
+  readonly photo?: Uint8Array | undefined
+  readonly userText?: string | undefined
+  /** The ledger kind is the DOOR, not the text (ADR 0019): the create door is an "estimate" even with
+   *  userText present (it's the first read, not a Refinement) — so the caller passes it, never inferred. */
+  readonly kind: "estimate" | "refinement"
 }) {
   const vision = yield* Vision
   const estimates = yield* EstimatesRepo
@@ -30,7 +34,7 @@ export const estimate = Effect.fn("Estimatable.estimate")(function* (input: {
 
   const model = resolveVisionModel(input.modelId) // graceful fallback if the stored id went stale
   const text = input.userText?.trim()
-  const kind = text ? "refinement" : "estimate"
+  const kind = input.kind
   const refinementText = text ? Option.some(text) : Option.none<string>()
 
   return yield* Effect.matchEffect(vision.call({ modelId: model.id, photo: input.photo, userText: input.userText }), {

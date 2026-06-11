@@ -14,15 +14,18 @@ import { CurrentMeal } from "../../contract/middleware/meal-scoped.ts"
  * handler may return a custom `HttpServerResponse` in place of the success value (ADR 0014).
  */
 export const PhotoControllerLive = HttpApiBuilder.group(api, "photo", (handlers) =>
-  handlers.handle("show", () =>
-    Effect.gen(function* () {
-      const meal = yield* CurrentMeal
-      const photo = yield* Meal.photo.read(meal.id)
-      if (Option.isNone(photo)) return yield* new HttpApiError.NotFound()
-      return HttpServerResponse.uint8Array(photo.value.bytes, {
-        contentType: photo.value.contentType,
-        headers: { "cache-control": "private, max-age=31536000, immutable" }
+  handlers
+    .handle("show", () =>
+      Effect.gen(function* () {
+        const meal = yield* CurrentMeal
+        const photo = yield* Meal.photo.read(meal.id)
+        if (Option.isNone(photo)) return yield* new HttpApiError.NotFound()
+        return HttpServerResponse.uint8Array(photo.value.bytes, {
+          contentType: photo.value.contentType,
+          headers: { "cache-control": "private, max-age=31536000, immutable" }
+        })
       })
-    })
-  )
+    )
+    // Add/replace the slot — NEVER re-estimates (ADR 0019); 204, the client re-reads by invalidation.
+    .handle("create", ({ payload }) => Meal.attachPhoto(payload))
 )

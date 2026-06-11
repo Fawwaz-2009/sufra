@@ -17,8 +17,8 @@ A household account the Host provisions — the people whose food gets photograp
 _Avoid_: End user, eater, account, family member.
 
 **Meal**:
-One log entry — a single photo-capture event a Host or Member creates by tapping "Log a meal". Always one row in the `meal` table. Snacks, drinks, and multi-plate dinners are all Meals. If we ever need the eating-occasion concept (multiple photos grouped into a single sitting), that becomes a separate term ("Sitting") layered on top of Meals — not in v1.
-_Avoid_: Entry, log, item, food, capture.
+One log entry — a single eating event a Host or Member logs by photographing it and/or describing it in User text (at least one; both together is allowed and improves the Estimate). Always one row in the `meal` table; the Meal has ONE shape regardless of which door created it — the photo is the optional `photo` Attachment slot, the text rides the Estimate log. Snacks, drinks, and multi-plate dinners are all Meals. If we ever need the eating-occasion concept (multiple photos grouped into a single sitting), that becomes a separate term ("Sitting") layered on top of Meals — not in v1.
+_Avoid_: Entry, log, item, food, capture, "description meal" as a distinct entity (it's a Meal whose source material happens to be text).
 
 **Estimate**:
 The AI's read of a Meal — a single structured result containing a dish name, a per-food breakdown, model-generated clarification questions, and a confidence level. A Meal has an **append-only log of Estimates** (one per attempt: create makes the first, each Refinement or retry appends another); the **current** Estimate is the latest with `status = ok`, and unqualified "the Estimate" means that one. A failed attempt is a persisted row (`status = failed`, no analysis, an error code) — the AI failing is data the Member can retry, not a discarded error (ADR 0017). Schema: the `estimates` child table, its `analysis` JSON column carrying the content (the `Analysis` schema in `models/estimate.ts`). In UI copy, prefix with "AI" when source disambiguation matters ("AI: 150 kcal"); otherwise just "Estimate" or "the estimate".
@@ -29,8 +29,12 @@ A Member's manual correction of a Meal's totals (kcal, protein, carbs, fat), set
 _Avoid_: Edit, correction, adjustment, manual entry.
 
 **Refinement**:
-A Member adds free-text context ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the original photo + that text. The new Estimate is **appended** to the log (the prior one is kept as history; current = latest ok — no replace-in-place). The Refinement *text* rides on that Estimate row (`estimates.refinement_text`); the Improve estimate sheet prefills the textarea from the latest attempt's text. Does not touch the Override. Costs an AI call per Refinement. Reified as a create-only sub-resource: `POST /meals/:id/estimates` with an optional `userText` (text ⇒ Refinement, none ⇒ a plain retry of a failed attempt) → `Meal.reestimate`. (Supersedes the old singular `refinement` resource — ADR 0017.)
+A Member adds User text ("the chicken was closer to 200g, no olive oil") and the AI re-runs against the Meal's source material — the original photo + that text, or, for a photo-less Meal, the text alone (the re-run is text-only; the new text stands in for the description, which the Improve sheet prefilled). The new Estimate is **appended** to the log (the prior one is kept as history; current = latest ok — no replace-in-place). The Refinement *text* rides on that Estimate row (`estimates.refinement_text`); the Improve estimate sheet prefills the textarea from the latest attempt's text. Does not touch the Override. Costs an AI call per Refinement. Reified as a create-only sub-resource: `POST /meals/:id/estimates` with an optional `userText` (text ⇒ Refinement, none ⇒ a plain retry of a failed attempt) → `Meal.reestimate`. (Supersedes the old singular `refinement` resource — ADR 0017.)
 _Avoid_: Re-analyze, edit, replace.
+
+**User text**:
+The Member's free text that informs an Estimate. It enters through two doors — at Meal creation ("describe your meal", with or without a photo) or at Refinement ("improve estimate") — but it is ONE concept with one wire name (`userText`) and one storage home (the Estimate row's `refinement_text`; the historical column name predates the create door). A Meal created by text alone has its description as the first Estimate's User text; a retry of a failed photo-less attempt re-runs the latest attempt's User text. UI copy may say "description"; the wire and the code say `userText`.
+_Avoid_: Description (as a field or entity), note, caption, comment, prompt.
 
 **Total**:
 The resolved number displayed on a Meal card — kcal, protein, carbs, fat. Computed per-field as `override.field ?? sum(estimate.foods.field)`. Unqualified "Total" always refers to this resolved value. When source-disambiguation is genuinely needed in conversation, say "the Estimate's kcal" (sum of foods) or "the Override" (Member-set number). Totals are derived at read, **never stored** (ADR 0003) — computed from the **current** Estimate's per-food values, override-first. Day-level rollups in the Day view are sums of per-Meal Totals; a Meal with no successful Estimate yet contributes nothing.
@@ -61,7 +65,7 @@ A Member's typical movement band, picked from four options during Onboarding: `s
 _Avoid_: Activity, exercise level.
 
 **Attachment**:
-A record's media held in a named slot. One polymorphic `attachments` table backs every slot; the meal photo is the Meal's optional `photo` slot (`has_one_attached`). The slot is declared on the model; "a photo is required" is a create-time rule, not a `NOT NULL` constraint.
+A record's media held in a named slot. One polymorphic `attachments` table backs every slot; the meal photo is the Meal's optional `photo` slot (`has_one_attached`). The slot is declared on the model; "a photo or User text is required" is a create-time rule, not a `NOT NULL` constraint — a Meal created by text alone simply has an empty photo slot.
 _Avoid_: blob, file, upload (the row).
 
 **Goal weight**:

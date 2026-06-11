@@ -7,10 +7,13 @@ import { MealListItemView, MealView } from "../views/meal.ts"
 import { MediaTooLarge, Upload, UnsupportedMedia } from "./upload.ts"
 import { MealScoped } from "./middleware/meal-scoped.ts"
 
-/** Create payload — the photo (base64-JSON `Upload`) + an optional client `capturedAt` (defaults to
- *  now server-side). NOT `Meal.jsonCreate`: a meal's columns are all server-set. */
+/** Create payload (ADR 0019) — the photo (base64-JSON `Upload`) and/or the `userText` description (the
+ *  Member's text, CONTEXT "User text"): AT LEAST ONE, both together feeds the vision call the extra
+ *  context. Plus an optional client `capturedAt` (defaults to now server-side). NOT `Meal.jsonCreate`:
+ *  a meal's columns are all server-set. */
 export const CreateMeal = Schema.Struct({
-  photo: Upload,
+  photo: Schema.optional(Upload),
+  userText: Schema.optional(Schema.String.check(Schema.isMinLength(1))),
   capturedAt: Schema.optional(Schema.String)
 })
 
@@ -42,11 +45,12 @@ export const MealsGroup = HttpApiGroup.make("meals")
   .add(
     // Create ALWAYS persists the meal then appends the first Estimate (ok OR failed) — the AI failing is
     // data in the returned view (`latestStatus`/`latestErrorCode`), not an HTTP error (ADR 0017). The only
-    // create-time errors are the photo-validation ones, raised before the meal is written.
+    // create-time errors are the photo-validation ones and the missing-source backstop (neither photo nor
+    // userText — a client bug, the UI enforces it), raised before the meal is written.
     HttpApiEndpoint.post("create", "/meals", {
       payload: CreateMeal,
       success: MealView.pipe(HttpApiSchema.status(201)),
-      error: [UnsupportedMedia, MediaTooLarge]
+      error: [UnsupportedMedia, MediaTooLarge, HttpApiError.BadRequest]
     })
   )
   .add(

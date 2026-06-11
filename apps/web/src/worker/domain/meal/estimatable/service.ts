@@ -37,8 +37,9 @@ export interface VisionFailure {
 
 export interface VisionInput {
   readonly modelId: string
-  readonly photo: Uint8Array
-  readonly userText?: string
+  /** Absent = the text source (ADR 0019): the call runs on `userText` alone, no image part. */
+  readonly photo?: Uint8Array | undefined
+  readonly userText?: string | undefined
 }
 
 export class Vision extends Context.Service<

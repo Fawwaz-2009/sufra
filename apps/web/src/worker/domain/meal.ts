@@ -55,20 +55,29 @@ const show = Effect.fn("Meal.show")(function* () {
 })
 
 /**
- * Create (CLAUDE.md "Meals lifecycle"; ADR 0017): validate the photo (so we never spend tokens on a
- * non-image), create the Meal row, attach the photo, THEN run the first Estimate. The Estimate is appended
- * as a child (ok OR failed) — a failed first attempt leaves the meal with no current Estimate, which the
- * client shows as "couldn't estimate — retry". So create ALWAYS returns 201 + the meal; the AI failing is
- * data in the view (`latestStatus`/`latestErrorCode`), not an HTTP error.
+ * Create (CLAUDE.md "Meals lifecycle"; ADR 0017/0019): the Member supplies a photo and/or a `userText`
+ * description — AT LEAST ONE (the BadRequest backstop; the UI enforces it). Validate the photo when
+ * present (so we never spend tokens on a non-image), create the Meal row, attach the photo, THEN run the
+ * first Estimate — photo(+text) or, with no photo, text-only. The userText rides the Estimate row (it is
+ * the Meal's text source material, CONTEXT "User text"); the ledger kind is "estimate" either way (the
+ * create door is the first read, not a Refinement). The Estimate is appended as a child (ok OR failed) —
+ * a failed first attempt leaves the meal with no current Estimate, which the client shows as "couldn't
+ * estimate — retry". So create ALWAYS returns 201 + the meal; the AI failing is data in the view
+ * (`latestStatus`/`latestErrorCode`), not an HTTP error.
  */
 const create = Effect.fn("Meal.create")(function* (input: {
-  readonly photo: Upload
+  readonly photo?: Upload | undefined
+  readonly userText?: string | undefined
   readonly capturedAt?: string | undefined
 }) {
   const { id: userId } = yield* CurrentUser
   const meals = yield* MealsRepo
 
-  yield* photoSlot.validate(input.photo)
+  const text = input.userText?.trim()
+  if (input.photo === undefined && (text === undefined || text === "")) {
+    return yield* Effect.fail(new HttpApiError.BadRequest())
+  }
+  if (input.photo !== undefined) yield* photoSlot.validate(input.photo)
 
   const now = yield* nowIso
   const meal = yield* run(
@@ -79,37 +88,62 @@ const create = Effect.fn("Meal.create")(function* (input: {
       savedAt: Option.none()
     })
   )
-  yield* photoSlot.attach(meal.id, input.photo)
-
-  const modelId = yield* Settings.visionModelId()
-  yield* Estimatable.estimate({ mealId: meal.id, userId, modelId, photo: input.photo.data })
-
-  return yield* viewMeal(meal.id, userId)
-})
-
-/**
- * Re-estimate — append a new Estimate against the meal's stored photo (CONTEXT "Refinement"). With text it
- * is a Refinement; without, a plain retry of a failed attempt. The current Estimate is always the latest
- * "ok", so a failed re-estimate is recorded (cost + retry) WITHOUT wiping a prior good one. Returns the
- * fresh view.
- */
-const reestimate = Effect.fn("Meal.reestimate")(function* (input: { readonly userText?: string | undefined }) {
-  const meal = yield* CurrentMeal
-  const { id: userId } = yield* CurrentUser
-
-  const photo = yield* photoSlot.read(meal.id)
-  if (Option.isNone(photo)) return yield* new HttpApiError.NotFound()
+  if (input.photo !== undefined) yield* photoSlot.attach(meal.id, input.photo)
 
   const modelId = yield* Settings.visionModelId()
   yield* Estimatable.estimate({
     mealId: meal.id,
     userId,
     modelId,
-    photo: photo.value.bytes,
-    userText: input.userText
+    photo: input.photo?.data,
+    userText: text,
+    kind: "estimate"
   })
 
   return yield* viewMeal(meal.id, userId)
+})
+
+/**
+ * Re-estimate — append a new Estimate against the meal's SOURCE material (CONTEXT "Refinement"; ADR 0019).
+ * With a photo in the slot: the photo + the optional new text (the original behavior). With an empty slot
+ * (a text-created Meal): a text-only re-run — the new text, or the latest attempt's stored text, so a bare
+ * retry re-runs the description and the text the call USED is persisted on the new row (the description
+ * stays alive for the next retry/display). With payload text it is a Refinement; without, a plain retry.
+ * The current Estimate is always the latest "ok", so a failed re-estimate is recorded (cost + retry)
+ * WITHOUT wiping a prior good one. Returns the fresh view.
+ */
+const reestimate = Effect.fn("Meal.reestimate")(function* (input: { readonly userText?: string | undefined }) {
+  const meal = yield* CurrentMeal
+  const { id: userId } = yield* CurrentUser
+
+  const photo = yield* photoSlot.read(meal.id)
+  const text = input.userText?.trim()
+  const resolvedText = Option.isNone(photo) ? (text ?? meal.lastRefinementText ?? undefined) : text
+  // No photo AND no text anywhere — unreachable through create (the at-least-one rule), so 404 like a
+  // missing photo always did.
+  if (Option.isNone(photo) && resolvedText === undefined) return yield* new HttpApiError.NotFound()
+
+  const modelId = yield* Settings.visionModelId()
+  yield* Estimatable.estimate({
+    mealId: meal.id,
+    userId,
+    modelId,
+    photo: Option.isSome(photo) ? photo.value.bytes : undefined,
+    userText: resolvedText,
+    kind: text ? "refinement" : "estimate"
+  })
+
+  return yield* viewMeal(meal.id, userId)
+})
+
+/**
+ * Add or replace the Meal's photo (ADR 0019) — a pure media swap that NEVER re-estimates: the standing
+ * Estimate is untouched (the Member already accepted it; new bytes are presentation + future source).
+ * The next Refinement reads the slot, so re-runs upgrade to photo+text automatically.
+ */
+const attachPhoto = Effect.fn("Meal.attachPhoto")(function* (input: { readonly photo: Upload }) {
+  const meal = yield* CurrentMeal
+  yield* photoSlot.attach(meal.id, input.photo)
 })
 
 /**
@@ -178,6 +212,7 @@ export const Meal = {
   show,
   create,
   reestimate,
+  attachPhoto,
   clone,
   destroy,
   ...Saveable, // Meal.save / Meal.unsave
