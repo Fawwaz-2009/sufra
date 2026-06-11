@@ -279,6 +279,14 @@ function Home() {
             <span>MIT</span>
             <span className="dot">·</span>
             <span>2026</span>
+            <span className="dot">·</span>
+            <a
+              href="https://commons.wikimedia.org/wiki/File:Shakshuka_Dish.jpg"
+              className="foot__github"
+              rel="noopener"
+            >
+              shakshuka photo: Junbinhuang, CC BY 4.0
+            </a>
           </div>
         </div>
       </footer>
@@ -360,15 +368,26 @@ function PhoneToday() {
         </div>
         <div className="mpill">Take photo</div>
         <div className="mcard">
-          <div className="mcard__photo" />
+          <img className="mcard__photo" src="/meals/kabsa.jpg" alt="" />
           <div className="mcard__bar">
             <div className="mcard__row">
               <span className="mcard__name">Kabsa</span>
               <span className="mcard__kcal">
-                ~620 <small>kcal</small>
+                ~430 <small>kcal</small>
               </span>
             </div>
-            <div className="mcard__macros">P 34g · C 78g · F 22g</div>
+            <div className="mcard__macros">P 37g · C 49g · F 8g</div>
+          </div>
+        </div>
+        <div className="mcard">
+          <img className="mcard__photo" src="/meals/shakshuka.jpg" alt="" />
+          <div className="mcard__bar">
+            <div className="mcard__row">
+              <span className="mcard__name">Shakshuka</span>
+              <span className="mcard__kcal">
+                ~460 <small>kcal</small>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -381,8 +400,10 @@ function PhoneMeal() {
   return (
     <div className="phone phone--right" aria-hidden="true">
       <div className="phone__screen">
-        <div
-          className="mcard__photo mcard__photo--b"
+        <img
+          className="mcard__photo"
+          src="/meals/kabsa.jpg"
+          alt=""
           style={{ height: 190, borderRadius: 22 }}
         />
         <div>
@@ -393,23 +414,23 @@ function PhoneMeal() {
         </div>
         <div>
           <div className="mfood">
-            <span className="mfood__name">Basmati rice</span>
-            <span className="mfood__qty">1.5 cups</span>
-            <span className="mfood__kcal">320</span>
+            <span className="mfood__name">Kabsa rice</span>
+            <span className="mfood__qty">1 cup</span>
+            <span className="mfood__kcal">240</span>
           </div>
           <div className="mfood">
-            <span className="mfood__name">Chicken thigh</span>
-            <span className="mfood__qty">200g</span>
-            <span className="mfood__kcal">410</span>
+            <span className="mfood__name">Chicken breast</span>
+            <span className="mfood__qty">100g</span>
+            <span className="mfood__kcal">165</span>
           </div>
           <div className="mfood">
-            <span className="mfood__name">Toasted almonds</span>
-            <span className="mfood__qty">15g</span>
-            <span className="mfood__kcal">90</span>
+            <span className="mfood__name">Daqqus salsa</span>
+            <span className="mfood__qty">3 tbsp</span>
+            <span className="mfood__kcal">25</span>
           </div>
           <div className="mtotal">
             <span className="mcard__name">Total</span>
-            <span className="mtotal__kcal">~820</span>
+            <span className="mtotal__kcal">~430</span>
           </div>
         </div>
         <div className="mpill">Improve this estimate</div>
@@ -421,7 +442,12 @@ function PhoneMeal() {
 function MealBreakdownMock() {
   return (
     <div className="mock-panel" aria-hidden="true">
-      <div className="mcard__photo" style={{ borderRadius: 14 }} />
+      <img
+        className="mcard__photo"
+        src="/meals/kabsa.jpg"
+        alt=""
+        style={{ borderRadius: 14 }}
+      />
       <div>
         <div className="mock-title" style={{ fontSize: 19 }}>
           Kabsa
@@ -429,23 +455,23 @@ function MealBreakdownMock() {
       </div>
       <div>
         <div className="mfood">
-          <span className="mfood__name">Basmati rice</span>
-          <span className="mfood__qty">1.5 cups</span>
-          <span className="mfood__kcal">320</span>
+          <span className="mfood__name">Kabsa rice</span>
+          <span className="mfood__qty">1 cup</span>
+          <span className="mfood__kcal">240</span>
         </div>
         <div className="mfood">
-          <span className="mfood__name">Chicken thigh</span>
-          <span className="mfood__qty">200g</span>
-          <span className="mfood__kcal">410</span>
+          <span className="mfood__name">Chicken breast</span>
+          <span className="mfood__qty">100g</span>
+          <span className="mfood__kcal">165</span>
         </div>
         <div className="mfood">
-          <span className="mfood__name">Toasted almonds</span>
-          <span className="mfood__qty">15g</span>
-          <span className="mfood__kcal">90</span>
+          <span className="mfood__name">Daqqus salsa</span>
+          <span className="mfood__qty">3 tbsp</span>
+          <span className="mfood__kcal">25</span>
         </div>
         <div className="mtotal">
           <span className="mcard__name">Total</span>
-          <span className="mtotal__kcal">~820</span>
+          <span className="mtotal__kcal">~430</span>
         </div>
       </div>
     </div>
@@ -456,21 +482,24 @@ function ImproveMock() {
   return (
     <div className="mock-panel" aria-hidden="true">
       <span className="mock-caps">Improve this estimate</span>
+      {/* Verbatim questions the model generated for the kabsa photo (meal-kabsa.json) */}
       <div className="mq">
-        <p className="mq__q">Was the rice closer to 1 cup or 1.5?</p>
-        <div className="mchips">
-          <span className="mchip">1 cup</span>
-          <span className="mchip mchip--on">1.5 cups</span>
-          <span className="mchip">Not sure</span>
-        </div>
+        <p className="mq__hint">The model wasn't sure about:</p>
+        <ul className="mq__list">
+          <li>
+            Is the amount of rice shown roughly 1 cup, or was there more
+            underneath the chicken?
+          </li>
+          <li>
+            Was the rice prepared with a significant amount of oil or
+            clarified butter (ghee)?
+          </li>
+        </ul>
       </div>
-      <div className="mq">
-        <p className="mq__q">Any oil or ghee in the rice?</p>
-        <div className="mchips">
-          <span className="mchip mchip--on">A little</span>
-          <span className="mchip">A lot</span>
-          <span className="mchip">None</span>
-        </div>
+      <div className="mtext">
+        <span className="mfield__typed">
+          more like 1.5 cups, and yes a little ghee
+        </span>
       </div>
       <div className="mpill">Re-run the estimate</div>
     </div>
@@ -484,14 +513,14 @@ function OverrideMock() {
       <div className="mfield">
         <span className="mfield__label">Calories</span>
         <div className="mfield__input">
-          <span className="mfield__typed">540</span>
-          <span className="mfield__ghost">AI said ~620</span>
+          <span className="mfield__typed">520</span>
+          <span className="mfield__ghost">AI said ~430</span>
         </div>
       </div>
       <div className="mfield">
         <span className="mfield__label">Protein</span>
         <div className="mfield__input">
-          <span className="mfield__ghost">34g</span>
+          <span className="mfield__ghost">37g</span>
         </div>
       </div>
       <div className="mcard__macros">

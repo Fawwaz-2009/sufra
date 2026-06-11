@@ -1,0 +1,23 @@
+[
+  {
+    "dish": "kabsa",
+    "file": "/tmp/sufra-meal-shoot/kabsa.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Chicken_Kabsa.jpg",
+    "wikimediaPage": "https://commons.wikimedia.org/wiki/File:Chicken_Kabsa.jpg",
+    "author": "Bhj028",
+    "license": "CC0 (Public Domain)",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attributionRequired": false
+  },
+  {
+    "dish": "shakshuka",
+    "file": "/tmp/sufra-meal-shoot/shakshuka.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Shakshuka_Dish.jpg",
+    "wikimediaPage": "https://commons.wikimedia.org/wiki/File:Shakshuka_Dish.jpg",
+    "author": "Junbinhuang",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "attributionRequired": true,
+    "attributionText": "Photo by Junbinhuang, CC BY 4.0"
+  }
+]
