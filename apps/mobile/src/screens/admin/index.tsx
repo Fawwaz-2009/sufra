@@ -54,7 +54,7 @@ export default function AdminScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="mx-auto w-full max-w-md gap-6 px-5 pb-28 pt-4"
+        contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-6 px-5 pb-28 pt-4"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />
         }

@@ -59,3 +59,7 @@
 
 /* Admin screen (model radio dot) */
 @source inline("h-4 w-4");
+
+/* iPad / wide windows (>= 40rem): the tab screens' content column widens (phones keep max-w-md;
+   an iPad Split View half stays under the breakpoint and keeps the narrow column too) */
+@source inline("sm:max-w-2xl");
