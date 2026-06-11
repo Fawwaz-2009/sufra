@@ -2,10 +2,10 @@ import type { ComponentProps } from 'react';
 import { Text } from 'react-native';
 
 /**
- * The display face — Fraunces SemiBold (design.md). The ONLY way display type is set: screen
- * titles, the day-header label, hero numerals, the wordmark. Size/color still come from className;
- * the fontFamily rides the style prop because the NativeWind allowlist carries no font utilities.
+ * Display type — system face, weight 800, tight tracking (Daylight, design.md): screen titles
+ * and hero numerals. Native-heavy like the reference class (Flighty/Structured); no custom font.
+ * Size/color still come from className.
  */
 export function DisplayText({ style, ...props }: ComponentProps<typeof Text>) {
-  return <Text {...props} style={[{ fontFamily: 'Fraunces_600SemiBold' }, style]} />;
+  return <Text {...props} style={[{ fontWeight: '800', letterSpacing: -0.4 }, style]} />;
 }

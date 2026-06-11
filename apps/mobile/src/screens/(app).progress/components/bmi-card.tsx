@@ -34,7 +34,7 @@ export function BmiCard({ profile }: { profile: ProfileSnapshot }) {
     Math.min(100, Math.max(0, ((b - DISPLAY_BMI_MIN) / (DISPLAY_BMI_MAX - DISPLAY_BMI_MIN)) * 100));
 
   return (
-    <View className="rounded-2xl border border-line bg-card p-4">
+    <View className="rounded-2xl border border-line bg-white p-4">
       <View className="mb-2 flex-row items-start justify-between">
         <Text className="text-base font-semibold text-ink">BMI</Text>
         <Text className="text-xs text-ink-soft">

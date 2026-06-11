@@ -17,11 +17,11 @@ export function SavedMealsSection() {
       <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">Saved Meals</Text>
 
       {savedQuery.isLoading ? (
-        <View className="items-center rounded-xl border border-line bg-card py-6">
+        <View className="items-center rounded-xl border border-line bg-white py-6">
           <ActivityIndicator />
         </View>
       ) : meals.length === 0 ? (
-        <View className="items-center rounded-xl border border-line bg-card px-6 py-6">
+        <View className="items-center rounded-xl border border-line bg-white px-6 py-6">
           <Text className="text-sm font-medium text-ink">No saved meals yet</Text>
           <Text className="mt-1 text-center text-sm text-ink-soft">
             Tap Save on any meal to save it for quick re-logging.

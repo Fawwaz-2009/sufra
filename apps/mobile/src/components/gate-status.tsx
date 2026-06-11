@@ -5,7 +5,7 @@ import { Palette } from '@/constants/theme';
 /** The session gate's in-between frame — session live, `/me` still loading (post-sign-in tick). */
 export function GateLoading() {
   return (
-    <View className="flex-1 items-center justify-center bg-cream">
+    <View className="flex-1 items-center justify-center bg-white">
       <ActivityIndicator color={Palette.flame} />
     </View>
   );
@@ -23,7 +23,7 @@ export function GateError({
   onChangeServer: () => void;
 }) {
   return (
-    <View className="flex-1 items-center justify-center gap-4 bg-cream px-6">
+    <View className="flex-1 items-center justify-center gap-4 bg-white px-6">
       <Text className="text-lg font-semibold text-ink">Couldn&apos;t reach your server</Text>
       <Text className="text-center text-sm text-ink-soft">
         Check your connection, or that your Sufra server is up.

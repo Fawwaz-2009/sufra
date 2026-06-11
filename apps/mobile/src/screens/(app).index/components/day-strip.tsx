@@ -21,6 +21,7 @@ export function DayStrip({
       {days.map((d, i) => {
         const isFuture = diffInLocalDays(d, today) > 0;
         const isSelected = isSameLocalDay(d, selectedDay);
+        const isToday = isSameLocalDay(d, today);
         return (
           <Pressable
             key={formatLocalDate(d)}
@@ -37,17 +38,17 @@ export function DayStrip({
             </Text>
             <View
               className={`h-9 w-9 items-center justify-center rounded-[9999px] ${
-                isSelected
-                  ? 'bg-flame'
-                  : isSameLocalDay(d, today) && !isFuture
-                    ? 'border border-flame'
-                    : isFuture
-                      ? ''
-                      : 'border border-line'
+                isSelected ? 'bg-flame' : ''
               }`}>
               <Text
-                className={`text-sm font-medium ${
-                  isSelected ? 'text-white' : isFuture ? 'text-ink-faint' : 'text-ink'
+                className={`text-sm ${
+                  isSelected
+                    ? 'font-semibold text-white'
+                    : isToday && !isFuture
+                      ? 'font-semibold text-flame'
+                      : isFuture
+                        ? 'text-ink-faint'
+                        : 'text-ink'
                 }`}>
                 {d.getDate()}
               </Text>

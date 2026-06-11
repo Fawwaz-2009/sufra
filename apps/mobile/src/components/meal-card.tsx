@@ -24,40 +24,40 @@ export function MealCard({
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row items-center gap-3 rounded-xl bg-card p-3">
+      className="w-full overflow-hidden rounded-2xl border border-line bg-white">
       <Image
         source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
-        style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: Palette.sand2 }}
+        style={{ width: '100%', height: 190, backgroundColor: Palette.track }}
         contentFit="cover"
       />
 
-      {/* flex-1 (not just min-w-0): RN's default flexShrink is 0, so without it this column
-          sizes to its text and pushes the kcal column off the card edge in narrow contexts. */}
-      <View className="min-w-0 flex-1 gap-1">
-        <Text
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          className="text-lg font-semibold text-ink">
-          {meal.dishName ?? "Couldn't read this meal"}
-        </Text>
+      <View className="px-3 pt-2 pb-3">
+        {/* Name + kcal row */}
+        <View className="flex-row items-baseline justify-between gap-2">
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            className="min-w-0 flex-1 text-[17px] font-semibold text-ink">
+            {meal.dishName ?? "Couldn't read this meal"}
+          </Text>
+          <View className="shrink-0 flex-row items-baseline">
+            <DisplayText className="text-[17px] text-ink">
+              {meal.totals ? `~${Math.round(meal.totals.kcal)}` : '–'}
+            </DisplayText>
+            <Text className="text-sm text-ink-soft"> kcal</Text>
+          </View>
+        </View>
+
+        {/* Macro line */}
         {meal.totals ? (
           <Text numberOfLines={1} className="text-sm text-ink-soft">
-            {`P ${Math.round(meal.totals.proteinG)}g - C ${Math.round(
-              meal.totals.carbsG
-            )}g - F ${Math.round(meal.totals.fatG)}g`}
+            {`P ${Math.round(meal.totals.proteinG)}g · C ${Math.round(meal.totals.carbsG)}g · F ${Math.round(meal.totals.fatG)}g`}
           </Text>
         ) : (
-          <Text numberOfLines={1} className="text-sm text-ink-soft">
+          <Text numberOfLines={1} className="text-sm font-medium text-flame-deep">
             Tap to retry the estimate
           </Text>
         )}
-      </View>
-
-      <View className="w-16 shrink-0 items-end">
-        <DisplayText className="text-2xl text-ink">
-          {meal.totals ? `~${Math.round(meal.totals.kcal)}` : '-'}
-        </DisplayText>
-        <Text className="text-sm text-ink-soft">kcal</Text>
       </View>
     </Pressable>
   );

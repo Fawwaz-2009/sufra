@@ -31,7 +31,7 @@ export function WeightCard({ profile, period, onPeriodChange }: WeightCardProps)
   const latest = weights.length > 0 ? weights[weights.length - 1] : undefined;
 
   return (
-    <View className="rounded-2xl border border-line bg-card p-4">
+    <View className="rounded-2xl border border-line bg-white p-4">
       {/* Header row */}
       <View className="mb-2 flex-row items-start justify-between">
         <Text className="text-base font-semibold text-ink">Weight over time</Text>

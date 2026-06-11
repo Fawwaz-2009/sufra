@@ -144,7 +144,7 @@ export default function TodayScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-4 px-5 pb-28 pt-4"
@@ -174,35 +174,35 @@ export default function TodayScreen() {
           <SummaryPanel ringMode={ringMode} setRingMode={setRingMode} summary={summary} />
         ) : null}
 
-        <View className="flex-row gap-3">
+        {/* Primary CTA */}
+        <Pressable
+          disabled={uploadMutation.isPending}
+          onPress={takePhoto}
+          className="h-12 w-full items-center justify-center rounded-[9999px] bg-flame">
+          <Text className="text-[17px] font-semibold text-white">
+            {uploadMutation.isPending ? 'Estimating...' : 'Take photo'}
+          </Text>
+        </Pressable>
+
+        {/* Secondary actions */}
+        <View className="flex-row justify-center gap-8">
           <Pressable
             disabled={uploadMutation.isPending}
-            onPress={takePhoto}
-            className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame px-4">
-            <Text className="text-base font-semibold text-white">
-              {uploadMutation.isPending ? 'Estimating...' : 'Take photo'}
-            </Text>
+            onPress={pickFromLibrary}>
+            <Text className="text-base font-medium text-flame-deep">Choose from library</Text>
           </Pressable>
-          <Pressable
-            disabled={uploadMutation.isPending}
-            onPress={pickFromLibrary}
-            className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line bg-card px-4">
-            <Text className="text-base font-medium text-ink">
-              Choose from library
-            </Text>
+          <Pressable onPress={() => setSavedSheetOpen(true)}>
+            <Text className="text-base font-medium text-flame-deep">From saved</Text>
           </Pressable>
         </View>
-        <Pressable
-          onPress={() => setSavedSheetOpen(true)}
-          className="h-12 w-full items-center justify-center rounded-[9999px] border border-line bg-card px-4">
-          <Text className="text-base font-medium text-ink">From saved</Text>
-        </Pressable>
+
         <SavedMealsSheet
           visible={savedSheetOpen}
           onClose={() => setSavedSheetOpen(false)}
           capturedAt={isViewingToday ? undefined : localDateForCapture(selectedDay)}
         />
 
+        {/* Meals label */}
         <View className="mt-2 flex-row items-center justify-between">
           <Text className="text-xs font-bold uppercase text-ink-soft">Meals</Text>
           {uploadMutation.isPending ? (
@@ -215,12 +215,12 @@ export default function TodayScreen() {
             <ActivityIndicator />
           </View>
         ) : mealsForSelectedDay.length === 0 ? (
-          <View className="items-center gap-2 rounded-xl bg-card px-6 py-12">
+          <View className="items-center gap-2 py-12">
             <Image
               source={require('@/assets/images/sufra-circle.png')}
-              style={{ width: 56, height: 56, opacity: 0.5 }}
+              style={{ width: 56, height: 56, opacity: 0.4 }}
             />
-            <Text className="font-medium text-ink">
+            <Text className="text-base font-semibold text-ink">
               {isViewingToday ? 'No meals logged yet' : 'No meals logged this day.'}
             </Text>
             {isViewingToday ? (
@@ -236,7 +236,6 @@ export default function TodayScreen() {
             ))}
           </View>
         )}
-
       </ScrollView>
     </SafeAreaView>
   );

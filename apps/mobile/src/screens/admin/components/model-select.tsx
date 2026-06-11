@@ -42,7 +42,7 @@ export function ModelSelect() {
             key={m.id}
             disabled={patchSettings.isPending || selected}
             onPress={() => patchSettings.mutate({ visionModelId: m.id })}
-            className={`flex-row items-center gap-3 rounded-xl border bg-card px-4 py-3 ${selected ? 'border-2 border-flame' : 'border-line'}`}
+            className={`flex-row items-center gap-3 rounded-xl px-4 py-3 ${selected ? 'border-2 border-flame bg-white' : 'bg-surface'}`}
           >
             <View className="min-w-0 flex-1">
               <Text numberOfLines={1} className="text-sm font-medium text-ink">

@@ -5,8 +5,8 @@ import { Palette } from '@/constants/theme';
 export default function AppTabs() {
   return (
     <NativeTabs
-      backgroundColor={Palette.cream}
-      indicatorColor={Palette.sand}
+      backgroundColor={Palette.white}
+      indicatorColor={Palette.surface}
       iconColor={Palette.inkSoft}
       labelStyle={{ color: Palette.inkSoft, selected: { color: Palette.flame } }}>
       <NativeTabs.Trigger name="index">

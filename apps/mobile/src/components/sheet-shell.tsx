@@ -45,10 +45,10 @@ export function SheetShell({
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">{title}</Text>
           <View className="mt-4 gap-4">{children}</View>
-          <View className="mt-4 rounded-xl bg-sand px-3 py-2">
+          <View className="mt-4 rounded-xl bg-surface px-3 py-2">
             <Text className="text-xs text-ink-soft">
               Starts tomorrow at midnight (your local time).
             </Text>
@@ -58,8 +58,8 @@ export function SheetShell({
             <Pressable
               onPress={onClose}
               disabled={saving}
-              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line">
-              <Text className="text-base font-medium text-ink">Cancel</Text>
+              className="h-12 flex-1 items-center justify-center rounded-[9999px]">
+              <Text className="text-base font-medium text-ink-soft">Cancel</Text>
             </Pressable>
             <Pressable
               onPress={onSave}
@@ -94,7 +94,7 @@ export function PreviewBox({
   const derived = deriveProfile(inputs);
   const changed = derived.targetKcal !== previousTarget;
   return (
-    <View className="rounded-xl bg-sand p-3">
+    <View className="rounded-xl bg-surface p-3">
       <Text className="text-xs uppercase text-ink-soft">Daily target</Text>
       <View className="mt-1 flex-row items-baseline gap-1">
         <DisplayText className="text-2xl text-ink">{derived.targetKcal}</DisplayText>

@@ -75,8 +75,8 @@ export function AddMemberForm() {
         autoComplete="off"
         onSubmitEditing={submit}
         returnKeyType="done"
-        style={{ borderColor: Palette.line, color: Palette.ink }}
-        className="h-12 flex-1 rounded-xl border bg-card px-4 text-base"
+        style={{ color: Palette.ink }}
+        className="h-12 flex-1 rounded-xl border border-line bg-white px-4 text-base"
       />
       <Pressable
         onPress={submit}

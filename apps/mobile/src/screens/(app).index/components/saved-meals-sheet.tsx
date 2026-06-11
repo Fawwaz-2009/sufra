@@ -48,7 +48,7 @@ export function SavedMealsSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end" style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">Pick a saved meal</Text>
 
           {savedQuery.isLoading ? (

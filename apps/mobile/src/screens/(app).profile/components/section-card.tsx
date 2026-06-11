@@ -5,7 +5,7 @@ export function SectionCard({ label, children }: { label: string; children: Reac
   return (
     <View>
       <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">{label}</Text>
-      <View className="overflow-hidden rounded-xl border border-line bg-card">{children}</View>
+      <View className="overflow-hidden rounded-xl border border-line bg-white">{children}</View>
     </View>
   );
 }

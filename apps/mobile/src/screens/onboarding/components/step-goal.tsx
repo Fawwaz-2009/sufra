@@ -107,7 +107,7 @@ export function StepGoal({
       ) : null}
 
       {preview ? (
-        <View className="rounded-xl border border-line bg-card p-4">
+        <View className="rounded-xl bg-white p-4">
           <Text className="text-xs uppercase text-ink-soft">Daily target</Text>
           <View className="mt-1 flex-row items-baseline gap-1">
             <Text className="text-3xl font-semibold text-ink">{preview.targetKcal}</Text>
@@ -142,7 +142,7 @@ function RateChip({
     <Pressable
       onPress={onPress}
       accessibilityState={{ selected }}
-      className={`flex-1 gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-flame bg-sand' : 'border-line'}`}>
+      className={`flex-1 gap-1 rounded-xl px-3 py-3 ${selected ? 'border border-flame bg-surface' : 'bg-surface'}`}>
       <Text className="text-sm font-medium text-ink">{label}</Text>
       <Text className="text-[10px] text-ink-soft">{sub}</Text>
     </Pressable>

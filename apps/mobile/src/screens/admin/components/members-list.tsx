@@ -56,7 +56,7 @@ export function MembersList() {
 
   if (members.length === 0 && !membersQuery.isLoading) {
     return (
-      <View className="rounded-xl border border-line bg-card px-4 py-6">
+      <View className="rounded-xl border border-line bg-white px-4 py-6">
         <Text className="text-center text-sm text-ink-soft">No Members yet. Add one above.</Text>
       </View>
     );
@@ -67,7 +67,7 @@ export function MembersList() {
       {members.map((m) => (
         <View
           key={m.id}
-          className="flex-row items-center gap-3 rounded-xl border border-line bg-card px-4 py-3"
+          className="flex-row items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"
         >
           <Text numberOfLines={1} className="min-w-0 flex-1 text-sm font-medium text-ink">
             {m.username}
@@ -76,7 +76,7 @@ export function MembersList() {
           {/* Hosts are listed (the full household) but get NO actions — the server's Member-scoped
               gates 404 them anyway (ADR 0013); the badge says why. */}
           {m.role === 'host' ? (
-            <View className="rounded-[9999px] bg-sand px-3 py-1">
+            <View className="rounded-[9999px] bg-surface px-3 py-1">
               <Text className="text-xs font-medium text-ink-soft">Host</Text>
             </View>
           ) : (

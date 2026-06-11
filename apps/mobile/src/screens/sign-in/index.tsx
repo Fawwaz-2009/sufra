@@ -39,7 +39,7 @@ export default function SignInScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-center px-6">
@@ -55,8 +55,8 @@ export default function SignInScreen() {
 
           <View className="gap-3">
             <TextInput
-              className="rounded-2xl bg-card px-4 py-4 text-[17px]"
-              style={{ borderColor: Palette.line, borderWidth: 1, color: Palette.ink }}
+              className="rounded-2xl bg-surface px-4 py-4 text-[17px]"
+              style={{ color: Palette.ink }}
               onChangeText={setUsername}
               placeholder="Username"
               placeholderTextColor={Palette.inkFaint}
@@ -67,8 +67,8 @@ export default function SignInScreen() {
               editable={!submitting}
             />
             <TextInput
-              className="rounded-2xl bg-card px-4 py-4 text-[17px]"
-              style={{ borderColor: Palette.line, borderWidth: 1, color: Palette.ink }}
+              className="rounded-2xl bg-surface px-4 py-4 text-[17px]"
+              style={{ color: Palette.ink }}
               onChangeText={setPassword}
               placeholder="Password"
               placeholderTextColor={Palette.inkFaint}

@@ -27,7 +27,7 @@ export function OptionSheet<T extends string>({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end" style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">{title}</Text>
           <View className="mt-4 gap-2">
             {options.map((option) => (
@@ -36,7 +36,7 @@ export function OptionSheet<T extends string>({
                 onPress={() => onSelect(option.value)}
                 accessibilityState={{ selected: selected === option.value }}
                 className={`flex-row items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
-                  selected === option.value ? 'border-flame bg-sand' : 'border-line'
+                  selected === option.value ? 'border-flame bg-surface' : 'border-line'
                 }`}>
                 <View className="min-w-0 gap-1">
                   <Text className="text-sm font-medium text-ink">{option.label}</Text>

@@ -52,7 +52,7 @@ export function GoalSlider({
       accessibilityLabel="Goal weight">
       <View
         pointerEvents="none"
-        className="rounded-[9999px] bg-sand-2"
+        className="rounded-[9999px] bg-track"
         style={{ height: TRACK_HEIGHT }}
       />
       <View
@@ -67,7 +67,7 @@ export function GoalSlider({
       />
       <View
         pointerEvents="none"
-        className="absolute border-2 border-flame bg-card"
+        className="absolute border-2 border-flame bg-white"
         style={{
           height: THUMB_SIZE,
           width: THUMB_SIZE,

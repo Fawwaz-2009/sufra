@@ -13,13 +13,13 @@ export function StepSex({ value, onChange }: { value: Sex | null; onChange: (v: 
         <Pressable
           onPress={() => onChange('male')}
           accessibilityState={{ selected: value === 'male' }}
-          className={`rounded-xl border px-4 py-3 ${value === 'male' ? 'border-flame bg-sand' : 'border-line'}`}>
+          className={`rounded-xl px-4 py-3 ${value === 'male' ? 'border border-flame bg-surface' : 'bg-surface'}`}>
           <Text className="font-medium text-ink">Male</Text>
         </Pressable>
         <Pressable
           onPress={() => onChange('female')}
           accessibilityState={{ selected: value === 'female' }}
-          className={`rounded-xl border px-4 py-3 ${value === 'female' ? 'border-flame bg-sand' : 'border-line'}`}>
+          className={`rounded-xl px-4 py-3 ${value === 'female' ? 'border border-flame bg-surface' : 'bg-surface'}`}>
           <Text className="font-medium text-ink">Female</Text>
         </Pressable>
       </View>

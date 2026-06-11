@@ -16,7 +16,7 @@ export function YourNumbersSection({
     <SectionCard label="Your numbers">
       <View className="gap-3 px-4 py-3">
         {hasPending ? (
-          <View className="rounded-xl bg-sand px-2 py-1">
+          <View className="rounded-xl bg-surface px-2 py-1">
             <Text className="text-[10px] uppercase text-ink-soft">
               Pending changes — starts tomorrow
             </Text>
@@ -41,7 +41,7 @@ export function YourNumbersSection({
 
 function MacroCell({ label, g }: { label: string; g: number }) {
   return (
-    <View className="flex-1 items-center rounded-xl bg-sand px-2 py-2">
+    <View className="flex-1 items-center rounded-xl bg-surface px-2 py-2">
       <Text className="text-xs text-ink-soft">{label}</Text>
       <Text className="text-base font-medium text-ink">{g}g</Text>
     </View>

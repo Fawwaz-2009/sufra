@@ -37,7 +37,7 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
       <View
         style={[
           styles.tabButtonView,
-          { backgroundColor: isFocused ? Palette.sand : Palette.cream },
+          { backgroundColor: isFocused ? Palette.surface : Palette.white },
         ]}>
         <Text style={{ color: isFocused ? Palette.flame : Palette.inkSoft }}>{children}</Text>
       </View>
@@ -48,7 +48,7 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 export function CustomTabList(props: TabListProps) {
   return (
     <View {...props} style={styles.tabListContainer}>
-      <View style={[styles.innerContainer, { backgroundColor: Palette.cream }]}>
+      <View style={[styles.innerContainer, { backgroundColor: Palette.white }]}>
         <Text style={[styles.brandText, { color: Palette.ink }]}>Sufra</Text>
         {props.children}
       </View>

@@ -10,7 +10,7 @@ export function UnitToggle<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <View className="flex-row self-start rounded-[9999px] bg-sand p-1">
+    <View className="flex-row self-start rounded-[9999px] bg-surface p-1">
       {options.map((o) => (
         <Pressable
           key={o.value}

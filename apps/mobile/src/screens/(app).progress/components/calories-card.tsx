@@ -30,7 +30,7 @@ export function CaloriesCard({
   const avgDaily = daysWithData > 0 ? Math.round(totalKcal / daysWithData) : 0;
 
   return (
-    <View className="rounded-2xl border border-line bg-card p-4">
+    <View className="rounded-2xl border border-line bg-white p-4">
       <Text className="text-base font-semibold text-ink">Calories</Text>
       <Text className="mb-2 text-xs text-ink-soft">
         {daysWithData > 0

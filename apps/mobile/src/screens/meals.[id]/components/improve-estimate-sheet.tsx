@@ -64,11 +64,11 @@ export function ImproveEstimateSheet({
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">Improve this estimate</Text>
 
           {clarifications.length > 0 ? (
-            <View className="mt-4 gap-2">
+            <View className="mt-4 gap-2 rounded-xl bg-surface p-3">
               <Text className="text-xs font-bold uppercase text-ink-soft">
                 {"The AI wasn't sure about"}
               </Text>
@@ -93,14 +93,13 @@ export function ImproveEstimateSheet({
             editable={!mutation.isPending}
             style={{
               marginTop: 8,
-              borderWidth: 1,
-              borderColor: Palette.line,
               borderRadius: 12,
               padding: 12,
               fontSize: 14,
               color: Palette.ink,
               minHeight: 96,
               textAlignVertical: 'top',
+              backgroundColor: Palette.surface,
             }}
           />
 
@@ -112,8 +111,8 @@ export function ImproveEstimateSheet({
             <Pressable
               onPress={onClose}
               disabled={mutation.isPending}
-              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line">
-              <Text className="text-base font-medium text-ink">Cancel</Text>
+              className="h-12 flex-1 items-center justify-center">
+              <Text className="text-base text-ink-soft">Cancel</Text>
             </Pressable>
             <Pressable
               onPress={() => mutation.mutate(trimmed)}

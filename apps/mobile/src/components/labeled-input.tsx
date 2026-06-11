@@ -12,9 +12,9 @@ export function LabeledInput({ label, ...inputProps }: { label: string } & TextI
     <View className="gap-2">
       <Text className="text-sm font-medium text-ink">{label}</Text>
       <TextInput
-        className="rounded-2xl bg-sand px-4 py-4 text-[17px] text-ink"
+        className="rounded-2xl bg-surface px-4 py-4 text-[17px] text-ink"
         placeholderTextColor={Palette.inkFaint}
-        style={{ borderColor: Palette.line, color: Palette.ink }}
+        style={{ color: Palette.ink }}
         {...inputProps}
       />
     </View>

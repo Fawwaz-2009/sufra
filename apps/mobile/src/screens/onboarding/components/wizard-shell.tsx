@@ -19,7 +19,7 @@ export function Dots({ count, current }: { count: number; current: number }) {
       {Array.from({ length: count }, (_, i) => (
         <View
           key={i}
-          className={`h-2 w-2 rounded-[9999px] ${i + 1 <= current ? 'bg-flame' : 'bg-sand-2'}`}
+          className={`h-2 w-2 rounded-[9999px] ${i + 1 <= current ? 'bg-flame' : 'bg-track'}`}
         />
       ))}
     </View>

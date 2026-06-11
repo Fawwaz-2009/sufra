@@ -16,7 +16,7 @@ export function CostCard({
   runCount: number;
 }) {
   return (
-    <View className="rounded-2xl border border-line bg-card p-4">
+    <View className="rounded-2xl border border-line bg-white p-4">
       <Text className="text-sm text-ink-soft">Inference cost this month</Text>
       <View className="mt-1 flex-row items-baseline justify-between gap-2">
         <DisplayText className="text-2xl text-ink">{`$${totalUsd.toFixed(2)}`}</DisplayText>

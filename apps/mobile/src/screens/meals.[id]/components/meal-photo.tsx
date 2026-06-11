@@ -13,7 +13,7 @@ export function MealPhoto({ photoUrl }: { photoUrl: string }) {
   return (
     <Image
       source={{ uri: `${getServerUrl()}${photoUrl}`, headers: { Cookie: cookie } }}
-      style={{ width: '100%', aspectRatio: 1, backgroundColor: Palette.sand2 }}
+      style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 24, backgroundColor: Palette.track }}
       contentFit="cover"
     />
   );

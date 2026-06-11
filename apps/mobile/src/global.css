@@ -1,20 +1,18 @@
 @theme {
-  /* Warm Table palette — the locked system (see design.md; mirror of constants/theme.ts Palette) */
-  --color-cream: #F6E8D5;
-  --color-card: #FFFBF2;
-  --color-sand: #F0E2C9;
-  --color-sand-2: #E6D3B3;
-  --color-line: #E3D2B6;
-  --color-ink: #3A2A1B;
-  --color-ink-soft: #8A7560;
-  --color-ink-faint: #C2B197;
-  --color-flame: #C75320;
-  --color-flame-deep: #9E3F16;
-  --color-amber: #EC8F3A;
-  --color-teal: #539EA6;
-  --color-teal-deep: #3D7B82;
-  --color-red: #BE3B2B;
-  --color-white: #ffffff;
+  /* Daylight palette — the locked system (design.md; mirror of constants/theme.ts Palette). */
+  --color-white: #FFFFFF;
+  --color-surface: #F5F4F2;
+  --color-track: #EBE7E1;
+  --color-line: #ECE9E4;
+  --color-ink: #1A1816;
+  --color-ink-soft: #75706A;
+  --color-ink-faint: #B9B3AA;
+  --color-flame: #E45527;
+  --color-flame-deep: #C2431D;
+  --color-amber: #D99A36;
+  --color-teal: #45929A;
+  --color-teal-deep: #45929A;
+  --color-red: #C73A2A;
   --spacing: 0.25rem;
   --container-md: 28rem;
   --text-xs: 0.75rem;
@@ -67,7 +65,10 @@
    an iPad Split View half stays under the breakpoint and keeps the narrow column too) */
 @source inline("sm:max-w-2xl");
 
-/* Warm Table palette (design.md) — surfaces, ink, accents */
-@source inline("bg-cream bg-card bg-sand bg-sand-2 bg-flame bg-flame-deep bg-teal bg-amber");
-@source inline("text-ink text-ink-soft text-ink-faint text-flame text-teal text-teal-deep text-red text-amber");
+/* Daylight palette (design.md) — surfaces, ink, accents */
+@source inline("bg-white bg-surface bg-track bg-flame bg-flame-deep bg-teal bg-amber");
+@source inline("text-ink text-ink-soft text-ink-faint text-flame text-flame-deep text-teal text-teal-deep text-red text-amber");
 @source inline("border-line border-flame border-teal border-red opacity-60");
+
+/* Daylight bones — the photo-forward Today/detail rebuild */
+@source inline("h-[190px] rounded-b-2xl pt-2 pb-3 px-3 mt-6 mb-1 w-full");

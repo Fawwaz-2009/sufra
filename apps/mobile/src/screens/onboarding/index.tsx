@@ -87,7 +87,7 @@ export default function OnboardingScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">

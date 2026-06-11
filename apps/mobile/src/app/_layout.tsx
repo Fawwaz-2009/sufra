@@ -1,6 +1,5 @@
 import '@/global.css';
 
-import { Fraunces_600SemiBold, useFonts } from '@expo-google-fonts/fraunces';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -35,15 +34,15 @@ function onAppStateChange(status: AppStateStatus) {
  * changes, so a server switch never reuses hooks bound to the old client. Client-side UX only; the
  * Worker's `Authentication` middleware stays the real gate on every `/api/*` call.
  */
-// Light is pinned (design.md — the Warm Table is daylight-warm); navigation surfaces ride the
-// cream so screen transitions never flash white.
+// Light is pinned (design.md — Daylight); navigation surfaces ride the white so screen
+// transitions never flash a foreign color.
 const SufraTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
     primary: Palette.flame,
-    background: Palette.cream,
-    card: Palette.cream,
+    background: Palette.white,
+    card: Palette.white,
     text: Palette.ink,
     border: Palette.line,
   },
@@ -51,16 +50,11 @@ const SufraTheme = {
 
 export default function RootLayout() {
   const serverUrl = useServerUrl();
-  // The display face (design.md). The splash holds until it lands — the gates below are the only
-  // splash-hiders and they mount only after this returns non-null.
-  const [fontsLoaded] = useFonts({ Fraunces_600SemiBold });
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
     return () => subscription.remove();
   }, []);
-
-  if (!fontsLoaded) return null;
 
   return (
     <ThemeProvider value={SufraTheme}>

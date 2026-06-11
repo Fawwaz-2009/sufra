@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/theme';
+
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 import { ImproveEstimateSheet } from './improve-estimate-sheet';
 
@@ -23,45 +23,32 @@ export function FoodsBreakdown({
 }) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const improveButtonColor =
-    analysis.overallConfidence === 'high'
-      ? Palette.tealDeep
-      : analysis.overallConfidence === 'medium'
-        ? Palette.amber
-        : Palette.red;
-
   return (
-    <View className="rounded-xl bg-sand p-4">
-      <View className="flex-row items-center justify-between gap-2">
+    <View className="rounded-2xl bg-surface">
+      <View className="flex-row items-center justify-between gap-2 px-4 pt-4 pb-3">
         <Text className="text-xs font-bold uppercase text-ink-soft">AI estimate</Text>
         <Pressable
           onPress={() => setSheetOpen(true)}
           accessibilityLabel="Improve estimate"
-          style={{ borderColor: improveButtonColor, borderWidth: 1, borderRadius: 9999 }}
-          className="px-3 py-1">
-          <Text style={{ color: improveButtonColor }} className="text-xs font-medium">
-            Improve
-          </Text>
+          className="rounded-[9999px] bg-flame px-3 py-1">
+          <Text className="text-xs font-semibold text-white">Improve</Text>
         </Pressable>
       </View>
 
-      <View className="mt-3 gap-3">
+      <View>
         {analysis.foods.map((f, idx) => (
-          <View key={idx} className="flex-row items-start gap-3">
+          <View
+            key={idx}
+            className={`flex-row items-center gap-3 px-4 py-3${idx < analysis.foods.length - 1 ? ' border-b border-line' : ''}`}>
             <View className="min-w-0 flex-1">
-              <Text className="text-sm font-medium text-ink">{f.name}</Text>
-              <Text className="text-xs text-ink-soft">
+              <Text className="text-base text-ink">{f.name}</Text>
+              <Text className="text-sm text-ink-soft">
                 {f.portionEstimate} {f.portionUnit} · {Math.round(f.portionGrams)}g
               </Text>
-              <Text className="text-xs text-ink-soft">
-                P {Math.round(f.estimatedProteinG)}g · C {Math.round(f.estimatedCarbsG)}g · F{' '}
-                {Math.round(f.estimatedFatG)}g
-              </Text>
             </View>
-            <View className="w-16 shrink-0 items-end">
-              <Text className="text-sm text-ink-soft">{Math.round(f.estimatedKcal)}</Text>
-              <Text className="text-xs text-ink-soft">kcal</Text>
-            </View>
+            <Text className="shrink-0 text-base font-semibold text-ink">
+              {Math.round(f.estimatedKcal)}
+            </Text>
           </View>
         ))}
       </View>

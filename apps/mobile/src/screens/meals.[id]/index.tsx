@@ -42,7 +42,7 @@ export default function MealDetailScreen() {
 
   if (mealQuery.isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator />
         </View>
@@ -52,12 +52,12 @@ export default function MealDetailScreen() {
 
   if (!meal) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
         <View className="flex-1 items-center justify-center px-6 gap-4">
           <Text className="text-lg font-semibold text-ink">Meal not found</Text>
           <Pressable
             onPress={() => router.back()}
-            className="h-12 items-center justify-center rounded-[9999px] border border-line px-6">
+            className="h-12 items-center justify-center rounded-[9999px] bg-surface px-6">
             <Text className="text-base font-medium text-ink">Go back</Text>
           </Pressable>
         </View>
@@ -74,13 +74,13 @@ export default function MealDetailScreen() {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="pb-12">
         {/* Close handle for formSheet */}
         <View className="items-center py-2">
-          <View className="h-1 w-10 rounded-[9999px] bg-sand-2" />
+          <View className="h-1 w-10 rounded-[9999px] bg-track" />
         </View>
 
         <MealPhoto photoUrl={meal.photoUrl} />
@@ -140,8 +140,8 @@ function BookmarkButton({ mealId, saved }: { mealId: string; saved: boolean }) {
       accessibilityRole="button"
       accessibilityLabel={saved ? 'Remove from saved meals' : 'Save meal for re-logging'}
       accessibilityState={{ selected: saved }}
-      className={`h-9 items-center justify-center rounded-[9999px] px-3 border${saved ? ' bg-flame border-flame' : ' bg-card border-line'}${toggle.isPending ? ' opacity-50' : ''}`}>
-      <Text className={`text-xs font-semibold${saved ? ' text-white' : ' text-ink'}`}>
+      className={`h-9 items-center justify-center rounded-[9999px] px-3${toggle.isPending ? ' opacity-50' : ''}`}>
+      <Text className={`text-xs font-semibold${saved ? ' text-flame' : ' text-ink-soft'}`}>
         {saved ? 'Saved' : 'Save'}
       </Text>
     </Pressable>
@@ -184,13 +184,15 @@ function OverrideEditor({
   const resolved = resolveTotals(analysis, meal.override);
 
   return (
-    <View className="rounded-xl bg-sand p-4 gap-3">
+    <View className="rounded-2xl bg-surface p-4 gap-3">
       <View className="flex-row items-baseline justify-between">
         <Text className="text-xs font-bold uppercase text-ink-soft">Your numbers</Text>
-        <DisplayText className="text-2xl text-ink">
-          {Math.round(resolved.kcal)}{' '}
-          <Text className="text-sm font-medium text-ink-soft">kcal</Text>
-        </DisplayText>
+        <View className="flex-row items-baseline gap-1">
+          <DisplayText style={{ fontSize: 34, lineHeight: 38 }} className="text-ink">
+            {Math.round(resolved.kcal)}
+          </DisplayText>
+          <Text className="text-sm text-ink-soft">kcal</Text>
+        </View>
       </View>
 
       <View className="flex-row flex-wrap gap-3">
@@ -236,7 +238,7 @@ function OverrideEditor({
         <Pressable
           onPress={() => setDraft({ kcal: '', proteinG: '', carbsG: '', fatG: '' })}
           disabled={mutation.isPending}
-          className="h-12 items-center justify-center rounded-[9999px] border border-line px-4">
+          className="h-12 items-center justify-center rounded-[9999px] bg-surface px-4">
           <Text className="text-sm font-medium text-ink">Reset</Text>
         </Pressable>
       </View>
@@ -272,10 +274,8 @@ function OverrideField({
         placeholder={String(Math.round(aiValue))}
         placeholderTextColor={Palette.inkFaint}
         keyboardType="decimal-pad"
+        className="rounded-xl bg-surface"
         style={{
-          borderWidth: 1,
-          borderColor: Palette.line,
-          borderRadius: 10,
           paddingHorizontal: 10,
           paddingVertical: 8,
           fontSize: 14,
@@ -307,7 +307,7 @@ function RetryPanel({
   });
 
   return (
-    <View className="rounded-xl bg-sand p-4 gap-3">
+    <View className="rounded-2xl bg-surface p-4 gap-3">
       <Text className="text-sm text-ink-soft">{estimateErrorMessage(errorCode)}</Text>
       <Pressable
         onPress={() => retry.mutate()}
@@ -361,7 +361,7 @@ function DeleteButton({ mealId, onDeleted }: { mealId: string; onDeleted: () => 
       <Pressable
         onPress={confirm}
         disabled={deleteMutation.isPending}
-        className="h-12 items-center justify-center rounded-[9999px] border border-line">
+        className="h-12 items-center justify-center">
         <Text className="text-base font-medium text-red">
           {deleteMutation.isPending ? 'Deleting...' : 'Delete meal'}
         </Text>
