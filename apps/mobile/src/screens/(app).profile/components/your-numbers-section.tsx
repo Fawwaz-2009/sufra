@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
 import { SectionCard } from './section-card';
 
 export function YourNumbersSection({
@@ -15,17 +16,17 @@ export function YourNumbersSection({
     <SectionCard label="Your numbers">
       <View className="gap-3 px-4 py-3">
         {hasPending ? (
-          <View className="rounded-xl bg-zinc-100 px-2 py-1">
-            <Text className="text-[10px] uppercase text-zinc-500">
+          <View className="rounded-xl bg-sand px-2 py-1">
+            <Text className="text-[10px] uppercase text-ink-soft">
               Pending changes — starts tomorrow
             </Text>
           </View>
         ) : null}
         <View className="flex-row items-baseline justify-between">
-          <Text className="text-sm text-zinc-500">Daily target</Text>
+          <Text className="text-sm text-ink-soft">Daily target</Text>
           <View className="flex-row items-baseline gap-1">
-            <Text className="text-2xl font-semibold text-black">{targetKcal}</Text>
-            <Text className="text-xs text-zinc-500">kcal</Text>
+            <DisplayText className="text-2xl text-ink">{targetKcal}</DisplayText>
+            <Text className="text-xs text-ink-soft">kcal</Text>
           </View>
         </View>
         <View className="flex-row gap-2">
@@ -40,9 +41,9 @@ export function YourNumbersSection({
 
 function MacroCell({ label, g }: { label: string; g: number }) {
   return (
-    <View className="flex-1 items-center rounded-xl bg-zinc-100 px-2 py-2">
-      <Text className="text-xs text-zinc-500">{label}</Text>
-      <Text className="text-base font-medium text-black">{g}g</Text>
+    <View className="flex-1 items-center rounded-xl bg-sand px-2 py-2">
+      <Text className="text-xs text-ink-soft">{label}</Text>
+      <Text className="text-base font-medium text-ink">{g}g</Text>
     </View>
   );
 }

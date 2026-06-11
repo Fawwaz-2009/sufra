@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
 import { GoalSlider } from '@/components/goal-slider';
 import { kgToLb } from '@/lib/units';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
@@ -50,20 +51,20 @@ export function GoalSheet({
       error={patch.isError ? "Couldn't save. Try again." : null}>
       <View className="gap-2">
         <View className="flex-row items-baseline justify-between">
-          <Text className="text-sm font-medium text-black">{direction}</Text>
-          <Text className="text-2xl font-semibold text-black">{goalKg} kg</Text>
+          <Text className="text-sm font-medium text-ink">{direction}</Text>
+          <DisplayText className="text-2xl text-ink">{goalKg} kg</DisplayText>
         </View>
         <GoalSlider min={min} max={max} value={Math.round(goalKg)} onChange={setGoalKg} />
         <View className="flex-row justify-between">
-          <Text className="text-[10px] text-zinc-500">{min} kg</Text>
-          <Text className="text-[10px] text-zinc-500">Now: {currentDisplay}</Text>
-          <Text className="text-[10px] text-zinc-500">{max} kg</Text>
+          <Text className="text-[10px] text-ink-soft">{min} kg</Text>
+          <Text className="text-[10px] text-ink-soft">Now: {currentDisplay}</Text>
+          <Text className="text-[10px] text-ink-soft">{max} kg</Text>
         </View>
       </View>
 
       {!isMaintain ? (
         <View className="gap-2">
-          <Text className="text-sm font-medium text-black">How fast?</Text>
+          <Text className="text-sm font-medium text-ink">How fast?</Text>
           <View className="flex-row gap-2">
             <View className="flex-1">
               <ChipButton

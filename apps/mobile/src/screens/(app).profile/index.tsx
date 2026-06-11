@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAuthClient } from '@/client/auth-client';
 import { meQueryOptions } from '@/client/me';
 import { queryClient } from '@/client/query-client';
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 import { formatLocalDate, todayLocal } from '@/lib/date';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 
@@ -38,7 +40,7 @@ export default function ProfileScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-6 px-5 pb-28 pt-4"
@@ -47,14 +49,14 @@ export default function ProfileScreen() {
         }>
         <View className="flex-row items-start justify-between gap-3">
           <View>
-            <Text className="text-2xl font-semibold text-black">Profile</Text>
-            <Text className="text-sm text-zinc-500">Your account and plan</Text>
+            <DisplayText className="text-2xl text-ink">Profile</DisplayText>
+            <Text className="text-sm text-ink-soft">Your account and plan</Text>
           </View>
           <Pressable
             onPress={signOut}
             accessibilityLabel="Sign out"
             className="h-9 items-center justify-center rounded-[9999px] px-3">
-            <Text className="text-sm font-medium text-zinc-500">Sign out</Text>
+            <Text className="text-sm font-medium text-ink-soft">Sign out</Text>
           </Pressable>
         </View>
 

@@ -39,9 +39,9 @@ export function AccountSection({ username, isHost }: { username: string; isHost:
   return (
     <SectionCard label="Account">
       <Row label="Username" value={username} />
-      <Row label="Server" value={getServerUrl() ?? ''} onPress={changeServer} />
+      <Row label="Server" value={getServerUrl() ?? ''} onPress={changeServer} labelClassName="text-flame" />
       {/* The row is UX only — the real Host gate is the server's uniform 404 scoping (ADR 0013). */}
-      {isHost && <Row label="Admin" value="" onPress={() => router.push('/admin')} />}
+      {isHost && <Row label="Admin" value="" onPress={() => router.push('/admin')} labelClassName="text-flame" />}
     </SectionCard>
   );
 }

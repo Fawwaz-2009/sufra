@@ -13,6 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getClient, run } from '@/client/api-client';
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 import type { MealView } from '@sufra-web/worker/views/meal.ts';
 import { estimateErrorMessage, resolveTotals } from '@sufra-web/worker/views/meal.ts';
 import type { MealOverride } from '@sufra-web/worker/models/meal.ts';
@@ -40,7 +42,7 @@ export default function MealDetailScreen() {
 
   if (mealQuery.isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator />
         </View>
@@ -50,13 +52,13 @@ export default function MealDetailScreen() {
 
   if (!meal) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
         <View className="flex-1 items-center justify-center px-6 gap-4">
-          <Text className="text-lg font-semibold text-black">Meal not found</Text>
+          <Text className="text-lg font-semibold text-ink">Meal not found</Text>
           <Pressable
             onPress={() => router.back()}
-            className="h-12 items-center justify-center rounded-[9999px] border border-zinc-300 px-6">
-            <Text className="text-base font-medium text-zinc-700">Go back</Text>
+            className="h-12 items-center justify-center rounded-[9999px] border border-line px-6">
+            <Text className="text-base font-medium text-ink">Go back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -72,13 +74,13 @@ export default function MealDetailScreen() {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="pb-12">
         {/* Close handle for formSheet */}
         <View className="items-center py-2">
-          <View className="h-1 w-10 rounded-[9999px] bg-zinc-300" />
+          <View className="h-1 w-10 rounded-[9999px] bg-sand-2" />
         </View>
 
         <MealPhoto photoUrl={meal.photoUrl} />
@@ -86,10 +88,10 @@ export default function MealDetailScreen() {
         <View className="gap-4 px-5 pt-4">
           <View className="flex-row items-start justify-between gap-3">
             <View className="min-w-0 flex-1">
-              <Text className="text-2xl font-semibold text-black">
+              <DisplayText className="text-2xl text-ink">
                 {meal.aiAnalysis ? meal.aiAnalysis.dishName : "Couldn't read this meal"}
-              </Text>
-              <Text className="text-sm text-zinc-500">{time}</Text>
+              </DisplayText>
+              <Text className="text-sm text-ink-soft">{time}</Text>
             </View>
             <BookmarkButton mealId={meal.id} saved={meal.savedAt != null} />
           </View>
@@ -138,8 +140,8 @@ function BookmarkButton({ mealId, saved }: { mealId: string; saved: boolean }) {
       accessibilityRole="button"
       accessibilityLabel={saved ? 'Remove from saved meals' : 'Save meal for re-logging'}
       accessibilityState={{ selected: saved }}
-      className={`h-9 items-center justify-center rounded-[9999px] px-3 border${saved ? ' bg-emerald-800 border-emerald-800' : ' bg-white border-zinc-300'}${toggle.isPending ? ' opacity-50' : ''}`}>
-      <Text className={`text-xs font-semibold${saved ? ' text-white' : ' text-zinc-700'}`}>
+      className={`h-9 items-center justify-center rounded-[9999px] px-3 border${saved ? ' bg-flame border-flame' : ' bg-card border-line'}${toggle.isPending ? ' opacity-50' : ''}`}>
+      <Text className={`text-xs font-semibold${saved ? ' text-white' : ' text-ink'}`}>
         {saved ? 'Saved' : 'Save'}
       </Text>
     </Pressable>
@@ -182,13 +184,13 @@ function OverrideEditor({
   const resolved = resolveTotals(analysis, meal.override);
 
   return (
-    <View className="rounded-xl bg-zinc-100 p-4 gap-3">
+    <View className="rounded-xl bg-sand p-4 gap-3">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-bold uppercase text-zinc-500">Your numbers</Text>
-        <Text className="text-2xl font-semibold text-black">
+        <Text className="text-xs font-bold uppercase text-ink-soft">Your numbers</Text>
+        <DisplayText className="text-2xl text-ink">
           {Math.round(resolved.kcal)}{' '}
-          <Text className="text-sm font-medium text-zinc-500">kcal</Text>
-        </Text>
+          <Text className="text-sm font-medium text-ink-soft">kcal</Text>
+        </DisplayText>
       </View>
 
       <View className="flex-row flex-wrap gap-3">
@@ -226,7 +228,7 @@ function OverrideEditor({
         <Pressable
           onPress={() => mutation.mutate(inputsToOverride(draft))}
           disabled={mutation.isPending}
-          className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-emerald-800${mutation.isPending ? ' opacity-50' : ''}`}>
+          className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame${mutation.isPending ? ' opacity-60' : ''}`}>
           <Text className="text-base font-semibold text-white">
             {mutation.isPending ? 'Saving...' : 'Save'}
           </Text>
@@ -234,12 +236,12 @@ function OverrideEditor({
         <Pressable
           onPress={() => setDraft({ kcal: '', proteinG: '', carbsG: '', fatG: '' })}
           disabled={mutation.isPending}
-          className="h-12 items-center justify-center rounded-[9999px] border border-zinc-300 px-4">
-          <Text className="text-sm font-medium text-zinc-700">Reset</Text>
+          className="h-12 items-center justify-center rounded-[9999px] border border-line px-4">
+          <Text className="text-sm font-medium text-ink">Reset</Text>
         </Pressable>
       </View>
       {mutation.isError ? (
-        <Text className="text-xs text-red-600">{"Couldn't save. Try again."}</Text>
+        <Text className="text-xs text-red">{"Couldn't save. Try again."}</Text>
       ) : null}
     </View>
   );
@@ -260,7 +262,7 @@ function OverrideField({
 }) {
   return (
     <View style={{ width: '47%' }} className="gap-1">
-      <Text className="text-xs text-zinc-500">
+      <Text className="text-xs text-ink-soft">
         {label} · AI: {Math.round(aiValue)}
         {unit}
       </Text>
@@ -268,16 +270,16 @@ function OverrideField({
         value={value}
         onChangeText={onChange}
         placeholder={String(Math.round(aiValue))}
-        placeholderTextColor="#71717a"
+        placeholderTextColor={Palette.inkFaint}
         keyboardType="decimal-pad"
         style={{
           borderWidth: 1,
-          borderColor: '#e4e4e7',
+          borderColor: Palette.line,
           borderRadius: 10,
           paddingHorizontal: 10,
           paddingVertical: 8,
           fontSize: 14,
-          color: '#000000',
+          color: Palette.ink,
         }}
       />
     </View>
@@ -305,12 +307,12 @@ function RetryPanel({
   });
 
   return (
-    <View className="rounded-xl bg-zinc-100 p-4 gap-3">
-      <Text className="text-sm text-zinc-600">{estimateErrorMessage(errorCode)}</Text>
+    <View className="rounded-xl bg-sand p-4 gap-3">
+      <Text className="text-sm text-ink-soft">{estimateErrorMessage(errorCode)}</Text>
       <Pressable
         onPress={() => retry.mutate()}
         disabled={retry.isPending}
-        className={`h-12 items-center justify-center rounded-[9999px] bg-emerald-800${retry.isPending ? ' opacity-50' : ''}`}>
+        className={`h-12 items-center justify-center rounded-[9999px] bg-flame${retry.isPending ? ' opacity-60' : ''}`}>
         {retry.isPending ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
@@ -318,7 +320,7 @@ function RetryPanel({
         )}
       </Pressable>
       {retry.isError ? (
-        <Text className="text-xs text-red-600">
+        <Text className="text-xs text-red">
           {"Still couldn't reach the vision service. Try again."}
         </Text>
       ) : null}
@@ -359,13 +361,13 @@ function DeleteButton({ mealId, onDeleted }: { mealId: string; onDeleted: () => 
       <Pressable
         onPress={confirm}
         disabled={deleteMutation.isPending}
-        className="h-12 items-center justify-center rounded-[9999px] border border-zinc-300">
-        <Text className="text-base font-medium text-red-600">
+        className="h-12 items-center justify-center rounded-[9999px] border border-line">
+        <Text className="text-base font-medium text-red">
           {deleteMutation.isPending ? 'Deleting...' : 'Delete meal'}
         </Text>
       </Pressable>
       {deleteMutation.isError ? (
-        <Text className="text-xs text-red-600 mt-2">{"Couldn't delete. Try again."}</Text>
+        <Text className="text-xs text-red mt-2">{"Couldn't delete. Try again."}</Text>
       ) : null}
     </View>
   );

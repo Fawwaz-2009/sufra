@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { PanResponder, View } from 'react-native';
 
+import { Palette } from '@/constants/theme';
+
 const THUMB_SIZE = 28;
 const TRACK_HEIGHT = 8;
 const SLIDER_HEIGHT = 40;
@@ -50,21 +52,22 @@ export function GoalSlider({
       accessibilityLabel="Goal weight">
       <View
         pointerEvents="none"
-        className="rounded-[9999px] bg-zinc-200"
+        className="rounded-[9999px] bg-sand-2"
         style={{ height: TRACK_HEIGHT }}
       />
       <View
         pointerEvents="none"
-        className="absolute rounded-[9999px] bg-emerald-800"
+        className="absolute rounded-[9999px]"
         style={{
           height: TRACK_HEIGHT,
           top: (SLIDER_HEIGHT - TRACK_HEIGHT) / 2,
           width: ratio * width,
+          backgroundColor: Palette.flame,
         }}
       />
       <View
         pointerEvents="none"
-        className="absolute border-2 border-emerald-800 bg-white"
+        className="absolute border-2 border-flame bg-card"
         style={{
           height: THUMB_SIZE,
           width: THUMB_SIZE,

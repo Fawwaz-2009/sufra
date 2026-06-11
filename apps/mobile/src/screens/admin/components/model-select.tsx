@@ -42,13 +42,13 @@ export function ModelSelect() {
             key={m.id}
             disabled={patchSettings.isPending || selected}
             onPress={() => patchSettings.mutate({ visionModelId: m.id })}
-            className={`flex-row items-center gap-3 rounded-xl border bg-white px-4 py-3 ${selected ? 'border-2 border-black' : 'border-zinc-200'}`}
+            className={`flex-row items-center gap-3 rounded-xl border bg-card px-4 py-3 ${selected ? 'border-2 border-flame' : 'border-line'}`}
           >
             <View className="min-w-0 flex-1">
-              <Text numberOfLines={1} className="text-sm font-medium text-black">
+              <Text numberOfLines={1} className="text-sm font-medium text-ink">
                 {m.label}
               </Text>
-              <Text className="mt-1 text-xs text-zinc-500">
+              <Text className="mt-1 text-xs text-ink-soft">
                 {`$${m.pricing.inputPerMTokens.toFixed(2)} in / $${m.pricing.outputPerMTokens.toFixed(2)} out per 1M tok`}
               </Text>
             </View>
@@ -57,7 +57,7 @@ export function ModelSelect() {
               <ActivityIndicator size="small" />
             ) : (
               <View
-                className={`h-4 w-4 rounded-[9999px] border ${selected ? 'border-black bg-black' : 'border-zinc-300'}`}
+                className={`h-4 w-4 rounded-[9999px] border ${selected ? 'border-flame bg-flame' : 'border-line'}`}
               />
             )}
           </Pressable>

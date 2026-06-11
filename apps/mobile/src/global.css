@@ -1,13 +1,19 @@
 @theme {
-  --color-red-600: #dc2626;
-  --color-emerald-800: #166534;
-  --color-zinc-100: #f4f4f5;
-  --color-zinc-200: #e4e4e7;
-  --color-zinc-300: #d4d4d8;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #52525b;
-  --color-zinc-700: #3f3f46;
-  --color-black: #000000;
+  /* Warm Table palette — the locked system (see design.md; mirror of constants/theme.ts Palette) */
+  --color-cream: #F6E8D5;
+  --color-card: #FFFBF2;
+  --color-sand: #F0E2C9;
+  --color-sand-2: #E6D3B3;
+  --color-line: #E3D2B6;
+  --color-ink: #3A2A1B;
+  --color-ink-soft: #8A7560;
+  --color-ink-faint: #C2B197;
+  --color-flame: #C75320;
+  --color-flame-deep: #9E3F16;
+  --color-amber: #EC8F3A;
+  --color-teal: #539EA6;
+  --color-teal-deep: #3D7B82;
+  --color-red: #BE3B2B;
   --color-white: #ffffff;
   --spacing: 0.25rem;
   --container-md: 28rem;
@@ -34,7 +40,7 @@
 
 @import "tailwindcss/utilities.css" source(none);
 
-@source inline("bg-black bg-emerald-800 bg-white bg-zinc-100 bg-zinc-200 border-zinc-200 border-zinc-300 text-black text-red-600 text-white text-zinc-300 text-zinc-500 text-zinc-600 text-zinc-700");
+@source inline("text-white");
 @source inline("border border-[10px]");
 @source inline("font-bold font-medium font-semibold");
 @source inline("gap-1 gap-2 gap-3 gap-4 gap-8 mt-2 mt-4 p-3 p-4 pb-1 pb-2 pb-28 pt-4 px-4 px-5 px-6 py-1 py-10 py-12 py-4 mx-auto");
@@ -43,19 +49,16 @@
 @source inline("rounded-2xl rounded-[9999px] rounded-xl");
 
 /* Onboarding wizard + Connect + gate chrome */
-@source inline("border-2 border-black w-2 self-start absolute opacity-50");
+@source inline("border-2 w-2 self-start absolute opacity-50");
 @source inline("gap-6 mb-6 mt-1 mt-3 mt-8 p-1 px-3 py-3");
 
 /* Settings sections + edit sheets */
-@source inline("border-b border-zinc-100 items-start justify-end rounded-t-2xl");
+@source inline("border-b items-start justify-end rounded-t-2xl");
 @source inline("mb-2 ml-2 pb-10 pt-5 px-2 py-2");
 
 /* Meal detail screen */
-@source inline("bg-zinc-300 flex-wrap h-1 pb-12");
-@source inline("border-emerald-800 h-9 py-6");
-
-/* Progress screen (charts + period chips) */
-@source inline("border-zinc-500");
+@source inline("flex-wrap h-1 pb-12");
+@source inline("h-9 py-6");
 
 /* Admin screen (model radio dot) */
 @source inline("h-4 w-4");
@@ -63,3 +66,8 @@
 /* iPad / wide windows (>= 40rem): the tab screens' content column widens (phones keep max-w-md;
    an iPad Split View half stays under the breakpoint and keeps the narrow column too) */
 @source inline("sm:max-w-2xl");
+
+/* Warm Table palette (design.md) — surfaces, ink, accents */
+@source inline("bg-cream bg-card bg-sand bg-sand-2 bg-flame bg-flame-deep bg-teal bg-amber");
+@source inline("text-ink text-ink-soft text-ink-faint text-flame text-teal text-teal-deep text-red text-amber");
+@source inline("border-line border-flame border-teal border-red opacity-60");

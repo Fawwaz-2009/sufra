@@ -2,8 +2,10 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
 import { getAuthClient } from '@/client/auth-client';
 import { getServerUrl } from '@/client/server';
+import { Palette } from '@/constants/theme';
 import type { MealListItemView } from '@sufra-web/worker/views/meal.ts';
 
 export function MealCard({
@@ -22,10 +24,10 @@ export function MealCard({
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row items-center gap-3 rounded-xl bg-zinc-100 p-3">
+      className="flex-row items-center gap-3 rounded-xl bg-card p-3">
       <Image
         source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
-        style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: '#D4D4D8' }}
+        style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: Palette.sand2 }}
         contentFit="cover"
       />
 
@@ -35,27 +37,27 @@ export function MealCard({
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
-          className="text-lg font-semibold text-black">
+          className="text-lg font-semibold text-ink">
           {meal.dishName ?? "Couldn't read this meal"}
         </Text>
         {meal.totals ? (
-          <Text numberOfLines={1} className="text-sm text-zinc-600">
+          <Text numberOfLines={1} className="text-sm text-ink-soft">
             {`P ${Math.round(meal.totals.proteinG)}g - C ${Math.round(
               meal.totals.carbsG
             )}g - F ${Math.round(meal.totals.fatG)}g`}
           </Text>
         ) : (
-          <Text numberOfLines={1} className="text-sm text-zinc-600">
+          <Text numberOfLines={1} className="text-sm text-ink-soft">
             Tap to retry the estimate
           </Text>
         )}
       </View>
 
       <View className="w-16 shrink-0 items-end">
-        <Text className="text-2xl font-semibold text-black">
+        <DisplayText className="text-2xl text-ink">
           {meal.totals ? `~${Math.round(meal.totals.kcal)}` : '-'}
-        </Text>
-        <Text className="text-sm text-zinc-500">kcal</Text>
+        </DisplayText>
+        <Text className="text-sm text-ink-soft">kcal</Text>
       </View>
     </Pressable>
   );

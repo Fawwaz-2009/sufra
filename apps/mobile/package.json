@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@better-auth/expo": "1.6.12",
+    "@expo-google-fonts/fraunces": "^0.4.1",
     "@tanstack/react-query": "^5.100.10",
     "better-auth": "1.6.12",
     "effect": "4.0.0-beta.74",

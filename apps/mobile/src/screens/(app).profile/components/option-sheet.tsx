@@ -1,5 +1,7 @@
 import { Modal, Pressable, Text, View } from 'react-native';
 
+import { Palette } from '@/constants/theme';
+
 /**
  * A single-select bottom sheet for Profile's single-tap fields (Sex, Activity) — the INLINE-COMMIT
  * pattern (the established mobile idiom, kept from the @expo/ui spike): tapping an option commits
@@ -23,10 +25,10 @@ export function OptionSheet<T extends string>({
 }) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+      <View className="flex-1 justify-end" style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
-          <Text className="text-lg font-semibold text-black">{title}</Text>
+        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+          <Text className="text-lg font-semibold text-ink">{title}</Text>
           <View className="mt-4 gap-2">
             {options.map((option) => (
               <Pressable
@@ -34,16 +36,16 @@ export function OptionSheet<T extends string>({
                 onPress={() => onSelect(option.value)}
                 accessibilityState={{ selected: selected === option.value }}
                 className={`flex-row items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
-                  selected === option.value ? 'border-black bg-zinc-100' : 'border-zinc-200'
+                  selected === option.value ? 'border-flame bg-sand' : 'border-line'
                 }`}>
                 <View className="min-w-0 gap-1">
-                  <Text className="text-sm font-medium text-black">{option.label}</Text>
+                  <Text className="text-sm font-medium text-ink">{option.label}</Text>
                   {option.description ? (
-                    <Text className="text-[10px] text-zinc-500">{option.description}</Text>
+                    <Text className="text-[10px] text-ink-soft">{option.description}</Text>
                   ) : null}
                 </View>
                 {selected === option.value ? (
-                  <Text className="text-base font-semibold text-black">✓</Text>
+                  <Text className="text-base font-semibold text-flame">✓</Text>
                 ) : null}
               </Pressable>
             ))}

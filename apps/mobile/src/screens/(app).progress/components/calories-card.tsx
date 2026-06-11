@@ -30,9 +30,9 @@ export function CaloriesCard({
   const avgDaily = daysWithData > 0 ? Math.round(totalKcal / daysWithData) : 0;
 
   return (
-    <View className="rounded-2xl border border-zinc-200 bg-white p-4">
-      <Text className="text-base font-semibold text-black">Calories</Text>
-      <Text className="mb-2 text-xs text-zinc-500">
+    <View className="rounded-2xl border border-line bg-card p-4">
+      <Text className="text-base font-semibold text-ink">Calories</Text>
+      <Text className="mb-2 text-xs text-ink-soft">
         {daysWithData > 0
           ? `Avg ${avgDaily.toLocaleString()} kcal/day · ${periodLabel(period)}`
           : `No meals · ${periodLabel(period)}`}

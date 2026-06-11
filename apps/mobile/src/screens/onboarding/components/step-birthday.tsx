@@ -1,7 +1,7 @@
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { BirthdayFields } from '@/components/birthday-fields';
-import { StepHeading } from './step-heading';
+import { DisplayText } from '@/components/display-text';
 
 export function StepBirthday({
   value,
@@ -12,10 +12,12 @@ export function StepBirthday({
 }) {
   return (
     <View className="gap-6">
-      <StepHeading
-        title="When were you born?"
-        subtitle="We use this to compute your age each time we run the formula."
-      />
+      <View className="mb-6 gap-1">
+        <DisplayText className="text-2xl text-ink">When were you born?</DisplayText>
+        <Text className="text-sm text-ink-soft">
+          We use this to compute your age each time we run the formula.
+        </Text>
+      </View>
       <BirthdayFields value={value} onChange={onChange} />
     </View>
   );

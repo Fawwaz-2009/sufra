@@ -20,9 +20,9 @@ export function PeriodChips<T extends string>({ options, value, onChange }: Peri
           <Pressable
             key={opt}
             onPress={() => onChange(opt)}
-            className={`flex-1 items-center rounded-xl border py-2 ${active ? 'border-zinc-500' : 'border-zinc-200'}`}>
+            className={`flex-1 items-center rounded-xl border py-2 ${active ? 'bg-flame border-flame' : 'border-line'}`}>
             <Text
-              className={`text-xs font-medium ${active ? 'text-black' : 'text-zinc-500'}`}>
+              className={`text-xs font-medium ${active ? 'text-white' : 'text-ink-soft'}`}>
               {opt}
             </Text>
           </Pressable>

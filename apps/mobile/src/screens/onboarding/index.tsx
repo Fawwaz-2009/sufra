@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Palette } from '@/constants/theme';
+
 import { getClient, run } from '@/client/api-client';
 import { meKey } from '@/client/me';
 import { formatLocalDate, todayLocal } from '@/lib/date';
@@ -85,7 +87,7 @@ export default function OnboardingScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">
@@ -155,7 +157,7 @@ export default function OnboardingScreen() {
           {step !== 1 ? (
             <View className="mt-4 gap-2 pb-2">
               {submitMutation.isError ? (
-                <Text className="text-sm text-red-600">
+                <Text className="text-sm text-red">
                   {submitMutation.error instanceof Error
                     ? `Error: ${submitMutation.error.message}`
                     : 'Something went wrong. Try again.'}
@@ -164,8 +166,8 @@ export default function OnboardingScreen() {
               <Pressable
                 disabled={!isStepValid(step, draft) || isSubmitting}
                 onPress={onContinue}
-                className={`h-12 items-center justify-center rounded-[9999px] bg-emerald-800 ${
-                  !isStepValid(step, draft) || isSubmitting ? 'opacity-50' : ''
+                className={`h-12 items-center justify-center rounded-[9999px] bg-flame ${
+                  !isStepValid(step, draft) || isSubmitting ? 'opacity-60' : ''
                 }`}>
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFFFFF" />

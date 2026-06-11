@@ -8,7 +8,7 @@ export function BackButton({ onPress, disabled }: { onPress: () => void; disable
       accessibilityLabel="Back"
       className="h-10 w-10 items-center justify-center rounded-[9999px]"
       style={disabled ? { opacity: 0 } : undefined}>
-      <Text className="text-2xl font-semibold text-black">‹</Text>
+      <Text className="text-2xl font-semibold text-ink">‹</Text>
     </Pressable>
   );
 }
@@ -19,7 +19,7 @@ export function Dots({ count, current }: { count: number; current: number }) {
       {Array.from({ length: count }, (_, i) => (
         <View
           key={i}
-          className={`h-2 w-2 rounded-[9999px] ${i + 1 <= current ? 'bg-black' : 'bg-zinc-200'}`}
+          className={`h-2 w-2 rounded-[9999px] ${i + 1 <= current ? 'bg-flame' : 'bg-sand-2'}`}
         />
       ))}
     </View>

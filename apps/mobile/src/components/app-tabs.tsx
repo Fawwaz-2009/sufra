@@ -1,22 +1,20 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
-
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      backgroundColor={Palette.cream}
+      indicatorColor={Palette.sand}
+      iconColor={Palette.inkSoft}
+      labelStyle={{ color: Palette.inkSoft, selected: { color: Palette.flame } }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"
+          selectedColor={Palette.flame}
         />
       </NativeTabs.Trigger>
 
@@ -25,6 +23,7 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/chart.png')}
           renderingMode="template"
+          selectedColor={Palette.flame}
         />
       </NativeTabs.Trigger>
 
@@ -33,6 +32,7 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/person.png')}
           renderingMode="template"
+          selectedColor={Palette.flame}
         />
       </NativeTabs.Trigger>
     </NativeTabs>

@@ -31,20 +31,20 @@ export function WeightCard({ profile, period, onPeriodChange }: WeightCardProps)
   const latest = weights.length > 0 ? weights[weights.length - 1] : undefined;
 
   return (
-    <View className="rounded-2xl border border-zinc-200 bg-white p-4">
+    <View className="rounded-2xl border border-line bg-card p-4">
       {/* Header row */}
       <View className="mb-2 flex-row items-start justify-between">
-        <Text className="text-base font-semibold text-black">Weight over time</Text>
+        <Text className="text-base font-semibold text-ink">Weight over time</Text>
         <Pressable
           onPress={() => setLogOpen(true)}
-          className="rounded-xl border border-zinc-200 px-3 py-1">
-          <Text className="text-xs font-medium text-black">Log weight</Text>
+          className="rounded-xl border border-line px-3 py-1">
+          <Text className="text-xs font-medium text-ink">Log weight</Text>
         </Pressable>
       </View>
 
       {/* Latest reading subtitle */}
       {latest !== undefined && (
-        <Text className="mb-2 text-xs text-zinc-500">
+        <Text className="mb-2 text-xs text-ink-soft">
           Latest: {formatWeight(latest.weightKg, profile.displayWeightUnit)} ·{' '}
           {relativeDate(latest.loggedAt)}
         </Text>

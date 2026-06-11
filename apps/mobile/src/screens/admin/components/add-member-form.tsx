@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { getClient, run } from '@/client/api-client';
+import { Palette } from '@/constants/theme';
 import { adminMembersKey } from '../queries';
 import { sharePasswordLinkMessage } from '../helpers';
 
@@ -68,18 +69,19 @@ export function AddMemberForm() {
         value={newUsername}
         onChangeText={setNewUsername}
         placeholder="username"
-        placeholderTextColor="#a1a1aa"
+        placeholderTextColor={Palette.inkFaint}
         autoCapitalize="none"
         autoCorrect={false}
         autoComplete="off"
         onSubmitEditing={submit}
         returnKeyType="done"
-        className="h-12 flex-1 rounded-xl border border-zinc-200 bg-white px-4 text-base text-black"
+        style={{ borderColor: Palette.line, color: Palette.ink }}
+        className="h-12 flex-1 rounded-xl border bg-card px-4 text-base"
       />
       <Pressable
         onPress={submit}
         disabled={addMember.isPending || newUsername.trim().length < 3}
-        className={`h-12 items-center justify-center rounded-xl bg-black px-4 ${addMember.isPending || newUsername.trim().length < 3 ? 'opacity-50' : ''}`}
+        className={`h-12 items-center justify-center rounded-xl bg-flame px-4 ${addMember.isPending || newUsername.trim().length < 3 ? 'opacity-60' : ''}`}
       >
         <Text className="text-sm font-medium text-white">
           {addMember.isPending ? 'Adding…' : 'Add Member'}

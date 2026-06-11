@@ -9,6 +9,8 @@ import {
   View,
 } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 
 /**
@@ -41,29 +43,29 @@ export function SheetShell({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+        style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
-          <Text className="text-lg font-semibold text-black">{title}</Text>
+        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+          <Text className="text-lg font-semibold text-ink">{title}</Text>
           <View className="mt-4 gap-4">{children}</View>
-          <View className="mt-4 rounded-xl bg-zinc-100 px-3 py-2">
-            <Text className="text-xs text-zinc-500">
+          <View className="mt-4 rounded-xl bg-sand px-3 py-2">
+            <Text className="text-xs text-ink-soft">
               Starts tomorrow at midnight (your local time).
             </Text>
           </View>
-          {error ? <Text className="mt-2 text-sm text-red-600">{error}</Text> : null}
+          {error ? <Text className="mt-2 text-sm text-red">{error}</Text> : null}
           <View className="mt-4 flex-row gap-2">
             <Pressable
               onPress={onClose}
               disabled={saving}
-              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-zinc-300">
-              <Text className="text-base font-medium text-zinc-700">Cancel</Text>
+              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line">
+              <Text className="text-base font-medium text-ink">Cancel</Text>
             </Pressable>
             <Pressable
               onPress={onSave}
               disabled={disabled || saving}
-              className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-emerald-800 ${
-                disabled || saving ? 'opacity-50' : ''
+              className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame ${
+                disabled || saving ? 'opacity-60' : ''
               }`}>
               {saving ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -92,14 +94,14 @@ export function PreviewBox({
   const derived = deriveProfile(inputs);
   const changed = derived.targetKcal !== previousTarget;
   return (
-    <View className="rounded-xl bg-zinc-100 p-3">
-      <Text className="text-xs uppercase text-zinc-500">Daily target</Text>
+    <View className="rounded-xl bg-sand p-3">
+      <Text className="text-xs uppercase text-ink-soft">Daily target</Text>
       <View className="mt-1 flex-row items-baseline gap-1">
-        <Text className="text-2xl font-semibold text-black">{derived.targetKcal}</Text>
-        <Text className="text-xs text-zinc-500">kcal</Text>
-        {changed ? <Text className="ml-2 text-xs text-zinc-500">was {previousTarget}</Text> : null}
+        <DisplayText className="text-2xl text-ink">{derived.targetKcal}</DisplayText>
+        <Text className="text-xs text-ink-soft">kcal</Text>
+        {changed ? <Text className="ml-2 text-xs text-ink-soft">was {previousTarget}</Text> : null}
       </View>
-      <Text className="mt-1 text-xs text-zinc-500">
+      <Text className="mt-1 text-xs text-ink-soft">
         P {derived.macros.proteinG}g · C {derived.macros.carbsG}g · F {derived.macros.fatG}g
       </Text>
     </View>

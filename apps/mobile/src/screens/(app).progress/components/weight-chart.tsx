@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 
 import { getClient, run } from '@/client/api-client';
+import { Palette } from '@/constants/theme';
 
 type Point = { id: string; weightKg: number; loggedAt: string };
 
@@ -51,7 +52,7 @@ export function WeightChart({ weights }: { weights: readonly Point[] }) {
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {sorted.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text className="text-xs text-zinc-500">No weights logged in this period.</Text>
+          <Text className="text-xs text-ink-soft">No weights logged in this period.</Text>
         </View>
       ) : width > 0 ? (
         <WeightChartInner
@@ -130,10 +131,10 @@ function WeightChartInner({
             x2={width - padR}
             y1={yFor(t)}
             y2={yFor(t)}
-            stroke="#e4e4e7"
+            stroke={Palette.line}
             strokeDasharray="2,3"
           />
-          <SvgText x={0} y={yFor(t) + 4} fontSize={10} fill="#71717a">
+          <SvgText x={0} y={yFor(t) + 4} fontSize={10} fill={Palette.inkSoft}>
             {t}
           </SvgText>
         </React.Fragment>
@@ -146,7 +147,7 @@ function WeightChartInner({
           x={xFor(tick.x)}
           y={height - 4}
           fontSize={10}
-          fill="#71717a"
+          fill={Palette.inkSoft}
           textAnchor="middle">
           {tick.label}
         </SvgText>
@@ -154,7 +155,7 @@ function WeightChartInner({
 
       {/* Connecting line */}
       {sorted.length > 1 && (
-        <Path d={path} fill="none" stroke="#000000" strokeOpacity={0.5} strokeWidth={2} />
+        <Path d={path} fill="none" stroke={Palette.flame} strokeOpacity={1} strokeWidth={2.5} />
       )}
 
       {/* Dots + hit targets */}
@@ -163,7 +164,7 @@ function WeightChartInner({
         const cy = yFor(p.weightKg);
         return (
           <React.Fragment key={p.id}>
-            <Circle cx={cx} cy={cy} r={4} fill="#000000" fillOpacity={0.7} />
+            <Circle cx={cx} cy={cy} r={4} fill={Palette.flameDeep} fillOpacity={1} />
             <Circle cx={cx} cy={cy} r={14} fill="transparent" onPress={() => onDelete(p)} />
           </React.Fragment>
         );

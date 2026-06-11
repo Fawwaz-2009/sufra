@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 
 import { cmToImperial, imperialToCm } from '@/lib/units';
+import { DisplayText } from '@/components/display-text';
 import { LabeledInput } from '@/components/labeled-input';
-import { StepHeading } from './step-heading';
 import { UnitToggle } from '@/components/unit-toggle';
 
 export function StepHeight({
@@ -18,7 +18,9 @@ export function StepHeight({
 }) {
   return (
     <View className="gap-6">
-      <StepHeading title="How tall are you?" />
+      <View className="mb-6 gap-1">
+        <DisplayText className="text-2xl text-ink">How tall are you?</DisplayText>
+      </View>
       <UnitToggle
         value={unit}
         options={[

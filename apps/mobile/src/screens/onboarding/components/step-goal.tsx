@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
 import { GoalSlider } from '@/components/goal-slider';
 import { kgToLb } from '@/lib/units';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 import type { Draft } from '../types';
-import { StepHeading } from './step-heading';
 
 export function StepGoal({
   draft,
@@ -68,24 +68,27 @@ export function StepGoal({
 
   return (
     <View className="gap-6">
-      <StepHeading title="Your goal" subtitle="Pick a goal weight. Slide to current to maintain." />
+      <View className="mb-6 gap-1">
+        <DisplayText className="text-2xl text-ink">Your goal</DisplayText>
+        <Text className="text-sm text-ink-soft">Pick a goal weight. Slide to current to maintain.</Text>
+      </View>
 
       <View className="gap-3">
         <View className="flex-row items-baseline justify-between">
-          <Text className="text-sm font-medium text-black">{direction}</Text>
-          <Text className="text-2xl font-semibold text-black">{goal} kg</Text>
+          <Text className="text-sm font-medium text-ink">{direction}</Text>
+          <Text className="text-2xl font-semibold text-ink">{goal} kg</Text>
         </View>
         <GoalSlider min={min} max={max} value={Math.round(goal)} onChange={onGoalWeightChange} />
         <View className="flex-row justify-between">
-          <Text className="text-[10px] text-zinc-500">{min} kg</Text>
-          <Text className="text-[10px] text-zinc-500">Current: {currentDisplay}</Text>
-          <Text className="text-[10px] text-zinc-500">{max} kg</Text>
+          <Text className="text-[10px] text-ink-soft">{min} kg</Text>
+          <Text className="text-[10px] text-ink-soft">Current: {currentDisplay}</Text>
+          <Text className="text-[10px] text-ink-soft">{max} kg</Text>
         </View>
       </View>
 
       {!isMaintain ? (
         <View className="gap-2">
-          <Text className="text-sm font-medium text-black">How fast?</Text>
+          <Text className="text-sm font-medium text-ink">How fast?</Text>
           <View className="flex-row gap-2">
             <RateChip
               label="Slowly"
@@ -104,18 +107,18 @@ export function StepGoal({
       ) : null}
 
       {preview ? (
-        <View className="rounded-xl border border-zinc-200 bg-white p-4">
-          <Text className="text-xs uppercase text-zinc-500">Daily target</Text>
+        <View className="rounded-xl border border-line bg-card p-4">
+          <Text className="text-xs uppercase text-ink-soft">Daily target</Text>
           <View className="mt-1 flex-row items-baseline gap-1">
-            <Text className="text-3xl font-semibold text-black">{preview.targetKcal}</Text>
-            <Text className="text-sm text-zinc-500">kcal</Text>
+            <Text className="text-3xl font-semibold text-ink">{preview.targetKcal}</Text>
+            <Text className="text-sm text-ink-soft">kcal</Text>
           </View>
           {etaWeeks != null ? (
-            <Text className="mt-2 text-xs text-zinc-500">
+            <Text className="mt-2 text-xs text-ink-soft">
               At this rate, ~{Math.round(etaWeeks)} weeks to reach your goal.
             </Text>
           ) : null}
-          <Text className="mt-3 text-xs text-zinc-500">
+          <Text className="mt-3 text-xs text-ink-soft">
             P {preview.macros.proteinG}g · C {preview.macros.carbsG}g · F {preview.macros.fatG}g
           </Text>
         </View>
@@ -139,9 +142,9 @@ function RateChip({
     <Pressable
       onPress={onPress}
       accessibilityState={{ selected }}
-      className={`flex-1 gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-black bg-zinc-100' : 'border-zinc-200'}`}>
-      <Text className="text-sm font-medium text-black">{label}</Text>
-      <Text className="text-[10px] text-zinc-500">{sub}</Text>
+      className={`flex-1 gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-flame bg-sand' : 'border-line'}`}>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
+      <Text className="text-[10px] text-ink-soft">{sub}</Text>
     </Pressable>
   );
 }

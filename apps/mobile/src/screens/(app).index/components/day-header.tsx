@@ -1,4 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+
+import { DisplayText } from '@/components/display-text';
 
 export function DayHeader({
   label,
@@ -18,16 +20,16 @@ export function DayHeader({
         accessibilityRole="button"
         accessibilityLabel="Previous week"
         className="h-10 w-10 items-center justify-center">
-        <Text className="text-2xl text-zinc-700">‹</Text>
+        <DisplayText className="text-2xl text-ink-soft">‹</DisplayText>
       </Pressable>
-      <Text className="text-base font-semibold text-black">{label}</Text>
+      <DisplayText className="text-lg text-ink">{label}</DisplayText>
       <Pressable
         onPress={onNext}
         disabled={!canGoNext}
         accessibilityRole="button"
         accessibilityLabel="Next week"
         className="h-10 w-10 items-center justify-center">
-        <Text className={`text-2xl ${canGoNext ? 'text-zinc-700' : 'text-zinc-300'}`}>›</Text>
+        <DisplayText className={`text-2xl ${canGoNext ? 'text-ink-soft' : 'text-ink-faint'}`}>›</DisplayText>
       </Pressable>
     </View>
   );

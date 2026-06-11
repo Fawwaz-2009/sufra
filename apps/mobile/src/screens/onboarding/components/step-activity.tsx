@@ -37,7 +37,7 @@ export function StepActivity({
           />
         ))}
       </View>
-      <Text className="text-xs text-zinc-500">
+      <Text className="text-xs text-ink-soft">
         Multiplier applied to your BMR: {ACTIVITY_MULTIPLIERS.sedentary}× →{' '}
         {ACTIVITY_MULTIPLIERS.active}×.
       </Text>

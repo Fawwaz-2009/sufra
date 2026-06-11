@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { kgToLb, lbToKg } from '@/lib/units';
+import { DisplayText } from '@/components/display-text';
 import { LabeledInput } from '@/components/labeled-input';
-import { StepHeading } from './step-heading';
 import { UnitToggle } from '@/components/unit-toggle';
 
 export function StepWeight({
@@ -44,10 +44,10 @@ export function StepWeight({
   };
   return (
     <View className="gap-6">
-      <StepHeading
-        title="What do you weigh now?"
-        subtitle="This is your starting weight — we'll log it."
-      />
+      <View className="mb-6 gap-1">
+        <DisplayText className="text-2xl text-ink">What do you weigh now?</DisplayText>
+        <Text className="text-sm text-ink-soft">This is your starting weight — we&apos;ll log it.</Text>
+      </View>
       <UnitToggle
         value={unit}
         options={[

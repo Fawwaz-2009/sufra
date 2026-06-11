@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getAuthClient } from '@/client/auth-client';
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 
 export default function SignInScreen() {
   const [username, setUsername] = useState('');
@@ -36,22 +39,27 @@ export default function SignInScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-center px-6">
         <View className="mx-auto w-full max-w-md gap-8">
           <View className="items-center gap-1">
-            <Text className="text-4xl font-bold text-black">Sufra</Text>
-            <Text className="text-base text-zinc-500">Sign in to continue</Text>
+            <Image
+              source={require('@/assets/images/sufra-circle.png')}
+              style={{ width: 72, height: 72 }}
+            />
+            <DisplayText className="text-4xl text-ink">Sufra</DisplayText>
+            <Text className="text-base text-ink-soft text-center">Sign in to continue</Text>
           </View>
 
           <View className="gap-3">
             <TextInput
-              className="rounded-2xl bg-zinc-100 px-4 py-4 text-[17px] text-black"
+              className="rounded-2xl bg-card px-4 py-4 text-[17px]"
+              style={{ borderColor: Palette.line, borderWidth: 1, color: Palette.ink }}
               onChangeText={setUsername}
               placeholder="Username"
-              placeholderTextColor="#71717A"
+              placeholderTextColor={Palette.inkFaint}
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="username"
@@ -59,10 +67,11 @@ export default function SignInScreen() {
               editable={!submitting}
             />
             <TextInput
-              className="rounded-2xl bg-zinc-100 px-4 py-4 text-[17px] text-black"
+              className="rounded-2xl bg-card px-4 py-4 text-[17px]"
+              style={{ borderColor: Palette.line, borderWidth: 1, color: Palette.ink }}
               onChangeText={setPassword}
               placeholder="Password"
-              placeholderTextColor="#71717A"
+              placeholderTextColor={Palette.inkFaint}
               secureTextEntry
               autoCapitalize="none"
               autoComplete="current-password"
@@ -71,12 +80,12 @@ export default function SignInScreen() {
               editable={!submitting}
             />
 
-            {error ? <Text className="text-sm text-red-600">{error}</Text> : null}
+            {error ? <Text className="text-sm text-red">{error}</Text> : null}
 
             <Pressable
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-2 h-12 items-center justify-center rounded-[9999px] bg-emerald-800">
+              className="mt-2 h-12 items-center justify-center rounded-[9999px] bg-flame">
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (

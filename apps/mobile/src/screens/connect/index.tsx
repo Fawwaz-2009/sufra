@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getPublicClient, run } from '@/client/api-client';
 import { normalizeServerUrl, setServerUrl } from '@/client/server';
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 
 const PROBE_TIMEOUT_MS = 10_000;
 
@@ -56,23 +59,28 @@ export default function ConnectScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-center px-6">
         <View className="mx-auto w-full max-w-md gap-8">
           <View className="items-center gap-1">
-            <Text className="text-4xl font-bold text-black">Sufra</Text>
-            <Text className="text-base text-zinc-500">Connect to your server</Text>
+            <Image
+              source={require('@/assets/images/sufra-circle.png')}
+              style={{ width: 72, height: 72 }}
+            />
+            <DisplayText className="text-4xl text-ink">Sufra</DisplayText>
+            <Text className="text-base text-ink-soft text-center">Connect to your server</Text>
           </View>
 
           <View className="gap-3">
             <TextInput
-              className="rounded-2xl bg-zinc-100 px-4 py-4 text-[17px] text-black"
+              className="rounded-2xl bg-card px-4 py-4 text-[17px]"
+              style={{ borderColor: Palette.line, borderWidth: 1, color: Palette.ink }}
               value={url}
               onChangeText={setUrl}
               placeholder="family.example.com"
-              placeholderTextColor="#71717A"
+              placeholderTextColor={Palette.inkFaint}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
@@ -80,16 +88,16 @@ export default function ConnectScreen() {
               onSubmitEditing={onSubmit}
               editable={!probing}
             />
-            <Text className="text-sm text-zinc-500">
+            <Text className="text-sm text-ink-soft">
               The web address of your household&apos;s Sufra server.
             </Text>
 
-            {error ? <Text className="text-sm text-red-600">{error}</Text> : null}
+            {error ? <Text className="text-sm text-red">{error}</Text> : null}
 
             <Pressable
               disabled={!canSubmit}
               onPress={onSubmit}
-              className="mt-2 h-12 items-center justify-center rounded-[9999px] bg-emerald-800">
+              className="mt-2 h-12 items-center justify-center rounded-[9999px] bg-flame">
               {probing ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (

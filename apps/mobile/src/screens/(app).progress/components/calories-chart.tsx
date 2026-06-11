@@ -8,6 +8,8 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 
+import { Palette } from '@/constants/theme';
+
 import type { CalorieHistoryBucketView } from '@sufra-web/worker/views/calorie-history.ts';
 
 import type { CaloriePeriod } from '../helpers';
@@ -25,7 +27,7 @@ export function CaloriesChart({
     <View style={{ height: 200 }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {buckets.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text className="text-xs text-zinc-500">No meals logged in this period.</Text>
+          <Text className="text-xs text-ink-soft">No meals logged in this period.</Text>
         </View>
       ) : width > 0 ? (
         <CaloriesChartInner buckets={buckets} period={period} width={width} />
@@ -76,10 +78,10 @@ function CaloriesChartInner({
             x2={width - padR}
             y1={yFor(t)}
             y2={yFor(t)}
-            stroke="#e4e4e7"
+            stroke={Palette.line}
             strokeDasharray="2,3"
           />
-          <SvgText x={0} y={yFor(t) + 4} fontSize={10} fill="#71717a">
+          <SvgText x={0} y={yFor(t) + 4} fontSize={10} fill={Palette.inkSoft}>
             {t}
           </SvgText>
         </React.Fragment>
@@ -99,7 +101,7 @@ function CaloriesChartInner({
                 x={x + barW / 2}
                 y={height - 8}
                 fontSize={10}
-                fill="#71717a"
+                fill={Palette.inkSoft}
                 textAnchor="middle">
                 {formatBucketLabel(b.bucketStart, period)}
               </SvgText>
@@ -114,10 +116,10 @@ function CaloriesChartInner({
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function barColor(color: CalorieHistoryBucketView['color']): { fill: string; opacity: number } {
-  if (color === 'ok') return { fill: '#166534', opacity: 0.8 };
-  if (color === 'warn') return { fill: '#f59e0b', opacity: 0.8 };
-  if (color === 'over') return { fill: '#dc2626', opacity: 0.8 };
-  return { fill: '#000000', opacity: 0.06 };
+  if (color === 'ok') return { fill: Palette.teal, opacity: 0.8 };
+  if (color === 'warn') return { fill: Palette.amber, opacity: 0.8 };
+  if (color === 'over') return { fill: Palette.red, opacity: 0.8 };
+  return { fill: Palette.ink, opacity: 0.06 };
 }
 
 /** X-axis labels only every Nth bar for dense periods so they stay readable. */

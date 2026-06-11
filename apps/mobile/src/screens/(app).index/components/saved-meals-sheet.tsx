@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { Palette } from '@/constants/theme';
+
 import { getClient, run } from '@/client/api-client';
 import { MealCard } from '@/components/meal-card';
 import { savedMealsQueryOptions } from '@/screens/meals.[id]/queries';
@@ -44,10 +46,10 @@ export function SavedMealsSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+      <View className="flex-1 justify-end" style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
-          <Text className="text-lg font-semibold text-black">Pick a saved meal</Text>
+        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+          <Text className="text-lg font-semibold text-ink">Pick a saved meal</Text>
 
           {savedQuery.isLoading ? (
             <View className="items-center py-10">
@@ -55,8 +57,8 @@ export function SavedMealsSheet({
             </View>
           ) : meals.length === 0 ? (
             <View className="items-center gap-2 py-10">
-              <Text className="text-sm font-medium text-black">No saved meals yet</Text>
-              <Text className="text-center text-sm text-zinc-500">
+              <Text className="text-sm font-medium text-ink">No saved meals yet</Text>
+              <Text className="text-center text-sm text-ink-soft">
                 Tap Save on any meal to save it for quick re-logging.
               </Text>
             </View>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { Palette } from '@/constants/theme';
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 import { ImproveEstimateSheet } from './improve-estimate-sheet';
 
@@ -24,15 +25,15 @@ export function FoodsBreakdown({
 
   const improveButtonColor =
     analysis.overallConfidence === 'high'
-      ? '#166534'
+      ? Palette.tealDeep
       : analysis.overallConfidence === 'medium'
-        ? '#b45309'
-        : '#dc2626';
+        ? Palette.amber
+        : Palette.red;
 
   return (
-    <View className="rounded-xl bg-zinc-100 p-4">
+    <View className="rounded-xl bg-sand p-4">
       <View className="flex-row items-center justify-between gap-2">
-        <Text className="text-xs font-bold uppercase text-zinc-500">AI estimate</Text>
+        <Text className="text-xs font-bold uppercase text-ink-soft">AI estimate</Text>
         <Pressable
           onPress={() => setSheetOpen(true)}
           accessibilityLabel="Improve estimate"
@@ -48,18 +49,18 @@ export function FoodsBreakdown({
         {analysis.foods.map((f, idx) => (
           <View key={idx} className="flex-row items-start gap-3">
             <View className="min-w-0 flex-1">
-              <Text className="text-sm font-medium text-black">{f.name}</Text>
-              <Text className="text-xs text-zinc-500">
+              <Text className="text-sm font-medium text-ink">{f.name}</Text>
+              <Text className="text-xs text-ink-soft">
                 {f.portionEstimate} {f.portionUnit} · {Math.round(f.portionGrams)}g
               </Text>
-              <Text className="text-xs text-zinc-500">
+              <Text className="text-xs text-ink-soft">
                 P {Math.round(f.estimatedProteinG)}g · C {Math.round(f.estimatedCarbsG)}g · F{' '}
                 {Math.round(f.estimatedFatG)}g
               </Text>
             </View>
             <View className="w-16 shrink-0 items-end">
-              <Text className="text-sm text-zinc-600">{Math.round(f.estimatedKcal)}</Text>
-              <Text className="text-xs text-zinc-500">kcal</Text>
+              <Text className="text-sm text-ink-soft">{Math.round(f.estimatedKcal)}</Text>
+              <Text className="text-xs text-ink-soft">kcal</Text>
             </View>
           </View>
         ))}

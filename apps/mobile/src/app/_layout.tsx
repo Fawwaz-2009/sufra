@@ -1,9 +1,11 @@
 import '@/global.css';
 
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Fraunces_600SemiBold, useFonts } from '@expo-google-fonts/fraunces';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState, Platform, useColorScheme, type AppStateStatus } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { focusManager, QueryClientProvider, useQuery } from '@tanstack/react-query';
 
 import { getAuthClient } from '@/client/auth-client';
@@ -11,6 +13,7 @@ import { meQueryOptions } from '@/client/me';
 import { queryClient } from '@/client/query-client';
 import { setServerUrl, useServerUrl } from '@/client/server';
 import { GateError, GateLoading } from '@/components/gate-status';
+import { Palette } from '@/constants/theme';
 
 // Hold the native splash until the cached session resolves, so a signed-in user never sees the
 // sign-in screen flash. SecureStore.getItem is synchronous, so this is a brief tick.
@@ -32,17 +35,36 @@ function onAppStateChange(status: AppStateStatus) {
  * changes, so a server switch never reuses hooks bound to the old client. Client-side UX only; the
  * Worker's `Authentication` middleware stays the real gate on every `/api/*` call.
  */
+// Light is pinned (design.md — the Warm Table is daylight-warm); navigation surfaces ride the
+// cream so screen transitions never flash white.
+const SufraTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Palette.flame,
+    background: Palette.cream,
+    card: Palette.cream,
+    text: Palette.ink,
+    border: Palette.line,
+  },
+} as const;
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const serverUrl = useServerUrl();
+  // The display face (design.md). The splash holds until it lands — the gates below are the only
+  // splash-hiders and they mount only after this returns non-null.
+  const [fontsLoaded] = useFonts({ Fraunces_600SemiBold });
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
     return () => subscription.remove();
   }, []);
 
+  if (!fontsLoaded) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={SufraTheme}>
+      <StatusBar style="dark" />
       <QueryClientProvider client={queryClient}>
         {serverUrl ? <SessionGate key={serverUrl} /> : <ConnectGate />}
       </QueryClientProvider>

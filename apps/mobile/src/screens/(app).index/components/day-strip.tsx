@@ -31,17 +31,23 @@ export function DayStrip({
             className="flex-1 items-center gap-1 py-1">
             <Text
               className={`text-[10px] font-medium uppercase ${
-                isFuture ? 'text-zinc-300' : 'text-zinc-500'
+                isFuture ? 'text-ink-faint' : 'text-ink-soft'
               }`}>
               {WEEKDAY_INITIALS[i]}
             </Text>
             <View
               className={`h-9 w-9 items-center justify-center rounded-[9999px] ${
-                isSelected ? 'bg-black' : isFuture ? '' : 'border border-zinc-200'
+                isSelected
+                  ? 'bg-flame'
+                  : isSameLocalDay(d, today) && !isFuture
+                    ? 'border border-flame'
+                    : isFuture
+                      ? ''
+                      : 'border border-line'
               }`}>
               <Text
                 className={`text-sm font-medium ${
-                  isSelected ? 'text-white' : isFuture ? 'text-zinc-300' : 'text-black'
+                  isSelected ? 'text-white' : isFuture ? 'text-ink-faint' : 'text-ink'
                 }`}>
                 {d.getDate()}
               </Text>

@@ -6,9 +6,9 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { Pressable, Text, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
 
 export default function AppTabs() {
   return (
@@ -32,35 +32,28 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
-  const colors = useThemeColors();
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <View
         style={[
           styles.tabButtonView,
-          { backgroundColor: isFocused ? colors.backgroundSelected : colors.backgroundElement },
+          { backgroundColor: isFocused ? Palette.sand : Palette.cream },
         ]}>
-        <Text style={{ color: isFocused ? colors.text : colors.textSecondary }}>{children}</Text>
+        <Text style={{ color: isFocused ? Palette.flame : Palette.inkSoft }}>{children}</Text>
       </View>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
-  const colors = useThemeColors();
   return (
     <View {...props} style={styles.tabListContainer}>
-      <View style={[styles.innerContainer, { backgroundColor: colors.backgroundElement }]}>
-        <Text style={[styles.brandText, { color: colors.text }]}>Sufra</Text>
+      <View style={[styles.innerContainer, { backgroundColor: Palette.cream }]}>
+        <Text style={[styles.brandText, { color: Palette.ink }]}>Sufra</Text>
         {props.children}
       </View>
     </View>
   );
-}
-
-function useThemeColors() {
-  const scheme = useColorScheme();
-  return Colors[scheme === 'unspecified' || !scheme ? 'light' : scheme];
 }
 
 const styles = StyleSheet.create({

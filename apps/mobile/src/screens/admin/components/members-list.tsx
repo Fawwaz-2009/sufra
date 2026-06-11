@@ -56,8 +56,8 @@ export function MembersList() {
 
   if (members.length === 0 && !membersQuery.isLoading) {
     return (
-      <View className="rounded-xl border border-zinc-200 bg-white px-4 py-6">
-        <Text className="text-center text-sm text-zinc-500">No Members yet. Add one above.</Text>
+      <View className="rounded-xl border border-line bg-card px-4 py-6">
+        <Text className="text-center text-sm text-ink-soft">No Members yet. Add one above.</Text>
       </View>
     );
   }
@@ -67,17 +67,17 @@ export function MembersList() {
       {members.map((m) => (
         <View
           key={m.id}
-          className="flex-row items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
+          className="flex-row items-center gap-3 rounded-xl border border-line bg-card px-4 py-3"
         >
-          <Text numberOfLines={1} className="min-w-0 flex-1 text-sm font-medium text-black">
+          <Text numberOfLines={1} className="min-w-0 flex-1 text-sm font-medium text-ink">
             {m.username}
           </Text>
 
           {/* Hosts are listed (the full household) but get NO actions — the server's Member-scoped
               gates 404 them anyway (ADR 0013); the badge says why. */}
           {m.role === 'host' ? (
-            <View className="rounded-[9999px] bg-zinc-100 px-3 py-1">
-              <Text className="text-xs font-medium text-zinc-500">Host</Text>
+            <View className="rounded-[9999px] bg-sand px-3 py-1">
+              <Text className="text-xs font-medium text-ink-soft">Host</Text>
             </View>
           ) : (
             <>
@@ -88,7 +88,7 @@ export function MembersList() {
                 onPress={() => generateLink.mutate(m.id)}
                 className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-sm font-medium text-zinc-600">Link</Text>
+                <Text className="text-sm font-medium text-flame">Link</Text>
               </Pressable>
 
               {/* Delete Member — confirm via native Alert */}
@@ -97,7 +97,7 @@ export function MembersList() {
                 onPress={() => confirmDelete(m)}
                 className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-sm font-medium text-red-600">Delete</Text>
+                <Text className="text-sm font-medium text-red">Delete</Text>
               </Pressable>
             </>
           )}

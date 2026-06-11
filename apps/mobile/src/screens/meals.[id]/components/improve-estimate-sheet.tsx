@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { getClient, run } from '@/client/api-client';
+import { Palette } from '@/constants/theme';
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 
 /**
@@ -61,63 +62,63 @@ export function ImproveEstimateSheet({
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+        style={{ backgroundColor: Palette.backdrop }}>
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
-        <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
-          <Text className="text-lg font-semibold text-black">Improve this estimate</Text>
+        <View className="rounded-t-2xl bg-card px-6 pb-10 pt-5">
+          <Text className="text-lg font-semibold text-ink">Improve this estimate</Text>
 
           {clarifications.length > 0 ? (
             <View className="mt-4 gap-2">
-              <Text className="text-xs font-bold uppercase text-zinc-500">
+              <Text className="text-xs font-bold uppercase text-ink-soft">
                 {"The AI wasn't sure about"}
               </Text>
               {clarifications.map((q) => (
-                <Text key={q.id} className="text-sm text-black">
+                <Text key={q.id} className="text-sm text-ink">
                   · {q.question}
                 </Text>
               ))}
             </View>
           ) : null}
 
-          <Text className="mt-4 text-xs font-bold uppercase text-zinc-500">
+          <Text className="mt-4 text-xs font-bold uppercase text-ink-soft">
             Tell the AI what it missed
           </Text>
           <TextInput
             value={text}
             onChangeText={setText}
             placeholder="e.g. 2 scoops mixed with water"
-            placeholderTextColor="#71717a"
+            placeholderTextColor={Palette.inkFaint}
             multiline
             numberOfLines={4}
             editable={!mutation.isPending}
             style={{
               marginTop: 8,
               borderWidth: 1,
-              borderColor: '#e4e4e7',
+              borderColor: Palette.line,
               borderRadius: 12,
               padding: 12,
               fontSize: 14,
-              color: '#000000',
+              color: Palette.ink,
               minHeight: 96,
               textAlignVertical: 'top',
             }}
           />
 
           {mutation.isError ? (
-            <Text className="mt-2 text-sm text-red-600">{"Couldn't refine. Try again."}</Text>
+            <Text className="mt-2 text-sm text-red">{"Couldn't refine. Try again."}</Text>
           ) : null}
 
           <View className="mt-4 flex-row gap-2">
             <Pressable
               onPress={onClose}
               disabled={mutation.isPending}
-              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-zinc-300">
-              <Text className="text-base font-medium text-zinc-700">Cancel</Text>
+              className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line">
+              <Text className="text-base font-medium text-ink">Cancel</Text>
             </Pressable>
             <Pressable
               onPress={() => mutation.mutate(trimmed)}
               disabled={!canSubmit}
-              className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-emerald-800${!canSubmit ? ' opacity-50' : ''}`}>
+              className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame${!canSubmit ? ' opacity-60' : ''}`}>
               {mutation.isPending ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (

@@ -6,6 +6,8 @@
 
 import { Text, View } from 'react-native';
 
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
 import { formatHeight, formatWeight } from '@/lib/units';
 import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/views/profile-snapshot.ts';
 
@@ -32,18 +34,18 @@ export function BmiCard({ profile }: { profile: ProfileSnapshot }) {
     Math.min(100, Math.max(0, ((b - DISPLAY_BMI_MIN) / (DISPLAY_BMI_MAX - DISPLAY_BMI_MIN)) * 100));
 
   return (
-    <View className="rounded-2xl border border-zinc-200 bg-white p-4">
+    <View className="rounded-2xl border border-line bg-card p-4">
       <View className="mb-2 flex-row items-start justify-between">
-        <Text className="text-base font-semibold text-black">BMI</Text>
-        <Text className="text-xs text-zinc-500">
+        <Text className="text-base font-semibold text-ink">BMI</Text>
+        <Text className="text-xs text-ink-soft">
           {formatHeight(heightCm, profile.displayHeightUnit)} ·{' '}
           {formatWeight(weightKg, profile.displayWeightUnit)}
         </Text>
       </View>
 
       <View className="mb-2 flex-row items-baseline gap-3">
-        <Text className="text-3xl font-semibold text-black">{bmi.toFixed(1)}</Text>
-        <Text className="text-sm text-zinc-500">{band.label}</Text>
+        <DisplayText className="text-3xl text-ink">{bmi.toFixed(1)}</DisplayText>
+        <Text className="text-sm text-ink-soft">{band.label}</Text>
       </View>
 
       {/* The band strip + the Member's marker, positioned by percent of the display scale. */}
@@ -78,7 +80,7 @@ export function BmiCard({ profile }: { profile: ProfileSnapshot }) {
             top: -4,
             height: 32,
             width: 2,
-            backgroundColor: '#000000',
+            backgroundColor: Palette.ink,
             left: `${pctForBmi(bmi)}%`,
             marginLeft: -1,
           }}
@@ -87,13 +89,13 @@ export function BmiCard({ profile }: { profile: ProfileSnapshot }) {
 
       <View className="mt-1 flex-row">
         {BANDS.map((b) => (
-          <Text key={b.key} className="flex-1 text-center text-[10px] uppercase text-zinc-500">
+          <Text key={b.key} className="flex-1 text-center text-[10px] uppercase text-ink-soft">
             {b.key}
           </Text>
         ))}
       </View>
 
-      <Text className="mt-2 text-xs text-zinc-500">
+      <Text className="mt-2 text-xs text-ink-soft">
         Normal range for your height: ~{kgForBmi(18.5).toFixed(0)}–{kgForBmi(25).toFixed(0)} kg
       </Text>
     </View>
@@ -104,7 +106,7 @@ export function BmiCard({ profile }: { profile: ProfileSnapshot }) {
 
 function bandColor(key: (typeof BANDS)[number]['key'], isCurrent: boolean): string {
   const alpha = isCurrent ? 0.7 : 0.3;
-  if (key === 'Normal') return `rgba(22,101,52,${alpha})`;
-  if (key === 'Under' || key === 'Over') return `rgba(245,158,11,${alpha})`;
-  return `rgba(220,38,38,${alpha})`;
+  if (key === 'Normal') return `rgba(83, 158, 166, ${alpha})`;
+  if (key === 'Under' || key === 'Over') return `rgba(236, 143, 58, ${alpha})`;
+  return `rgba(190, 59, 43, ${alpha})`;
 }

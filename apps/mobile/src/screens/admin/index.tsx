@@ -16,7 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DisplayText } from '@/components/display-text';
 import { queryClient } from '@/client/query-client';
+import { Palette } from '@/constants/theme';
 
 import { AddMemberForm } from './components/add-member-form';
 import { CostCard } from './components/cost-card';
@@ -51,7 +53,7 @@ export default function AdminScreen() {
   const cost = costQuery.data;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-6 px-5 pb-28 pt-4"
@@ -65,11 +67,11 @@ export default function AdminScreen() {
             onPress={() => router.back()}
             className="h-9 w-9 items-center justify-center rounded-[9999px]"
           >
-            <Text className="text-2xl text-zinc-500">‹</Text>
+            <Text className="text-2xl text-ink-soft">‹</Text>
           </Pressable>
           <View>
-            <Text className="text-2xl font-semibold text-black">Admin</Text>
-            <Text className="text-sm text-zinc-500">Host only</Text>
+            <DisplayText className="text-2xl text-ink">Admin</DisplayText>
+            <Text className="text-sm text-ink-soft">Host only</Text>
           </View>
         </View>
 
@@ -88,7 +90,7 @@ export default function AdminScreen() {
 
             {/* Vision Model section */}
             <View>
-              <Text className="mb-2 text-xs font-medium uppercase text-zinc-500">
+              <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">
                 Vision Model
               </Text>
               <ModelSelect />
@@ -96,7 +98,7 @@ export default function AdminScreen() {
 
             {/* Members section */}
             <View>
-              <Text className="mb-2 text-xs font-medium uppercase text-zinc-500">
+              <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">
                 Members
               </Text>
               <AddMemberForm />

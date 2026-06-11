@@ -15,9 +15,9 @@ export function ChipButton({
     <Pressable
       onPress={onPress}
       accessibilityState={{ selected }}
-      className={`gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-black bg-zinc-100' : 'border-zinc-200'}`}>
-      <Text className="text-sm font-medium text-black">{label}</Text>
-      {description ? <Text className="text-[10px] text-zinc-500">{description}</Text> : null}
+      className={`gap-1 rounded-xl border px-3 py-3 ${selected ? 'border-flame bg-flame' : 'border-line'}`}>
+      <Text className={`text-sm font-medium ${selected ? 'text-white' : 'text-ink'}`}>{label}</Text>
+      {description ? <Text className={`text-[10px] ${selected ? 'text-white opacity-60' : 'text-ink-soft'}`}>{description}</Text> : null}
     </Pressable>
   );
 }

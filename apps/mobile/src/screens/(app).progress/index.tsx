@@ -9,6 +9,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DisplayText } from '@/components/display-text';
+import { Palette } from '@/constants/theme';
+
 import { meQueryOptions } from '@/client/me';
 import { queryClient } from '@/client/query-client';
 
@@ -38,7 +41,7 @@ export default function ProgressScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-4 px-5 pb-28 pt-4"
@@ -46,8 +49,8 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={meQuery.isRefetching} onRefresh={onRefresh} />
         }>
         <View>
-          <Text className="text-2xl font-semibold text-black">Progress</Text>
-          <Text className="text-sm text-zinc-500">Your intake and progress over time</Text>
+          <DisplayText className="text-2xl text-ink">Progress</DisplayText>
+          <Text className="text-sm text-ink-soft">Your intake and progress over time</Text>
         </View>
 
         {!latest ? (

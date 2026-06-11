@@ -15,10 +15,10 @@ export function ChoiceChip({
     <Pressable
       onPress={onPress}
       accessibilityState={{ selected }}
-      className={`rounded-xl border px-4 py-3 ${selected ? 'border-black bg-zinc-100' : 'border-zinc-200'}`}>
+      className={`rounded-xl border px-4 py-3 ${selected ? 'border-flame bg-sand' : 'border-line'}`}>
       <View className="gap-1">
-        <Text className="font-medium text-black">{label}</Text>
-        {description ? <Text className="text-xs text-zinc-500">{description}</Text> : null}
+        <Text className="font-medium text-ink">{label}</Text>
+        {description ? <Text className="text-xs text-ink-soft">{description}</Text> : null}
       </View>
     </Pressable>
   );

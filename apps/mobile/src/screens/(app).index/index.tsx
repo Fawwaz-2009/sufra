@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Palette } from '@/constants/theme';
 
 import { getClient, run } from '@/client/api-client';
 import { meQueryOptions } from '@/client/me';
@@ -141,7 +144,7 @@ export default function TodayScreen() {
 
   return (
     // className does not reach SafeAreaView — react-native-css only wraps SafeAreaProvider
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.cream }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-4 px-5 pb-28 pt-4"
@@ -175,7 +178,7 @@ export default function TodayScreen() {
           <Pressable
             disabled={uploadMutation.isPending}
             onPress={takePhoto}
-            className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-emerald-800 px-4">
+            className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame px-4">
             <Text className="text-base font-semibold text-white">
               {uploadMutation.isPending ? 'Estimating...' : 'Take photo'}
             </Text>
@@ -183,16 +186,16 @@ export default function TodayScreen() {
           <Pressable
             disabled={uploadMutation.isPending}
             onPress={pickFromLibrary}
-            className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-zinc-300 px-4">
-            <Text className="text-base font-medium text-zinc-700">
+            className="h-12 flex-1 items-center justify-center rounded-[9999px] border border-line bg-card px-4">
+            <Text className="text-base font-medium text-ink">
               Choose from library
             </Text>
           </Pressable>
         </View>
         <Pressable
           onPress={() => setSavedSheetOpen(true)}
-          className="h-12 w-full items-center justify-center rounded-[9999px] border border-zinc-300 px-4">
-          <Text className="text-base font-medium text-zinc-700">From saved</Text>
+          className="h-12 w-full items-center justify-center rounded-[9999px] border border-line bg-card px-4">
+          <Text className="text-base font-medium text-ink">From saved</Text>
         </Pressable>
         <SavedMealsSheet
           visible={savedSheetOpen}
@@ -201,9 +204,9 @@ export default function TodayScreen() {
         />
 
         <View className="mt-2 flex-row items-center justify-between">
-          <Text className="text-xs font-bold uppercase text-zinc-500">Meals</Text>
+          <Text className="text-xs font-bold uppercase text-ink-soft">Meals</Text>
           {uploadMutation.isPending ? (
-            <Text className="text-xs text-zinc-500">Estimating...</Text>
+            <Text className="text-xs text-ink-soft">Estimating...</Text>
           ) : null}
         </View>
 
@@ -212,12 +215,16 @@ export default function TodayScreen() {
             <ActivityIndicator />
           </View>
         ) : mealsForSelectedDay.length === 0 ? (
-          <View className="items-center gap-2 rounded-xl bg-zinc-100 px-6 py-12">
-            <Text className="font-medium text-black">
+          <View className="items-center gap-2 rounded-xl bg-card px-6 py-12">
+            <Image
+              source={require('@/assets/images/sufra-circle.png')}
+              style={{ width: 56, height: 56, opacity: 0.5 }}
+            />
+            <Text className="font-medium text-ink">
               {isViewingToday ? 'No meals logged yet' : 'No meals logged this day.'}
             </Text>
             {isViewingToday ? (
-              <Text className="text-center text-sm text-zinc-500">
+              <Text className="text-center text-sm text-ink-soft">
                 Tap Take photo to photograph your first one.
               </Text>
             ) : null}
