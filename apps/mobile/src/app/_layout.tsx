@@ -8,6 +8,7 @@ import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { focusManager, QueryClientProvider, useQuery } from '@tanstack/react-query';
 
 import { getAuthClient } from '@/client/auth-client';
+import { useEntitlement } from '@/client/entitlement';
 import { meQueryOptions } from '@/client/me';
 import { queryClient } from '@/client/query-client';
 import { setServerUrl, useServerUrl } from '@/client/server';
@@ -28,9 +29,11 @@ function onAppStateChange(status: AppStateStatus) {
 
 /**
  * The root gate, tiered top-down (ADR 0018 + frontend-expo.md): no server origin → Connect; no
- * session → sign-in; no Profile snapshot → Onboarding; else the (app) shell. The origin is USER
- * STATE, so the session tier can only mount once it exists — `SessionGate` is a separate component
- * (its `useSession()` needs the origin-keyed auth client) and is remounted via `key` when the origin
+ * trial or unlock → Paywall (the trial clock starts at first successful Connect, so this tier sits
+ * just past it — entitlement is CLIENT state, never the self-hosted server's); no session →
+ * sign-in; no Profile snapshot → Onboarding; else the (app) shell. The origin is USER STATE, so
+ * the session tier can only mount once it exists — `SessionGate` is a separate component (its
+ * `useSession()` needs the origin-keyed auth client) and is remounted via `key` when the origin
  * changes, so a server switch never reuses hooks bound to the old client. Client-side UX only; the
  * Worker's `Authentication` middleware stays the real gate on every `/api/*` call.
  */
@@ -50,18 +53,25 @@ const SufraTheme = {
 
 export default function RootLayout() {
   const serverUrl = useServerUrl();
+  const entitlement = useEntitlement();
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
     return () => subscription.remove();
   }, []);
 
+  const tier = !serverUrl ? (
+    <ConnectGate />
+  ) : entitlement.kind === 'unlocked' || entitlement.kind === 'trial' ? (
+    <SessionGate key={serverUrl} />
+  ) : (
+    <PaywallGate loading={entitlement.kind === 'loading'} />
+  );
+
   return (
     <ThemeProvider value={SufraTheme}>
       <StatusBar style="dark" />
-      <QueryClientProvider client={queryClient}>
-        {serverUrl ? <SessionGate key={serverUrl} /> : <ConnectGate />}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{tier}</QueryClientProvider>
     </ThemeProvider>
   );
 }
@@ -76,7 +86,36 @@ function ConnectGate() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="connect" />
       <Stack.Protected guard={false}>
+        <Stack.Screen name="paywall" />
         <Stack.Screen name="sign-in" />
+        <Stack.Screen name="(app)" />
+        <Stack.Screen name="meals/[id]" />
+        <Stack.Screen name="admin" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
+/**
+ * Past Connect, before everything else: the unlock tier. No trial yet (the start screen) or trial
+ * over without the unlock (the hard lock) — one screen reads which off the same entitlement store.
+ * On a cold start the splash holds until the cached CustomerInfo resolves, same contract as the
+ * session tiers below.
+ */
+function PaywallGate({ loading }: { loading: boolean }) {
+  useEffect(() => {
+    if (!loading) void SplashScreen.hideAsync();
+  }, [loading]);
+
+  if (loading) return <GateLoading />;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="paywall" />
+      <Stack.Protected guard={false}>
+        <Stack.Screen name="connect" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="(app)" />
         <Stack.Screen name="meals/[id]" />
         <Stack.Screen name="admin" />
@@ -121,6 +160,7 @@ function SessionGate() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={false}>
         <Stack.Screen name="connect" />
+        <Stack.Screen name="paywall" />
       </Stack.Protected>
       <Stack.Protected guard={!!session && isOnboarded}>
         <Stack.Screen name="(app)" />

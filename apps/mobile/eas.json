@@ -13,11 +13,17 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "test_oaZbuoNmIBVxzRbCcSDXyppcwvg"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": ""
+      }
     }
   },
   "submit": {
