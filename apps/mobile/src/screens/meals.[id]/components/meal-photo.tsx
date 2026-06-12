@@ -1,7 +1,9 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMutation } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, I18nManager, Pressable, Text, View } from 'react-native';
 
 import { getClient, run } from '@/client/api-client';
 import { getAuthClient } from '@/client/auth-client';
@@ -40,8 +42,8 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
       const message =
         typeof (error as { message?: unknown })?.message === 'string'
           ? (error as { message: string }).message
-          : "Couldn't save that photo. Try again in a moment.";
-      Alert.alert('Photo not saved', message);
+          : t`Couldn't save that photo. Try again in a moment.`;
+      Alert.alert(t`Photo not saved`, message);
     },
   });
 
@@ -56,7 +58,7 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
         onPress={() => void pick()}
         disabled={attach.isPending}
         accessibilityRole="button"
-        accessibilityLabel="Add a photo to this meal"
+        accessibilityLabel={t`Add a photo to this meal`}
         className="items-center justify-center gap-2"
         style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 24, backgroundColor: Palette.track }}>
         {attach.isPending ? (
@@ -67,7 +69,7 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
               source={require('@/assets/images/sufra-circle.png')}
               style={{ width: 64, height: 64, opacity: 0.35 }}
             />
-            <Text className="text-base font-medium text-flame-deep">Add photo</Text>
+            <Text className="text-base font-medium text-flame-deep"><Trans>Add photo</Trans></Text>
           </>
         )}
       </Pressable>
@@ -85,10 +87,10 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
         onPress={() => void pick()}
         disabled={attach.isPending}
         accessibilityRole="button"
-        accessibilityLabel="Replace this meal's photo"
+        accessibilityLabel={t`Replace this meal's photo`}
         style={{
           position: 'absolute',
-          right: 12,
+          ...(I18nManager.isRTL ? { left: 12 } : { right: 12 }),
           top: 12,
           height: 32,
           justifyContent: 'center',
@@ -99,7 +101,7 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
         {attach.isPending ? (
           <ActivityIndicator size="small" />
         ) : (
-          <Text className="text-xs font-semibold text-ink">Edit</Text>
+          <Text className="text-xs font-semibold text-ink"><Trans>Edit</Trans></Text>
         )}
       </Pressable>
     </View>

@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -52,7 +54,7 @@ export default function OnboardingScreen() {
         !draft.activityLevel ||
         draft.goalWeightKg == null
       ) {
-        throw new Error('Some fields are still empty.');
+        throw new Error(t`Some fields are still empty.`);
       }
       // The first POST /profile-snapshots IS onboarding (ADR 0011): applies same-day (effectiveFrom =
       // today) and the server seeds the first Weight measurement.
@@ -159,8 +161,8 @@ export default function OnboardingScreen() {
               {submitMutation.isError ? (
                 <Text className="text-sm text-red">
                   {submitMutation.error instanceof Error
-                    ? `Error: ${submitMutation.error.message}`
-                    : 'Something went wrong. Try again.'}
+                    ? t`Error: ${submitMutation.error.message}`
+                    : t`Something went wrong. Try again.`}
                 </Text>
               ) : null}
               <Pressable
@@ -173,7 +175,7 @@ export default function OnboardingScreen() {
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text className="text-base font-semibold text-white">
-                    {step === 6 ? 'Finish' : 'Continue'}
+                    {step === 6 ? <Trans>Finish</Trans> : <Trans>Continue</Trans>}
                   </Text>
                 )}
               </Pressable>

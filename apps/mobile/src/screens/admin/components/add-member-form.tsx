@@ -8,6 +8,8 @@
  * appears in the list — the key button re-issues.
  */
 
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
@@ -43,16 +45,16 @@ export function AddMemberForm() {
         void sharePasswordLinkMessage(member.username, link.token);
       } else {
         Alert.alert(
-          `${member.username} added`,
-          "But the link didn't generate. Tap the key button to retry.",
+          t`${member.username} added`,
+          t`But the link didn't generate. Tap the key button to retry.`,
         );
       }
     },
     onError(e) {
       // Reached only when member-CREATE failed (e.g. UsernameTaken — its typed message is human).
       Alert.alert(
-        "Couldn't add member",
-        e instanceof Error && e.message ? e.message : 'Try again.',
+        t`Couldn't add member`,
+        e instanceof Error && e.message ? e.message : t`Try again.`,
       );
     },
   });
@@ -68,7 +70,7 @@ export function AddMemberForm() {
       <TextInput
         value={newUsername}
         onChangeText={setNewUsername}
-        placeholder="username"
+        placeholder={t`username`}
         placeholderTextColor={Palette.inkFaint}
         autoCapitalize="none"
         autoCorrect={false}
@@ -84,7 +86,7 @@ export function AddMemberForm() {
         className={`h-12 items-center justify-center rounded-xl bg-flame px-4 ${addMember.isPending || newUsername.trim().length < 3 ? 'opacity-60' : ''}`}
       >
         <Text className="text-sm font-medium text-white">
-          {addMember.isPending ? 'Adding…' : 'Add Member'}
+          {addMember.isPending ? <Trans>Adding…</Trans> : <Trans>Add Member</Trans>}
         </Text>
       </Pressable>
     </View>

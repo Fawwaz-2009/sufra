@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 import { Pressable, Text, View } from 'react-native';
 
 export function BackButton({ onPress, disabled }: { onPress: () => void; disabled: boolean }) {
@@ -5,7 +6,7 @@ export function BackButton({ onPress, disabled }: { onPress: () => void; disable
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      accessibilityLabel="Back"
+      accessibilityLabel={t`Back`}
       className="h-10 w-10 items-center justify-center rounded-[9999px]"
       style={disabled ? { opacity: 0 } : undefined}>
       <Text className="text-2xl font-semibold text-ink">‹</Text>

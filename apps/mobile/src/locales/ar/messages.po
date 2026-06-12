@@ -1,0 +1,954 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-06-12 08:04+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: ar\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. placeholder {0}: member.username
+#: src/screens/admin/components/add-member-form.tsx:48
+msgid "{0} added"
+msgstr "تمت إضافة {0}"
+
+#: src/screens/(app).progress/components/weight-card.tsx:82
+msgid "{diffDays, plural, one {# day ago} other {# days ago}}"
+msgstr "{diffDays, plural, one {منذ يوم} two {منذ يومين} few {منذ # أيام} many {منذ # يومًا} other {منذ # يوم}}"
+
+#: src/screens/admin/components/cost-card.tsx:30
+msgid "{runCount, plural, one {# run} other {# runs}}"
+msgstr "{runCount, plural, zero {لا عمليات} one {عملية واحدة} two {عمليتان} few {# عمليات} many {# عملية} other {# عملية}}"
+
+#. placeholder {0}: perMemberAvgUsd.toFixed(2)
+#: src/screens/admin/components/cost-card.tsx:27
+msgid "~${0} / member"
+msgstr "~${0} لكل فرد"
+
+#. placeholder {0}: m.pricing.inputPerMTokens.toFixed(2)
+#. placeholder {1}: m.pricing.outputPerMTokens.toFixed(2)
+#: src/screens/admin/components/model-select.tsx:53
+msgid "${0} in / ${1} out per 1M tok"
+msgstr "${0} إدخال / ${1} إخراج لكل مليون رمز"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:51
+msgid "About you"
+msgstr "عنك"
+
+#: src/screens/(app).profile/components/account-section.tsx:46
+msgid "Account"
+msgstr "الحساب"
+
+#: src/screens/(app).profile/helpers.ts:69
+#: src/screens/onboarding/components/step-activity.tsx:25
+msgid "Active"
+msgstr "نشيط"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:73
+msgid "Activity"
+msgstr "النشاط"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:91
+msgid "Activity level"
+msgstr "مستوى النشاط"
+
+#: src/lib/photo-source.ts:48
+msgid "Add a photo"
+msgstr "أضف صورة"
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:61
+msgid "Add a photo to this meal"
+msgstr "أضف صورة لهذه الوجبة"
+
+#: src/screens/admin/components/add-member-form.tsx:89
+msgid "Add Member"
+msgstr "إضافة فرد"
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:72
+msgid "Add photo"
+msgstr "أضف صورة"
+
+#: src/screens/admin/components/add-member-form.tsx:89
+msgid "Adding…"
+msgstr "جارٍ الإضافة…"
+
+#: src/screens/(app).profile/components/account-section.tsx:51
+#: src/screens/admin/index.tsx:74
+msgid "Admin"
+msgstr "الإدارة"
+
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:31
+msgid "AI estimate"
+msgstr "تقدير الذكاء الاصطناعي"
+
+#: src/screens/meals.[id]/index.tsx:291
+msgid "AI:"
+msgstr "AI:"
+
+#: src/lib/photo-source.ts:18
+msgid "Allow camera access to log a Meal from a photo."
+msgstr "اسمح بالوصول إلى الكاميرا لتسجيل وجبة من صورة."
+
+#: src/lib/photo-source.ts:28
+msgid "Allow photo access to choose a Meal photo."
+msgstr "اسمح بالوصول إلى الصور لاختيار صورة الوجبة."
+
+#. placeholder {0}: Math.round(etaWeeks)
+#: src/screens/onboarding/components/step-goal.tsx:121
+msgid "At this rate, ~{0} weeks to reach your goal."
+msgstr "بهذا المعدل، ستصل إلى هدفك خلال ~{0} أسبوعًا."
+
+#. placeholder {0}: avgDaily.toLocaleString()
+#. placeholder {1}: periodLabel(period)
+#: src/screens/(app).progress/components/calories-card.tsx:41
+msgid "Avg {0} kcal/day · {1}"
+msgstr "متوسط {0} سعرة/يوم · {1}"
+
+#: src/screens/onboarding/components/wizard-shell.tsx:9
+msgid "Back"
+msgstr "رجوع"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:58
+msgid "Birthday"
+msgstr "تاريخ الميلاد"
+
+#: src/screens/admin/components/add-member-form.tsx:49
+msgid "But the link didn't generate. Tap the key button to retry."
+msgstr "لكن الرابط لم يُنشأ. اضغط زر المفتاح لإعادة المحاولة."
+
+#: src/screens/(app).progress/components/calories-card.tsx:37
+#: src/screens/meals.[id]/index.tsx:223
+msgid "Calories"
+msgstr "السعرات"
+
+#: src/lib/photo-source.ts:18
+msgid "Camera access required"
+msgstr "الوصول إلى الكاميرا مطلوب"
+
+#: src/components/sheet-shell.tsx:64
+#: src/lib/photo-source.ts:42
+#: src/lib/photo-source.ts:53
+#: src/screens/(app).profile/components/account-section.tsx:25
+#: src/screens/(app).progress/components/weight-chart.tsx:43
+#: src/screens/admin/components/members-list.tsx:53
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:124
+#: src/screens/meals.[id]/index.tsx:378
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: src/screens/(app).profile/components/your-numbers-section.tsx:38
+#: src/screens/meals.[id]/index.tsx:237
+msgid "Carbs"
+msgstr "كربوهيدرات"
+
+#: src/screens/(app).index/components/summary-panel.tsx:119
+msgid "CARBS"
+msgstr "كربوهيدرات"
+
+#: src/components/gate-status.tsx:43
+#: src/screens/(app).profile/components/account-section.tsx:27
+msgid "Change server"
+msgstr "تغيير الخادم"
+
+#: src/screens/(app).profile/components/account-section.tsx:22
+msgid "Change server?"
+msgstr "تغيير الخادم؟"
+
+#: src/components/gate-status.tsx:32
+msgid "Check your connection, or that your Sufra server is up."
+msgstr "تحقّق من اتصالك، أو من أن خادم سفرة يعمل."
+
+#: src/screens/(app).index/components/describe-sheet.tsx:78
+msgid "Chicken shawarma wrap with garlic sauce…"
+msgstr "راب شاورما دجاج مع صوص الثوم…"
+
+#: src/lib/photo-source.ts:42
+#: src/lib/photo-source.ts:52
+msgid "Choose from library"
+msgstr "اختر من المكتبة"
+
+#: src/components/sheet-shell.tsx:49
+#: src/screens/(app).index/components/describe-sheet.tsx:63
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:52
+#: src/screens/(app).profile/components/option-sheet.tsx:30
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:72
+msgid "Close"
+msgstr "إغلاق"
+
+#: src/screens/connect/index.tsx:110
+msgid "Connect"
+msgstr "اتصال"
+
+#: src/screens/connect/index.tsx:79
+msgid "Connect to your server"
+msgstr "اتصل بخادمك"
+
+#: src/screens/onboarding/index.tsx:178
+msgid "Continue"
+msgstr "متابعة"
+
+#: src/screens/sign-in/index.tsx:38
+msgid "Could not sign in. Check your username and password."
+msgstr "تعذّر تسجيل الدخول. تحقّق من اسم المستخدم وكلمة المرور."
+
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:45
+msgid "Couldn't add"
+msgstr "تعذّرت الإضافة"
+
+#: src/screens/admin/components/add-member-form.tsx:56
+msgid "Couldn't add member"
+msgstr "تعذّرت إضافة الفرد"
+
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:45
+msgid "Couldn't add that meal. Try again."
+msgstr "تعذّرت إضافة هذه الوجبة. حاول مرة أخرى."
+
+#: src/screens/admin/components/members-list.tsx:33
+msgid "Couldn't create link"
+msgstr "تعذّر إنشاء الرابط"
+
+#: src/screens/admin/components/members-list.tsx:44
+msgid "Couldn't delete"
+msgstr "تعذّر الحذف"
+
+#: src/screens/meals.[id]/index.tsx:398
+msgid "Couldn't delete. Try again."
+msgstr "تعذّر الحذف. حاول مرة أخرى."
+
+#: src/screens/connect/index.tsx:59
+msgid "Couldn't find a Sufra server at {origin}. Check the address and try again."
+msgstr "لم نجد خادم سفرة على {origin}. تحقّق من العنوان وحاول مرة أخرى."
+
+#: src/components/log-weight-sheet.tsx:91
+msgid "Couldn't log that. Try again."
+msgstr "تعذّر التسجيل. حاول مرة أخرى."
+
+#: src/screens/admin/helpers.ts:25
+msgid "Couldn't open the share sheet"
+msgstr "تعذّر فتح نافذة المشاركة"
+
+#: src/components/gate-status.tsx:29
+msgid "Couldn't reach your server"
+msgstr "تعذّر الوصول إلى خادمك"
+
+#: src/screens/meals.[id]/index.tsx:109
+msgid "Couldn't read this meal"
+msgstr "تعذّرت قراءة هذه الوجبة"
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:115
+msgid "Couldn't refine. Try again."
+msgstr "تعذّر التحسين. حاول مرة أخرى."
+
+#: src/screens/(app).profile/components/about-you-section.tsx:47
+msgid "Couldn't save"
+msgstr "تعذّر الحفظ"
+
+#: src/screens/(app).index/components/describe-sheet.tsx:123
+#: src/screens/(app).index/index.tsx:94
+msgid "Couldn't save that meal. Try again in a moment."
+msgstr "تعذّر حفظ الوجبة. حاول بعد قليل."
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:45
+msgid "Couldn't save that photo. Try again in a moment."
+msgstr "تعذّر حفظ الصورة. حاول بعد قليل."
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:53
+#: src/screens/meals.[id]/index.tsx:269
+msgid "Couldn't save. Try again."
+msgstr "تعذّر الحفظ. حاول مرة أخرى."
+
+#: src/screens/admin/components/model-select.tsx:29
+msgid "Couldn't update model"
+msgstr "تعذّر تحديث النموذج"
+
+#: src/screens/onboarding/components/step-goal.tsx:87
+msgid "Current: {currentDisplay}"
+msgstr "الحالي: {currentDisplay}"
+
+#: src/components/sheet-shell.tsx:100
+#: src/screens/(app).profile/components/your-numbers-section.tsx:29
+#: src/screens/onboarding/components/step-goal.tsx:114
+msgid "Daily target"
+msgstr "الهدف اليومي"
+
+#: src/components/birthday-fields.tsx:38
+msgid "Day"
+msgstr "اليوم"
+
+#: src/screens/(app).progress/components/weight-chart.tsx:45
+#: src/screens/admin/components/members-list.tsx:54
+#: src/screens/admin/components/members-list.tsx:109
+#: src/screens/meals.[id]/index.tsx:380
+msgid "Delete"
+msgstr "حذف"
+
+#. placeholder {0}: m.username
+#: src/screens/admin/components/members-list.tsx:104
+msgid "Delete {0}"
+msgstr "حذف {0}"
+
+#. placeholder {0}: m.username
+#: src/screens/admin/components/members-list.tsx:50
+msgid "Delete {0}?"
+msgstr "حذف {0}؟"
+
+#: src/screens/meals.[id]/index.tsx:377
+#: src/screens/meals.[id]/index.tsx:394
+msgid "Delete meal"
+msgstr "حذف الوجبة"
+
+#: src/screens/(app).progress/components/weight-chart.tsx:41
+msgid "Delete this weight entry?"
+msgstr "حذف هذا الوزن؟"
+
+#: src/screens/meals.[id]/index.tsx:394
+msgid "Deleting..."
+msgstr "جارٍ الحذف…"
+
+#: src/screens/(app).index/index.tsx:167
+msgid "Describe"
+msgstr "وصف"
+
+#: src/screens/(app).index/components/describe-sheet.tsx:66
+msgid "Describe your meal"
+msgstr "صِف وجبتك"
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:97
+msgid "e.g. 2 scoops mixed with water"
+msgstr "مثال: مكيالان مخلوطان بالماء"
+
+#: src/screens/(app).index/components/summary-panel.tsx:49
+msgid "eaten"
+msgstr "مأكول"
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:104
+msgid "Edit"
+msgstr "تعديل"
+
+#. placeholder {0}: submitMutation.error.message
+#: src/screens/onboarding/index.tsx:164
+msgid "Error: {0}"
+msgstr "خطأ: {0}"
+
+#: src/screens/(app).index/index.tsx:159
+#: src/screens/(app).index/index.tsx:192
+msgid "Estimating..."
+msgstr "جارٍ التقدير…"
+
+#: src/screens/(app).profile/helpers.ts:76
+#: src/screens/onboarding/components/step-activity.tsx:23
+msgid "Exercise 1–3 days/week"
+msgstr "تمارين 1–3 أيام بالأسبوع"
+
+#: src/screens/(app).profile/helpers.ts:77
+#: src/screens/onboarding/components/step-activity.tsx:24
+msgid "Exercise 3–5 days/week"
+msgstr "تمارين 3–5 أيام بالأسبوع"
+
+#: src/screens/(app).profile/helpers.ts:78
+#: src/screens/onboarding/components/step-activity.tsx:25
+msgid "Exercise 6–7 days/week"
+msgstr "تمارين 6–7 أيام بالأسبوع"
+
+#: src/screens/connect/index.tsx:88
+msgid "family.example.com"
+msgstr "family.example.com"
+
+#: src/screens/(app).profile/components/your-numbers-section.tsx:39
+#: src/screens/meals.[id]/index.tsx:244
+msgid "Fat"
+msgstr "دهون"
+
+#: src/screens/(app).index/components/summary-panel.tsx:125
+msgid "FAT"
+msgstr "دهون"
+
+#: src/screens/onboarding/components/step-height.tsx:65
+msgid "Feet"
+msgstr "قدم"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:30
+#: src/screens/(app).profile/components/about-you-section.tsx:54
+#: src/screens/onboarding/components/step-sex.tsx:24
+msgid "Female"
+msgstr "أنثى"
+
+#: src/screens/onboarding/index.tsx:178
+msgid "Finish"
+msgstr "إنهاء"
+
+#: src/screens/(app).index/index.tsx:173
+msgid "From saved"
+msgstr "من المحفوظات"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:36
+#: src/screens/onboarding/components/step-goal.tsx:33
+msgid "Gain"
+msgstr "زيادة"
+
+#: src/screens/meals.[id]/index.tsx:78
+msgid "Go back"
+msgstr "ارجع"
+
+#: src/components/goal-slider.tsx:53
+msgid "Goal weight"
+msgstr "الوزن المستهدف"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:63
+msgid "Height"
+msgstr "الطول"
+
+#: src/screens/onboarding/components/step-height.tsx:36
+msgid "Height (cm)"
+msgstr "الطول (سم)"
+
+#: src/screens/admin/helpers.ts:20
+msgid "Hi {username}, here's your link to join Sufra:"
+msgstr "مرحبًا {username}، هذا رابطك للانضمام إلى سفرة:"
+
+#: src/screens/admin/components/members-list.tsx:85
+msgid "Host"
+msgstr "المضيف"
+
+#: src/screens/admin/index.tsx:75
+msgid "Host only"
+msgstr "للمضيف فقط"
+
+#: src/screens/onboarding/components/step-activity.tsx:30
+msgid "How active are you?"
+msgstr "ما مستوى نشاطك؟"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:72
+#: src/screens/onboarding/components/step-goal.tsx:94
+msgid "How fast?"
+msgstr "ما السرعة؟"
+
+#: src/screens/onboarding/components/step-height.tsx:24
+msgid "How tall are you?"
+msgstr "كم طولك؟"
+
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:38
+msgid "Improve"
+msgstr "تحسين"
+
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:35
+msgid "Improve estimate"
+msgstr "تحسين التقدير"
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:75
+msgid "Improve this estimate"
+msgstr "حسّن هذا التقدير"
+
+#: src/screens/onboarding/components/step-height.tsx:77
+msgid "Inches"
+msgstr "إنش"
+
+#: src/screens/admin/components/cost-card.tsx:23
+msgid "Inference cost this month"
+msgstr "تكلفة الذكاء الاصطناعي هذا الشهر"
+
+#: src/components/sheet-shell.tsx:103
+msgid "kcal"
+msgstr "سعرة"
+
+#: src/screens/(app).profile/components/account-section.tsx:86
+#: src/screens/(app).profile/components/account-section.tsx:93
+msgid "Language"
+msgstr "اللغة"
+
+#: src/screens/(app).progress/components/calories-card.tsx:61
+msgid "last 30 days"
+msgstr "آخر 30 يومًا"
+
+#: src/screens/(app).progress/components/calories-card.tsx:59
+msgid "last 7 days"
+msgstr "آخر 7 أيام"
+
+#: src/screens/(app).progress/components/calories-card.tsx:63
+msgid "last 90 days"
+msgstr "آخر 90 يومًا"
+
+#: src/screens/(app).progress/components/calories-card.tsx:65
+msgid "last year"
+msgstr "آخر سنة"
+
+#: src/screens/(app).progress/components/weight-card.tsx:51
+msgid "Latest:"
+msgstr "الأحدث:"
+
+#: src/screens/(app).index/components/summary-panel.tsx:49
+msgid "left"
+msgstr "متبقٍ"
+
+#: src/screens/(app).profile/helpers.ts:67
+#: src/screens/onboarding/components/step-activity.tsx:23
+msgid "Light"
+msgstr "خفيف"
+
+#: src/screens/admin/components/members-list.tsx:98
+msgid "Link"
+msgstr "رابط"
+
+#: src/screens/(app).profile/helpers.ts:75
+#: src/screens/onboarding/components/step-activity.tsx:22
+msgid "Little or no exercise"
+msgstr "تمارين قليلة أو معدومة"
+
+#: src/screens/(app).index/components/describe-sheet.tsx:99
+msgid "Log meal"
+msgstr "سجّل الوجبة"
+
+#: src/components/log-weight-sheet.tsx:86
+#: src/screens/(app).progress/components/weight-card.tsx:44
+msgid "Log weight"
+msgstr "سجّل الوزن"
+
+#: src/screens/(app).index/index.tsx:211
+msgid "Log your first one — snap a photo or describe it."
+msgstr "سجّل وجبتك الأولى — التقط صورة أو صِفها."
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:36
+#: src/screens/onboarding/components/step-goal.tsx:33
+msgid "Lose"
+msgstr "خسارة"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:36
+#: src/screens/onboarding/components/step-goal.tsx:33
+msgid "Maintain"
+msgstr "محافظة"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:29
+#: src/screens/(app).profile/components/about-you-section.tsx:54
+#: src/screens/onboarding/components/step-sex.tsx:18
+msgid "Male"
+msgstr "ذكر"
+
+#: src/screens/meals.[id]/index.tsx:74
+msgid "Meal not found"
+msgstr "الوجبة غير موجودة"
+
+#: src/screens/(app).index/index.tsx:95
+msgid "Meal not saved"
+msgstr "لم تُحفظ الوجبة"
+
+#: src/screens/(app).index/index.tsx:190
+msgid "Meals"
+msgstr "الوجبات"
+
+#: src/screens/(app).index/components/summary-panel.tsx:36
+msgid "Meals can be logged now. The Day Target appears after onboarding lands on native."
+msgstr "يمكنك تسجيل الوجبات الآن. يظهر هدف اليوم بعد إكمال الإعداد."
+
+#: src/screens/admin/index.tsx:103
+msgid "Members"
+msgstr "الأفراد"
+
+#: src/screens/(app).profile/helpers.ts:68
+#: src/screens/onboarding/components/step-activity.tsx:24
+msgid "Moderate"
+msgstr "متوسط"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:85
+#: src/screens/onboarding/components/step-goal.tsx:103
+msgid "Moderately"
+msgstr "باعتدال"
+
+#: src/components/birthday-fields.tsx:51
+msgid "Month"
+msgstr "الشهر"
+
+#. placeholder {0}: ACTIVITY_MULTIPLIERS.sedentary
+#. placeholder {1}: ACTIVITY_MULTIPLIERS.active
+#: src/screens/onboarding/components/step-activity.tsx:43
+msgid "Multiplier applied to your BMR: {0}× → {1}×."
+msgstr "المعامل المطبّق على معدل الأيض: {0}× ← {1}×."
+
+#: src/screens/(app).index/components/day-header.tsx:31
+msgid "Next week"
+msgstr "الأسبوع التالي"
+
+#. placeholder {0}: periodLabel(period)
+#: src/screens/(app).progress/components/calories-card.tsx:42
+msgid "No meals · {0}"
+msgstr "لا وجبات · {0}"
+
+#: src/screens/(app).progress/components/calories-chart.tsx:34
+msgid "No meals logged in this period."
+msgstr "لا وجبات مسجّلة في هذه الفترة."
+
+#: src/screens/(app).index/index.tsx:207
+msgid "No meals logged this day."
+msgstr "لا وجبات مسجّلة هذا اليوم."
+
+#: src/screens/(app).index/index.tsx:207
+msgid "No meals logged yet"
+msgstr "لا وجبات مسجّلة بعد"
+
+#: src/screens/admin/components/members-list.tsx:63
+msgid "No Members yet. Add one above."
+msgstr "لا أفراد بعد. أضف واحدًا أعلاه."
+
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:62
+#: src/screens/(app).profile/components/saved-meals-section.tsx:29
+msgid "No saved meals yet"
+msgstr "لا وجبات محفوظة بعد"
+
+#: src/screens/(app).progress/components/weight-chart.tsx:60
+msgid "No weights logged in this period."
+msgstr "لا أوزان مسجّلة في هذه الفترة."
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:63
+msgid "Now: {currentDisplay}"
+msgstr "الآن: {currentDisplay}"
+
+#: src/screens/(app).index/components/summary-panel.tsx:49
+msgid "over"
+msgstr "زيادة"
+
+#. placeholder {0}: derived.macros.proteinG
+#. placeholder {0}: preview.macros.proteinG
+#. placeholder {1}: derived.macros.carbsG
+#. placeholder {1}: preview.macros.carbsG
+#. placeholder {2}: derived.macros.fatG
+#. placeholder {2}: preview.macros.fatG
+#: src/components/sheet-shell.tsx:107
+#: src/screens/onboarding/components/step-goal.tsx:125
+msgid "P {0}g · C {1}g · F {2}g"
+msgstr "ب {0}غ · ك {1}غ · د {2}غ"
+
+#: src/screens/sign-in/index.tsx:75
+msgid "Password"
+msgstr "كلمة المرور"
+
+#: src/screens/(app).profile/components/your-numbers-section.tsx:23
+msgid "Pending changes — starts tomorrow"
+msgstr "تغييرات معلّقة — تبدأ غدًا"
+
+#: src/screens/(app).index/index.tsx:159
+msgid "Photo"
+msgstr "صورة"
+
+#: src/lib/photo-source.ts:28
+msgid "Photo access required"
+msgstr "الوصول إلى الصور مطلوب"
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:46
+msgid "Photo not saved"
+msgstr "لم تُحفظ الصورة"
+
+#: src/screens/onboarding/components/step-goal.tsx:76
+msgid "Pick a goal weight. Slide to current to maintain."
+msgstr "اختر وزنًا مستهدفًا. حرّك إلى وزنك الحالي للمحافظة عليه."
+
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:54
+msgid "Pick a saved meal"
+msgstr "اختر وجبة محفوظة"
+
+#: src/screens/(app).index/components/day-header.tsx:23
+msgid "Previous week"
+msgstr "الأسبوع السابق"
+
+#: src/components/app-tabs.tsx:32
+#: src/screens/(app).profile/index.tsx:54
+msgid "Profile"
+msgstr "الملف الشخصي"
+
+#: src/screens/(app).index/components/summary-panel.tsx:33
+msgid "Profile setup is next"
+msgstr "إعداد الملف الشخصي هو التالي"
+
+#: src/components/app-tabs.tsx:23
+#: src/screens/(app).progress/index.tsx:53
+msgid "Progress"
+msgstr "التقدّم"
+
+#: src/screens/(app).profile/components/your-numbers-section.tsx:37
+#: src/screens/meals.[id]/index.tsx:230
+msgid "Protein"
+msgstr "بروتين"
+
+#: src/screens/(app).index/components/summary-panel.tsx:113
+msgid "PROTEIN"
+msgstr "بروتين"
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:135
+msgid "Refine with AI"
+msgstr "حسّن بالذكاء الاصطناعي"
+
+#: src/screens/meals.[id]/index.tsx:164
+msgid "Remove from saved meals"
+msgstr "إزالة من الوجبات المحفوظة"
+
+#: src/screens/meals.[id]/components/meal-photo.tsx:90
+msgid "Replace this meal's photo"
+msgstr "استبدال صورة هذه الوجبة"
+
+#: src/screens/meals.[id]/index.tsx:265
+msgid "Reset"
+msgstr "إعادة تعيين"
+
+#: src/components/gate-status.tsx:38
+msgid "Retry"
+msgstr "إعادة المحاولة"
+
+#: src/screens/meals.[id]/index.tsx:349
+msgid "Retry estimate"
+msgstr "أعد التقدير"
+
+#: src/components/sheet-shell.tsx:75
+#: src/screens/meals.[id]/index.tsx:168
+#: src/screens/meals.[id]/index.tsx:258
+msgid "Save"
+msgstr "حفظ"
+
+#: src/screens/meals.[id]/index.tsx:164
+msgid "Save meal for re-logging"
+msgstr "احفظ الوجبة لإعادة تسجيلها"
+
+#: src/screens/meals.[id]/index.tsx:168
+msgid "Saved"
+msgstr "محفوظة"
+
+#: src/screens/(app).profile/components/saved-meals-section.tsx:19
+msgid "Saved Meals"
+msgstr "الوجبات المحفوظة"
+
+#: src/screens/meals.[id]/index.tsx:258
+msgid "Saving…"
+msgstr "جارٍ الحفظ…"
+
+#: src/screens/(app).profile/helpers.ts:66
+#: src/screens/onboarding/components/step-activity.tsx:22
+msgid "Sedentary"
+msgstr "خامل"
+
+#: src/screens/(app).profile/components/account-section.tsx:48
+msgid "Server"
+msgstr "الخادم"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:53
+msgid "Sex"
+msgstr "الجنس"
+
+#. placeholder {0}: m.username
+#: src/screens/admin/components/members-list.tsx:92
+msgid "Share password link for {0}"
+msgstr "شارك رابط كلمة المرور لـ {0}"
+
+#: src/screens/sign-in/index.tsx:94
+msgid "Sign in"
+msgstr "تسجيل الدخول"
+
+#: src/screens/sign-in/index.tsx:55
+msgid "Sign in to continue"
+msgstr "سجّل الدخول للمتابعة"
+
+#: src/screens/(app).profile/index.tsx:59
+#: src/screens/(app).profile/index.tsx:61
+msgid "Sign out"
+msgstr "تسجيل الخروج"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:77
+#: src/screens/onboarding/components/step-goal.tsx:97
+msgid "Slowly"
+msgstr "ببطء"
+
+#: src/screens/onboarding/index.tsx:57
+msgid "Some fields are still empty."
+msgstr "بعض الحقول ما زالت فارغة."
+
+#: src/screens/onboarding/index.tsx:165
+msgid "Something went wrong. Try again."
+msgstr "حدث خطأ ما. حاول مرة أخرى."
+
+#: src/components/sheet-shell.tsx:55
+msgid "Starts tomorrow at midnight (your local time)."
+msgstr "يبدأ غدًا عند منتصف الليل (بتوقيتك المحلي)."
+
+#: src/screens/meals.[id]/index.tsx:353
+msgid "Still couldn't reach the vision service. Try again."
+msgstr "ما زال الوصول إلى خدمة الرؤية متعذّرًا. حاول مرة أخرى."
+
+#: src/screens/(app).profile/components/account-section.tsx:124
+msgid "Sufra"
+msgstr "سفرة"
+
+#: src/lib/photo-source.ts:42
+#: src/lib/photo-source.ts:51
+msgid "Take photo"
+msgstr "التقط صورة"
+
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:64
+#: src/screens/(app).profile/components/saved-meals-section.tsx:32
+msgid "Tap Save on any meal to save it for quick re-logging."
+msgstr "اضغط حفظ على أي وجبة لحفظها وإعادة تسجيلها بسرعة."
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:92
+msgid "Tell the AI what it missed"
+msgstr "أخبر الذكاء الاصطناعي بما فاته"
+
+#: src/lib/meal-photo.ts:30
+msgid "That photo is too large. Try another angle or pick a different photo."
+msgstr "الصورة كبيرة جدًا. جرّب زاوية أخرى أو اختر صورة مختلفة."
+
+#: src/screens/meals.[id]/index.tsx:39
+msgid "The AI couldn't read this meal. Add more detail and try again."
+msgstr "لم يستطع الذكاء الاصطناعي قراءة هذه الوجبة. أضف تفاصيل أكثر وحاول مرة أخرى."
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:81
+msgid "The AI wasn't sure about"
+msgstr "لم يكن الذكاء الاصطناعي متأكدًا من"
+
+#: src/screens/meals.[id]/index.tsx:37
+msgid "The vision service is busy right now. Try again in a moment."
+msgstr "خدمة الرؤية مشغولة حاليًا. حاول بعد قليل."
+
+#: src/screens/connect/index.tsx:98
+msgid "The web address of your household's Sufra server."
+msgstr "عنوان خادم سفرة الخاص بأسرتك."
+
+#. placeholder {0}: m.username
+#: src/screens/admin/components/members-list.tsx:51
+msgid "This deletes {0} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone."
+msgstr "سيحذف هذا {0} وكل ما سجّله — وجبات وصور وأوزان. تبقى تكلفة الذكاء الاصطناعي في السجل. لا يمكن التراجع عن هذا."
+
+#: src/screens/onboarding/components/step-weight.tsx:51
+msgid "This is your starting weight — we'll log it."
+msgstr "هذا وزنك الابتدائي — سنسجّله."
+
+#: src/screens/connect/index.tsx:52
+msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
+msgstr "لم يُجهَّز هذا الخادم بعد. أكمل الإعداد على {origin} أولًا ثم اتصل."
+
+#: src/screens/meals.[id]/index.tsx:377
+msgid "This will permanently remove this meal and its photo."
+msgstr "سيحذف هذا الوجبة وصورتها نهائيًا."
+
+#: src/components/app-tabs.tsx:14
+#: src/lib/date.ts:98
+#: src/screens/(app).progress/components/weight-card.tsx:79
+msgid "Today"
+msgstr "اليوم"
+
+#: src/screens/(app).index/components/summary-panel.tsx:66
+msgid "Toggle Day summary reading"
+msgstr "بدّل قراءة ملخص اليوم"
+
+#: src/screens/(app).index/components/summary-panel.tsx:67
+msgid "Toggles between remaining and consumed"
+msgstr "يبدّل بين المتبقي والمستهلك"
+
+#: src/screens/(app).profile/components/account-section.tsx:118
+msgid "Trial · {days, plural, one {# day left} other {# days left}}"
+msgstr "التجربة · {days, plural, zero {انتهت} one {باقٍ يوم واحد} two {باقٍ يومان} few {باقي # أيام} many {باقي # يومًا} other {باقي # يوم}}"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:47
+msgid "Try again in a moment."
+msgstr "حاول بعد قليل."
+
+#: src/screens/admin/components/add-member-form.tsx:57
+#: src/screens/admin/components/members-list.tsx:33
+#: src/screens/admin/components/members-list.tsx:44
+#: src/screens/admin/components/model-select.tsx:29
+msgid "Try again."
+msgstr "حاول مرة أخرى."
+
+#: src/screens/(app).profile/components/account-section.tsx:117
+msgid "Unlock Sufra"
+msgstr "افتح سفرة"
+
+#: src/screens/(app).profile/components/account-section.tsx:124
+msgid "Unlocked"
+msgstr "مفتوح"
+
+#: src/screens/admin/components/add-member-form.tsx:73
+msgid "username"
+msgstr "اسم المستخدم"
+
+#: src/screens/(app).profile/components/account-section.tsx:47
+#: src/screens/sign-in/index.tsx:63
+msgid "Username"
+msgstr "اسم المستخدم"
+
+#: src/screens/admin/index.tsx:95
+msgid "Vision Model"
+msgstr "نموذج الرؤية"
+
+#: src/components/sheet-shell.tsx:104
+msgid "was {previousTarget}"
+msgstr "كان {previousTarget}"
+
+#: src/screens/onboarding/components/step-birthday.tsx:19
+msgid "We use this to compute your age each time we run the formula."
+msgstr "نستخدمه لحساب عمرك في كل مرة نطبّق فيها المعادلة."
+
+#: src/screens/(app).profile/components/about-you-section.tsx:68
+msgid "Weight"
+msgstr "الوزن"
+
+#: src/components/log-weight-sheet.tsx:101
+#: src/screens/onboarding/components/step-weight.tsx:62
+msgid "Weight ({unit})"
+msgstr "الوزن ({unit})"
+
+#: src/screens/(app).progress/components/weight-card.tsx:40
+msgid "Weight over time"
+msgstr "الوزن عبر الزمن"
+
+#: src/screens/(app).index/components/describe-sheet.tsx:69
+msgid "What did you eat? Portions help"
+msgstr "ماذا أكلت؟ ذكر الكميات يساعد"
+
+#: src/screens/onboarding/components/step-weight.tsx:50
+msgid "What do you weigh now?"
+msgstr "كم وزنك الآن؟"
+
+#: src/screens/onboarding/components/step-birthday.tsx:17
+msgid "When were you born?"
+msgstr "متى وُلدت؟"
+
+#: src/screens/(app).profile/components/about-you-section.tsx:80
+#: src/screens/onboarding/components/step-sex.tsx:11
+msgid "Which formula should we use?"
+msgstr "أي معادلة نستخدم؟"
+
+#: src/components/birthday-fields.tsx:64
+msgid "Year"
+msgstr "السنة"
+
+#: src/lib/date.ts:99
+#: src/screens/(app).progress/components/weight-card.tsx:80
+msgid "Yesterday"
+msgstr "أمس"
+
+#: src/screens/(app).profile/components/account-section.tsx:23
+msgid "You'll be signed out, and this device will forget the current server."
+msgstr "سيُسجَّل خروجك، وسينسى هذا الجهاز الخادم الحالي."
+
+#: src/screens/(app).profile/index.tsx:55
+msgid "Your account and plan"
+msgstr "حسابك وخطتك"
+
+#: src/screens/(app).profile/components/goal-sheet.tsx:46
+#: src/screens/onboarding/components/step-goal.tsx:75
+msgid "Your goal"
+msgstr "هدفك"
+
+#: src/screens/(app).progress/index.tsx:54
+msgid "Your intake and progress over time"
+msgstr "استهلاكك وتقدّمك عبر الزمن"
+
+#: src/screens/(app).profile/components/your-numbers-section.tsx:18
+#: src/screens/meals.[id]/index.tsx:212
+msgid "Your numbers"
+msgstr "أرقامك"
+
+#: src/screens/(app).index/components/describe-sheet.tsx:121
+msgid "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."
+msgstr "خادم سفرة لديك لا يدعم وصف الوجبات بعد. حدّث نشرك لاستخدام هذه الميزة."

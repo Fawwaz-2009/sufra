@@ -10,17 +10,20 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 
 import { Palette } from '@/constants/theme';
 
 import { getClient, run } from '@/client/api-client';
+import { getLocale } from '@/lib/locale';
 
 /**
- * The Describe door (ADR 0019) — log a Meal by text alone: `POST /meals { userText }`, the same
+ * The Describe door (ADR 0019) -- log a Meal by text alone: `POST /meals { userText }`, the same
  * synchronous create+spinner the photo path has. The description rides the first Estimate row, so the
  * Improve sheet later prefills it. Uses the Modal shell from the SavedMealsSheet/OptionSheet pattern.
  *
- * capturedAt: ISO string when logging onto a past Day; undefined ⇒ server uses "now".
+ * capturedAt: ISO string when logging onto a past Day; undefined => server uses "now".
  */
 export function DescribeSheet({
   visible,
@@ -38,7 +41,7 @@ export function DescribeSheet({
     mutationFn: async (userText: string) =>
       run(
         (await getClient()).meals.create({
-          payload: { userText, ...(capturedAt ? { capturedAt } : {}) },
+          payload: { userText, locale: getLocale(), ...(capturedAt ? { capturedAt } : {}) },
         })
       ),
     onSuccess: () => {
@@ -57,11 +60,14 @@ export function DescribeSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel={t`Close`} />
         <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5 gap-3">
-          <Text className="text-lg font-semibold text-ink">Describe your meal</Text>
+          <Text className="text-lg font-semibold text-ink">
+            <Trans>Describe your meal</Trans>
+          </Text>
           <Text className="text-sm text-ink-soft">
-            What did you eat? Portions help — “two falafel sandwiches, small fries”.
+            <Trans>What did you eat? Portions help</Trans>
+            {' — “two falafel sandwiches, small fries”.'}
           </Text>
 
           <TextInput
@@ -69,7 +75,7 @@ export function DescribeSheet({
             onChangeText={setText}
             multiline
             autoFocus
-            placeholder="Chicken shawarma wrap with garlic sauce…"
+            placeholder={t`Chicken shawarma wrap with garlic sauce…`}
             placeholderTextColor={Palette.inkFaint}
             className="rounded-xl bg-surface"
             style={{
@@ -89,7 +95,9 @@ export function DescribeSheet({
             {create.isPending ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text className="text-[17px] font-semibold text-white">Log meal</Text>
+              <Text className="text-[17px] font-semibold text-white">
+                <Trans>Log meal</Trans>
+              </Text>
             )}
           </Pressable>
 
@@ -103,14 +111,14 @@ export function DescribeSheet({
 }
 
 /**
- * An OLD self-hosted backend (pre-ADR-0019) rejects the photo-less payload with a decode-level 400 —
+ * An OLD self-hosted backend (pre-ADR-0019) rejects the photo-less payload with a decode-level 400 --
  * the app attempts and explains rather than probing capabilities (the contract drift is expected,
  * ADR 0018). Anything else is the usual transient-failure copy.
  */
 function describeErrorMessage(error: unknown): string {
   const tag = (error as { _tag?: unknown } | null)?._tag;
   if (tag === 'HttpApiDecodeError' || tag === 'BadRequest') {
-    return "Your Sufra server doesn't support describing meals yet. Update your deployment to use this.";
+    return t`Your Sufra server doesn't support describing meals yet. Update your deployment to use this.`;
   }
-  return "Couldn't save that meal. Try again in a moment.";
+  return t`Couldn't save that meal. Try again in a moment.`;
 }

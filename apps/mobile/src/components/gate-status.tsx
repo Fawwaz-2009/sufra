@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/theme';
@@ -24,17 +25,23 @@ export function GateError({
 }) {
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-white px-6">
-      <Text className="text-lg font-semibold text-ink">Couldn&apos;t reach your server</Text>
+      <Text className="text-lg font-semibold text-ink">
+        <Trans>Couldn&apos;t reach your server</Trans>
+      </Text>
       <Text className="text-center text-sm text-ink-soft">
-        Check your connection, or that your Sufra server is up.
+        <Trans>Check your connection, or that your Sufra server is up.</Trans>
       </Text>
       <Pressable
         onPress={onRetry}
         className="mt-2 h-12 w-40 items-center justify-center rounded-[9999px] bg-flame">
-        <Text className="text-base font-semibold text-white">Retry</Text>
+        <Text className="text-base font-semibold text-white">
+          <Trans>Retry</Trans>
+        </Text>
       </Pressable>
       <Pressable onPress={onChangeServer} className="h-12 items-center justify-center px-4">
-        <Text className="text-sm font-medium text-flame">Change server</Text>
+        <Text className="text-sm font-medium text-flame">
+          <Trans>Change server</Trans>
+        </Text>
       </Pressable>
     </View>
   );

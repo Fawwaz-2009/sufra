@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -12,6 +14,7 @@ import {
 } from 'react-native';
 
 import { getClient, run } from '@/client/api-client';
+import { getLocale } from '@/lib/locale';
 import { Palette } from '@/constants/theme';
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 
@@ -47,7 +50,10 @@ export function ImproveEstimateSheet({
     mutationKey: ['meal', mealId],
     mutationFn: async (userText: string) =>
       run(
-        (await getClient()).estimates.create({ params: { id: mealId }, payload: { userText } })
+        (await getClient()).estimates.create({
+          params: { id: mealId },
+          payload: { userText, locale: getLocale() },
+        })
       ),
     onSuccess: () => {
       onRefined();
@@ -63,14 +69,16 @@ export function ImproveEstimateSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel={t`Close`} />
         <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
-          <Text className="text-lg font-semibold text-ink">Improve this estimate</Text>
+          <Text className="text-lg font-semibold text-ink">
+            <Trans>Improve this estimate</Trans>
+          </Text>
 
           {clarifications.length > 0 ? (
             <View className="mt-4 gap-2 rounded-xl bg-surface p-3">
               <Text className="text-xs font-bold uppercase text-ink-soft">
-                {"The AI wasn't sure about"}
+                <Trans>The AI wasn&apos;t sure about</Trans>
               </Text>
               {clarifications.map((q) => (
                 <Text key={q.id} className="text-sm text-ink">
@@ -81,12 +89,12 @@ export function ImproveEstimateSheet({
           ) : null}
 
           <Text className="mt-4 text-xs font-bold uppercase text-ink-soft">
-            Tell the AI what it missed
+            <Trans>Tell the AI what it missed</Trans>
           </Text>
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="e.g. 2 scoops mixed with water"
+            placeholder={t`e.g. 2 scoops mixed with water`}
             placeholderTextColor={Palette.inkFaint}
             multiline
             numberOfLines={4}
@@ -104,7 +112,7 @@ export function ImproveEstimateSheet({
           />
 
           {mutation.isError ? (
-            <Text className="mt-2 text-sm text-red">{"Couldn't refine. Try again."}</Text>
+            <Text className="mt-2 text-sm text-red">{t`Couldn't refine. Try again.`}</Text>
           ) : null}
 
           <View className="mt-4 flex-row gap-2">
@@ -112,7 +120,9 @@ export function ImproveEstimateSheet({
               onPress={onClose}
               disabled={mutation.isPending}
               className="h-12 flex-1 items-center justify-center">
-              <Text className="text-base text-ink-soft">Cancel</Text>
+              <Text className="text-base text-ink-soft">
+                <Trans>Cancel</Trans>
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => mutation.mutate(trimmed)}
@@ -121,7 +131,9 @@ export function ImproveEstimateSheet({
               {mutation.isPending ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-base font-semibold text-white">Refine with AI</Text>
+                <Text className="text-base font-semibold text-white">
+                  <Trans>Refine with AI</Trans>
+                </Text>
               )}
             </Pressable>
           </View>

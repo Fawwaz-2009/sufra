@@ -7,8 +7,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, Text, View } from 'react-native';
+import { plural, t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 
 import { LogWeightSheet } from '@/components/log-weight-sheet';
+import { displayLocale } from '@/lib/date';
 import { formatWeight } from '@/lib/units';
 import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/views/profile-snapshot.ts';
 
@@ -34,18 +37,18 @@ export function WeightCard({ profile, period, onPeriodChange }: WeightCardProps)
     <View className="rounded-2xl border border-line bg-white p-4">
       {/* Header row */}
       <View className="mb-2 flex-row items-start justify-between">
-        <Text className="text-base font-semibold text-ink">Weight over time</Text>
+        <Text className="text-base font-semibold text-ink"><Trans>Weight over time</Trans></Text>
         <Pressable
           onPress={() => setLogOpen(true)}
           className="rounded-xl border border-line px-3 py-1">
-          <Text className="text-xs font-medium text-ink">Log weight</Text>
+          <Text className="text-xs font-medium text-ink"><Trans>Log weight</Trans></Text>
         </Pressable>
       </View>
 
       {/* Latest reading subtitle */}
       {latest !== undefined && (
         <Text className="mb-2 text-xs text-ink-soft">
-          Latest: {formatWeight(latest.weightKg, profile.displayWeightUnit)} ·{' '}
+          <Trans>Latest:</Trans> {formatWeight(latest.weightKg, profile.displayWeightUnit)} ·{' '}
           {relativeDate(latest.loggedAt)}
         </Text>
       )}
@@ -73,8 +76,9 @@ function relativeDate(iso: string): string {
   const diffMs = nowDay.getTime() - thenDay.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays >= 2 && diffDays <= 7) return `${diffDays} days ago`;
-  return then.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (diffDays === 0) return t`Today`;
+  if (diffDays === 1) return t`Yesterday`;
+  if (diffDays >= 2 && diffDays <= 7)
+    return plural(diffDays, { one: '# day ago', other: '# days ago' });
+  return then.toLocaleDateString(displayLocale(), { month: 'short', day: 'numeric' });
 }

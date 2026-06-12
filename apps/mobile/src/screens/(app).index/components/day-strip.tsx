@@ -1,8 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { diffInLocalDays, formatLocalDate, isSameLocalDay, weekDays } from '@/lib/date';
-
-const WEEKDAY_INITIALS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+import { diffInLocalDays, displayLocale, formatLocalDate, isSameLocalDay, weekDays } from '@/lib/date';
 
 export function DayStrip({
   weekStartDate,
@@ -18,7 +16,7 @@ export function DayStrip({
   const days = weekDays(weekStartDate);
   return (
     <View className="flex-row pb-2">
-      {days.map((d, i) => {
+      {days.map((d) => {
         const isFuture = diffInLocalDays(d, today) > 0;
         const isSelected = isSameLocalDay(d, selectedDay);
         const isToday = isSameLocalDay(d, today);
@@ -34,7 +32,7 @@ export function DayStrip({
               className={`text-[10px] font-medium uppercase ${
                 isFuture ? 'text-ink-faint' : 'text-ink-soft'
               }`}>
-              {WEEKDAY_INITIALS[i]}
+              {d.toLocaleDateString(displayLocale(), { weekday: 'narrow' })}
             </Text>
             <View
               className={`h-9 w-9 items-center justify-center rounded-[9999px] ${

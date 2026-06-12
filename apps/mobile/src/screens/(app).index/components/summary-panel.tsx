@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { type Dispatch, type SetStateAction } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
@@ -27,9 +29,11 @@ export function SummaryPanel({
   if (!summary) {
     return (
       <View className="gap-2 rounded-2xl bg-surface p-4">
-        <Text className="font-semibold text-ink">Profile setup is next</Text>
+        <Text className="font-semibold text-ink">
+          <Trans>Profile setup is next</Trans>
+        </Text>
         <Text className="text-sm text-ink-soft">
-          Meals can be logged now. The Day Target appears after onboarding lands on native.
+          <Trans>Meals can be logged now. The Day Target appears after onboarding lands on native.</Trans>
         </Text>
       </View>
     );
@@ -42,7 +46,7 @@ export function SummaryPanel({
 
   const ringValue = ringMode === 'remaining' ? summary.remaining : summary.consumed;
   const ringLabel =
-    ringMode === 'remaining' ? (summary.remaining >= 0 ? 'left' : 'over') : 'eaten';
+    ringMode === 'remaining' ? (summary.remaining >= 0 ? t`left` : t`over`) : t`eaten`;
 
   let progressStroke: string;
   if (ratio <= 1) {
@@ -59,8 +63,8 @@ export function SummaryPanel({
       <Pressable
         onPress={() => setRingMode((mode) => (mode === 'remaining' ? 'consumed' : 'remaining'))}
         accessibilityRole="button"
-        accessibilityLabel="Toggle Day summary reading"
-        accessibilityHint="Toggles between remaining and consumed"
+        accessibilityLabel={t`Toggle Day summary reading`}
+        accessibilityHint={t`Toggles between remaining and consumed`}
         style={{ width: 200, height: 200 }}>
         <Svg width={200} height={200} viewBox="0 0 200 200">
           <Defs>
@@ -106,19 +110,19 @@ export function SummaryPanel({
       {/* Macro trio */}
       <View className="mt-6 w-full flex-row gap-4">
         <MacroColumn
-          label="PROTEIN"
+          label={t`PROTEIN`}
           eaten={summary.proteinG}
           goal={summary.macros.proteinG}
           color={Palette.teal}
         />
         <MacroColumn
-          label="CARBS"
+          label={t`CARBS`}
           eaten={summary.carbsG}
           goal={summary.macros.carbsG}
           color={Palette.amber}
         />
         <MacroColumn
-          label="FAT"
+          label={t`FAT`}
           eaten={summary.fatG}
           goal={summary.macros.fatG}
           color={Palette.flame}

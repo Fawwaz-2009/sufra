@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -31,7 +33,7 @@ export function GoalSheet({
   const isMaintain = Math.abs(goalKg - profile.weightKg) < 0.5;
   const effectiveRate = isMaintain ? 0 : rate;
   const direction =
-    goalKg < profile.weightKg ? 'Lose' : goalKg > profile.weightKg ? 'Gain' : 'Maintain';
+    goalKg < profile.weightKg ? t`Lose` : goalKg > profile.weightKg ? t`Gain` : t`Maintain`;
   const currentDisplay =
     profile.displayWeightUnit === 'kg'
       ? `${Math.round(profile.weightKg * 10) / 10} kg`
@@ -41,14 +43,14 @@ export function GoalSheet({
   return (
     <SheetShell
       visible={visible}
-      title="Your goal"
+      title={t`Your goal`}
       onClose={onClose}
       onSave={() =>
         patch.mutate({ goalWeightKg: goalKg, weeklyRateKg: effectiveRate }, { onSuccess: onClose })
       }
       saving={patch.isPending}
       disabled={!valid || !changed}
-      error={patch.isError ? "Couldn't save. Try again." : null}>
+      error={patch.isError ? t`Couldn't save. Try again.` : null}>
       <View className="gap-2">
         <View className="flex-row items-baseline justify-between">
           <Text className="text-sm font-medium text-ink">{direction}</Text>
@@ -57,18 +59,22 @@ export function GoalSheet({
         <GoalSlider min={min} max={max} value={Math.round(goalKg)} onChange={setGoalKg} />
         <View className="flex-row justify-between">
           <Text className="text-[10px] text-ink-soft">{min} kg</Text>
-          <Text className="text-[10px] text-ink-soft">Now: {currentDisplay}</Text>
+          <Text className="text-[10px] text-ink-soft">
+            <Trans>Now: {currentDisplay}</Trans>
+          </Text>
           <Text className="text-[10px] text-ink-soft">{max} kg</Text>
         </View>
       </View>
 
       {!isMaintain ? (
         <View className="gap-2">
-          <Text className="text-sm font-medium text-ink">How fast?</Text>
+          <Text className="text-sm font-medium text-ink">
+            <Trans>How fast?</Trans>
+          </Text>
           <View className="flex-row gap-2">
             <View className="flex-1">
               <ChipButton
-                label="Slowly"
+                label={t`Slowly`}
                 description="~0.25 kg/wk"
                 selected={rate === 0.25}
                 onPress={() => setRate(0.25)}
@@ -76,7 +82,7 @@ export function GoalSheet({
             </View>
             <View className="flex-1">
               <ChipButton
-                label="Moderately"
+                label={t`Moderately`}
                 description="~0.5 kg/wk"
                 selected={rate === 0.5}
                 onPress={() => setRate(0.5)}

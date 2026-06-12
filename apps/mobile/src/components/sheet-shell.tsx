@@ -8,6 +8,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 
 import { DisplayText } from '@/components/display-text';
 import { Palette } from '@/constants/theme';
@@ -44,13 +46,13 @@ export function SheetShell({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close" />
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel={t`Close`} />
         <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">{title}</Text>
           <View className="mt-4 gap-4">{children}</View>
           <View className="mt-4 rounded-xl bg-surface px-3 py-2">
             <Text className="text-xs text-ink-soft">
-              Starts tomorrow at midnight (your local time).
+              <Trans>Starts tomorrow at midnight (your local time).</Trans>
             </Text>
           </View>
           {error ? <Text className="mt-2 text-sm text-red">{error}</Text> : null}
@@ -59,7 +61,7 @@ export function SheetShell({
               onPress={onClose}
               disabled={saving}
               className="h-12 flex-1 items-center justify-center rounded-[9999px]">
-              <Text className="text-base font-medium text-ink-soft">Cancel</Text>
+              <Text className="text-base font-medium text-ink-soft"><Trans>Cancel</Trans></Text>
             </Pressable>
             <Pressable
               onPress={onSave}
@@ -70,7 +72,7 @@ export function SheetShell({
               {saving ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text className="text-base font-semibold text-white">Save</Text>
+                <Text className="text-base font-semibold text-white"><Trans>Save</Trans></Text>
               )}
             </Pressable>
           </View>
@@ -95,14 +97,14 @@ export function PreviewBox({
   const changed = derived.targetKcal !== previousTarget;
   return (
     <View className="rounded-xl bg-surface p-3">
-      <Text className="text-xs uppercase text-ink-soft">Daily target</Text>
+      <Text className="text-xs uppercase text-ink-soft"><Trans>Daily target</Trans></Text>
       <View className="mt-1 flex-row items-baseline gap-1">
         <DisplayText className="text-2xl text-ink">{derived.targetKcal}</DisplayText>
-        <Text className="text-xs text-ink-soft">kcal</Text>
-        {changed ? <Text className="ml-2 text-xs text-ink-soft">was {previousTarget}</Text> : null}
+        <Text className="text-xs text-ink-soft"><Trans>kcal</Trans></Text>
+        {changed ? <Text className="ml-2 text-xs text-ink-soft"><Trans>was {previousTarget}</Trans></Text> : null}
       </View>
       <Text className="mt-1 text-xs text-ink-soft">
-        P {derived.macros.proteinG}g · C {derived.macros.carbsG}g · F {derived.macros.fatG}g
+        <Trans>P {derived.macros.proteinG}g · C {derived.macros.carbsG}g · F {derived.macros.fatG}g</Trans>
       </Text>
     </View>
   );

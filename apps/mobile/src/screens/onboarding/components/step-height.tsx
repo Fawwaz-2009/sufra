@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { View } from 'react-native';
 
 import { cmToImperial, imperialToCm } from '@/lib/units';
@@ -19,7 +21,7 @@ export function StepHeight({
   return (
     <View className="gap-6">
       <View className="mb-6 gap-1">
-        <DisplayText className="text-2xl text-ink">How tall are you?</DisplayText>
+        <DisplayText className="text-2xl text-ink"><Trans>How tall are you?</Trans></DisplayText>
       </View>
       <UnitToggle
         value={unit}
@@ -31,7 +33,7 @@ export function StepHeight({
       />
       {unit === 'cm' ? (
         <LabeledInput
-          label="Height (cm)"
+          label={t`Height (cm)`}
           defaultValue={heightCm != null ? String(heightCm) : ''}
           onChangeText={(v) => {
             if (v === '') return;
@@ -60,7 +62,7 @@ function ImperialHeightInput({
     <View className="flex-row gap-3">
       <View className="flex-1">
         <LabeledInput
-          label="Feet"
+          label={t`Feet`}
           value={heightCm != null ? String(display.feet) : ''}
           onChangeText={(v) => {
             const n = Number(v);
@@ -72,7 +74,7 @@ function ImperialHeightInput({
       </View>
       <View className="flex-1">
         <LabeledInput
-          label="Inches"
+          label={t`Inches`}
           value={heightCm != null ? String(display.inches) : ''}
           onChangeText={(v) => {
             const n = Number(v);

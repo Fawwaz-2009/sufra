@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { t } from '@lingui/core/macro';
 
 import { LabeledInput } from '@/components/labeled-input';
 import { UnitToggle } from '@/components/unit-toggle';
@@ -82,12 +83,12 @@ export function LogWeightSheet({
   return (
     <SheetShell
       visible={visible}
-      title="Log weight"
+      title={t`Log weight`}
       onClose={onClose}
       onSave={() => mutation.mutate({ weightKg: kg, unit })}
       saving={mutation.isPending}
       disabled={!valid}
-      error={mutation.isError ? "Couldn't log that. Try again." : null}>
+      error={mutation.isError ? t`Couldn't log that. Try again.` : null}>
       <UnitToggle
         value={unit}
         options={[
@@ -97,7 +98,7 @@ export function LogWeightSheet({
         onChange={handleUnitChange}
       />
       <LabeledInput
-        label={`Weight (${unit})`}
+        label={t`Weight (${unit})`}
         value={text}
         onChangeText={handleTextChange}
         keyboardType="decimal-pad"

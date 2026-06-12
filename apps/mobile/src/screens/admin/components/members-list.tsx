@@ -9,6 +9,8 @@
  * human-readable alert without exposing authz details.
  */
 
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { getClient, run } from '@/client/api-client';
@@ -28,7 +30,7 @@ export function MembersList() {
       void sharePasswordLinkMessage(m?.username ?? '', link.token);
     },
     onError() {
-      Alert.alert("Couldn't create link", 'Try again.');
+      Alert.alert(t`Couldn't create link`, t`Try again.`);
     },
   });
 
@@ -39,17 +41,17 @@ export function MembersList() {
       void queryClient.invalidateQueries({ queryKey: adminMembersKey });
     },
     onError() {
-      Alert.alert("Couldn't delete", 'Try again.');
+      Alert.alert(t`Couldn't delete`, t`Try again.`);
     },
   });
 
   function confirmDelete(m: Member) {
     Alert.alert(
-      `Delete ${m.username}?`,
-      `This deletes ${m.username} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone.`,
+      t`Delete ${m.username}?`,
+      t`This deletes ${m.username} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone.`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => deleteMember.mutate(m.id) },
+        { text: t`Cancel`, style: 'cancel' },
+        { text: t`Delete`, style: 'destructive', onPress: () => deleteMember.mutate(m.id) },
       ],
     );
   }
@@ -57,7 +59,9 @@ export function MembersList() {
   if (members.length === 0 && !membersQuery.isLoading) {
     return (
       <View className="rounded-xl border border-line bg-white px-4 py-6">
-        <Text className="text-center text-sm text-ink-soft">No Members yet. Add one above.</Text>
+        <Text className="text-center text-sm text-ink-soft">
+          <Trans>No Members yet. Add one above.</Trans>
+        </Text>
       </View>
     );
   }
@@ -77,27 +81,33 @@ export function MembersList() {
               gates 404 them anyway (ADR 0013); the badge says why. */}
           {m.role === 'host' ? (
             <View className="rounded-[9999px] bg-surface px-3 py-1">
-              <Text className="text-xs font-medium text-ink-soft">Host</Text>
+              <Text className="text-xs font-medium text-ink-soft">
+                <Trans>Host</Trans>
+              </Text>
             </View>
           ) : (
             <>
               {/* Re-issue Password link (ADR 0016) */}
               <Pressable
-                accessibilityLabel={`Share password link for ${m.username}`}
+                accessibilityLabel={t`Share password link for ${m.username}`}
                 disabled={generateLink.isPending && generateLink.variables === m.id}
                 onPress={() => generateLink.mutate(m.id)}
                 className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-sm font-medium text-flame">Link</Text>
+                <Text className="text-sm font-medium text-flame">
+                  <Trans>Link</Trans>
+                </Text>
               </Pressable>
 
               {/* Delete Member — confirm via native Alert */}
               <Pressable
-                accessibilityLabel={`Delete ${m.username}`}
+                accessibilityLabel={t`Delete ${m.username}`}
                 onPress={() => confirmDelete(m)}
                 className="h-9 items-center justify-center rounded-[9999px] px-3"
               >
-                <Text className="text-sm font-medium text-red">Delete</Text>
+                <Text className="text-sm font-medium text-red">
+                  <Trans>Delete</Trans>
+                </Text>
               </Pressable>
             </>
           )}

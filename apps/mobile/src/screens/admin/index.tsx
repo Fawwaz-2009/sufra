@@ -4,6 +4,7 @@
  * Port of apps/web/src/routes/admin/index.tsx.
  */
 
+import { Trans } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
@@ -70,8 +71,8 @@ export default function AdminScreen() {
             <Text className="text-2xl text-ink-soft">‹</Text>
           </Pressable>
           <View>
-            <DisplayText className="text-2xl text-ink">Admin</DisplayText>
-            <Text className="text-sm text-ink-soft">Host only</Text>
+            <DisplayText className="text-2xl text-ink"><Trans>Admin</Trans></DisplayText>
+            <Text className="text-sm text-ink-soft"><Trans>Host only</Trans></Text>
           </View>
         </View>
 
@@ -91,7 +92,7 @@ export default function AdminScreen() {
             {/* Vision Model section */}
             <View>
               <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">
-                Vision Model
+                <Trans>Vision Model</Trans>
               </Text>
               <ModelSelect />
             </View>
@@ -99,7 +100,7 @@ export default function AdminScreen() {
             {/* Members section */}
             <View>
               <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">
-                Members
+                <Trans>Members</Trans>
               </Text>
               <AddMemberForm />
               <View className="mt-2">

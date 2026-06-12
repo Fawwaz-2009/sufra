@@ -1,5 +1,8 @@
+// Direction is boot state — the RTL side-effect module runs BEFORE anything lays out (ADR 0020).
+import '@/lib/rtl';
 import '@/global.css';
 
+import { I18nProvider } from '@lingui/react';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +17,7 @@ import { queryClient } from '@/client/query-client';
 import { setServerUrl, useServerUrl } from '@/client/server';
 import { GateError, GateLoading } from '@/components/gate-status';
 import { Palette } from '@/constants/theme';
+import { i18n } from '@/lib/i18n';
 
 // Hold the native splash until the cached session resolves, so a signed-in user never sees the
 // sign-in screen flash. SecureStore.getItem is synchronous, so this is a brief tick.
@@ -69,10 +73,12 @@ export default function RootLayout() {
   );
 
   return (
-    <ThemeProvider value={SufraTheme}>
-      <StatusBar style="dark" />
-      <QueryClientProvider client={queryClient}>{tier}</QueryClientProvider>
-    </ThemeProvider>
+    <I18nProvider i18n={i18n}>
+      <ThemeProvider value={SufraTheme}>
+        <StatusBar style="dark" />
+        <QueryClientProvider client={queryClient}>{tier}</QueryClientProvider>
+      </ThemeProvider>
+    </I18nProvider>
   );
 }
 

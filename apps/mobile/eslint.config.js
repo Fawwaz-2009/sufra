@@ -15,7 +15,8 @@ const expoConfig = require('eslint-config-expo/flat')
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', '.expo/*'],
+    // src/locales/**/messages.ts are `lingui compile` artifacts (ADR 0020) — generated, not linted.
+    ignores: ['dist/*', '.expo/*', 'src/locales/**/messages.ts'],
   },
   {
     rules: {

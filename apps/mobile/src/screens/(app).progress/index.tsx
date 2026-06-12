@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Trans } from '@lingui/react/macro';
 
 import { DisplayText } from '@/components/display-text';
 import { Palette } from '@/constants/theme';
@@ -49,8 +50,8 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={meQuery.isRefetching} onRefresh={onRefresh} />
         }>
         <View>
-          <DisplayText className="text-2xl text-ink">Progress</DisplayText>
-          <Text className="text-sm text-ink-soft">Your intake and progress over time</Text>
+          <DisplayText className="text-2xl text-ink"><Trans>Progress</Trans></DisplayText>
+          <Text className="text-sm text-ink-soft"><Trans>Your intake and progress over time</Trans></Text>
         </View>
 
         {!latest ? (

@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -13,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getClient, run } from '@/client/api-client';
+import { displayLocale } from '@/lib/date';
+import { getLocale } from '@/lib/locale';
 import { DisplayText } from '@/components/display-text';
 import { Palette } from '@/constants/theme';
 import type { MealView } from '@sufra-web/worker/views/meal.ts';
@@ -24,6 +28,19 @@ import { MealPhoto } from './components/meal-photo';
 import { mealDetailKey, mealQueryOptions, savedMealsKey, savedMealMutationFn } from './queries';
 
 type OverrideKey = 'kcal' | 'proteinG' | 'carbsG' | 'fatG';
+
+/** Localized wrapper around the web's `estimateErrorMessage`. Known codes get translated strings;
+ *  unknown codes fall back to the English message from the web layer (forward-compat). */
+function localizedEstimateErrorMessage(code: string | null): string {
+  switch (code) {
+    case 'rate-limited':
+      return t`The vision service is busy right now. Try again in a moment.`;
+    case 'schema-parse-failed':
+      return t`The AI couldn't read this meal. Add more detail and try again.`;
+    default:
+      return estimateErrorMessage(code);
+  }
+}
 const OVERRIDE_KEYS: readonly OverrideKey[] = ['kcal', 'proteinG', 'carbsG', 'fatG'];
 
 export default function MealDetailScreen() {
@@ -54,18 +71,18 @@ export default function MealDetailScreen() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
         <View className="flex-1 items-center justify-center px-6 gap-4">
-          <Text className="text-lg font-semibold text-ink">Meal not found</Text>
+          <Text className="text-lg font-semibold text-ink"><Trans>Meal not found</Trans></Text>
           <Pressable
             onPress={() => router.back()}
             className="h-12 items-center justify-center rounded-[9999px] bg-surface px-6">
-            <Text className="text-base font-medium text-ink">Go back</Text>
+            <Text className="text-base font-medium text-ink"><Trans>Go back</Trans></Text>
           </Pressable>
         </View>
       </SafeAreaView>
     );
   }
 
-  const time = new Date(meal.capturedAt).toLocaleString(undefined, {
+  const time = new Date(meal.capturedAt).toLocaleString(displayLocale(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -89,7 +106,7 @@ export default function MealDetailScreen() {
           <View className="flex-row items-start justify-between gap-3">
             <View className="min-w-0 flex-1">
               <DisplayText className="text-2xl text-ink">
-                {meal.aiAnalysis ? meal.aiAnalysis.dishName : "Couldn't read this meal"}
+                {meal.aiAnalysis ? meal.aiAnalysis.dishName : t`Couldn't read this meal`}
               </DisplayText>
               <Text className="text-sm text-ink-soft">{time}</Text>
             </View>
@@ -144,11 +161,11 @@ function BookmarkButton({ mealId, saved }: { mealId: string; saved: boolean }) {
       onPress={() => toggle.mutate()}
       disabled={toggle.isPending}
       accessibilityRole="button"
-      accessibilityLabel={saved ? 'Remove from saved meals' : 'Save meal for re-logging'}
+      accessibilityLabel={saved ? t`Remove from saved meals` : t`Save meal for re-logging`}
       accessibilityState={{ selected: saved }}
       className={`h-9 items-center justify-center rounded-[9999px] px-3${toggle.isPending ? ' opacity-50' : ''}`}>
       <Text className={`text-xs font-semibold${saved ? ' text-flame' : ' text-ink-soft'}`}>
-        {saved ? 'Saved' : 'Save'}
+        {saved ? <Trans>Saved</Trans> : <Trans>Save</Trans>}
       </Text>
     </Pressable>
   );
@@ -192,7 +209,7 @@ function OverrideEditor({
   return (
     <View className="rounded-2xl bg-surface p-4 gap-3">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-bold uppercase text-ink-soft">Your numbers</Text>
+        <Text className="text-xs font-bold uppercase text-ink-soft"><Trans>Your numbers</Trans></Text>
         <View className="flex-row items-baseline gap-1">
           <DisplayText style={{ fontSize: 34, lineHeight: 38 }} className="text-ink">
             {Math.round(resolved.kcal)}
@@ -203,28 +220,28 @@ function OverrideEditor({
 
       <View className="flex-row flex-wrap gap-3">
         <OverrideField
-          label="Calories"
+          label={t`Calories`}
           unit="kcal"
           value={draft.kcal}
           aiValue={aiSum.kcal}
           onChange={(v) => setDraft((d) => ({ ...d, kcal: v }))}
         />
         <OverrideField
-          label="Protein"
+          label={t`Protein`}
           unit="g"
           value={draft.proteinG}
           aiValue={aiSum.proteinG}
           onChange={(v) => setDraft((d) => ({ ...d, proteinG: v }))}
         />
         <OverrideField
-          label="Carbs"
+          label={t`Carbs`}
           unit="g"
           value={draft.carbsG}
           aiValue={aiSum.carbsG}
           onChange={(v) => setDraft((d) => ({ ...d, carbsG: v }))}
         />
         <OverrideField
-          label="Fat"
+          label={t`Fat`}
           unit="g"
           value={draft.fatG}
           aiValue={aiSum.fatG}
@@ -238,18 +255,18 @@ function OverrideEditor({
           disabled={mutation.isPending}
           className={`h-12 flex-1 items-center justify-center rounded-[9999px] bg-flame${mutation.isPending ? ' opacity-60' : ''}`}>
           <Text className="text-base font-semibold text-white">
-            {mutation.isPending ? 'Saving...' : 'Save'}
+            {mutation.isPending ? <Trans>Saving…</Trans> : <Trans>Save</Trans>}
           </Text>
         </Pressable>
         <Pressable
           onPress={() => setDraft({ kcal: '', proteinG: '', carbsG: '', fatG: '' })}
           disabled={mutation.isPending}
           className="h-12 items-center justify-center rounded-[9999px] bg-surface px-4">
-          <Text className="text-sm font-medium text-ink">Reset</Text>
+          <Text className="text-sm font-medium text-ink"><Trans>Reset</Trans></Text>
         </Pressable>
       </View>
       {mutation.isError ? (
-        <Text className="text-xs text-red">{"Couldn't save. Try again."}</Text>
+        <Text className="text-xs text-red">{t`Couldn't save. Try again.`}</Text>
       ) : null}
     </View>
   );
@@ -271,7 +288,7 @@ function OverrideField({
   return (
     <View style={{ width: '47%' }} className="gap-1">
       <Text className="text-xs text-ink-soft">
-        {label} · AI: {Math.round(aiValue)}
+        {label} · {t`AI:`} {Math.round(aiValue)}
         {unit}
       </Text>
       <TextInput
@@ -308,13 +325,20 @@ function RetryPanel({
   const retry = useMutation({
     mutationKey: ['meal', mealId, 'retry'],
     mutationFn: async () =>
-      run((await getClient()).estimates.create({ params: { id: mealId }, payload: {} })),
+      run(
+        (await getClient()).estimates.create({
+          params: { id: mealId },
+          payload: { locale: getLocale() },
+        })
+      ),
     onSuccess: onRetried,
   });
 
+  const errorMsg = localizedEstimateErrorMessage(errorCode);
+
   return (
     <View className="rounded-2xl bg-surface p-4 gap-3">
-      <Text className="text-sm text-ink-soft">{estimateErrorMessage(errorCode)}</Text>
+      <Text className="text-sm text-ink-soft">{errorMsg}</Text>
       <Pressable
         onPress={() => retry.mutate()}
         disabled={retry.isPending}
@@ -322,13 +346,11 @@ function RetryPanel({
         {retry.isPending ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
-          <Text className="text-base font-semibold text-white">Retry estimate</Text>
+          <Text className="text-base font-semibold text-white"><Trans>Retry estimate</Trans></Text>
         )}
       </Pressable>
       {retry.isError ? (
-        <Text className="text-xs text-red">
-          {"Still couldn't reach the vision service. Try again."}
-        </Text>
+        <Text className="text-xs text-red">{t`Still couldn't reach the vision service. Try again.`}</Text>
       ) : null}
     </View>
   );
@@ -352,10 +374,10 @@ function DeleteButton({ mealId, onDeleted }: { mealId: string; onDeleted: () => 
   });
 
   const confirm = () => {
-    Alert.alert('Delete meal', 'This will permanently remove this meal and its photo.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t`Delete meal`, t`This will permanently remove this meal and its photo.`, [
+      { text: t`Cancel`, style: 'cancel' },
       {
-        text: 'Delete',
+        text: t`Delete`,
         style: 'destructive',
         onPress: () => deleteMutation.mutate(),
       },
@@ -369,11 +391,11 @@ function DeleteButton({ mealId, onDeleted }: { mealId: string; onDeleted: () => 
         disabled={deleteMutation.isPending}
         className="h-12 items-center justify-center">
         <Text className="text-base font-medium text-red">
-          {deleteMutation.isPending ? 'Deleting...' : 'Delete meal'}
+          {deleteMutation.isPending ? <Trans>Deleting...</Trans> : <Trans>Delete meal</Trans>}
         </Text>
       </Pressable>
       {deleteMutation.isError ? (
-        <Text className="text-xs text-red mt-2">{"Couldn't delete. Try again."}</Text>
+        <Text className="text-xs text-red mt-2">{t`Couldn't delete. Try again.`}</Text>
       ) : null}
     </View>
   );

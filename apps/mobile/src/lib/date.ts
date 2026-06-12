@@ -1,4 +1,17 @@
+import { t } from '@lingui/core/macro';
+
+import { getLocale } from '@/lib/locale';
+
 export type FirstDayOfWeek = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+/**
+ * The BCP-47 locale tag to pass to Intl date-formatting APIs (ADR 0020).
+ * Arabic uses Arabic month/weekday names but WESTERN digits (-u-nu-latn is mandatory
+ * so that Hermes/JSC render digit glyphs the NativeWind font stack can display).
+ */
+export function displayLocale(): string {
+  return getLocale() === 'ar' ? 'ar-u-nu-latn' : 'en';
+}
 
 export function todayLocal(now: Date = new Date()): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -78,13 +91,13 @@ export function localDateForCapture(selectedDay: Date): string {
   ).toISOString();
 }
 
-// Hardcoded Today/Yesterday instead of the web's Intl.RelativeTimeFormat — Hermes
-// doesn't reliably ship it, and the product is English-only in v1.
+// Localized Today/Yesterday labels (ADR 0020); the Intl.DateTimeFormat fallback uses
+// displayLocale() so Arabic renders Arabic month/weekday names with western digits.
 export function selectedDayLabel(selectedDay: Date, today: Date): string {
   const diff = diffInLocalDays(selectedDay, today);
-  if (diff === 0) return 'Today';
-  if (diff === -1) return 'Yesterday';
-  return new Intl.DateTimeFormat('en', {
+  if (diff === 0) return t`Today`;
+  if (diff === -1) return t`Yesterday`;
+  return new Intl.DateTimeFormat(displayLocale(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -92,5 +105,5 @@ export function selectedDayLabel(selectedDay: Date, today: Date): string {
 }
 
 export function formatMealTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString(displayLocale(), { hour: 'numeric', minute: '2-digit' });
 }

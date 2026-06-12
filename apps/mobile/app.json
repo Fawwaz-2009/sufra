@@ -45,7 +45,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -53,6 +54,7 @@
     },
     "extra": {
       "router": {},
+      "supportsRTL": true,
       "eas": {
         "projectId": "c492a4b0-b813-4c7e-8218-1ff58cc2af8f"
       }

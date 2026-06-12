@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { ActionSheetIOS, Alert, Platform } from 'react-native';
+import { t } from '@lingui/core/macro';
 
 /**
  * The photo path's source chooser (ADR 0019's entry redesign): ONE "Photo" affordance opens the native
@@ -14,7 +15,7 @@ export async function pickMealPhotoAsset(): Promise<ImagePicker.ImagePickerAsset
   if (choice === 'camera') {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Camera access required', 'Allow camera access to log a Meal from a photo.');
+      Alert.alert(t`Camera access required`, t`Allow camera access to log a Meal from a photo.`);
       return null;
     }
     return firstAsset(
@@ -24,7 +25,7 @@ export async function pickMealPhotoAsset(): Promise<ImagePicker.ImagePickerAsset
 
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
-    Alert.alert('Photo access required', 'Allow photo access to choose a Meal photo.');
+    Alert.alert(t`Photo access required`, t`Allow photo access to choose a Meal photo.`);
     return null;
   }
   return firstAsset(
@@ -38,18 +39,18 @@ function chooseSource(): Promise<SourceChoice> {
   return new Promise((resolve) => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
-        { options: ['Take photo', 'Choose from library', 'Cancel'], cancelButtonIndex: 2 },
+        { options: [t`Take photo`, t`Choose from library`, t`Cancel`], cancelButtonIndex: 2 },
         (index) => resolve(index === 0 ? 'camera' : index === 1 ? 'library' : 'cancel')
       );
       return;
     }
     Alert.alert(
-      'Add a photo',
+      t`Add a photo`,
       undefined,
       [
-        { text: 'Take photo', onPress: () => resolve('camera') },
-        { text: 'Choose from library', onPress: () => resolve('library') },
-        { text: 'Cancel', style: 'cancel', onPress: () => resolve('cancel') },
+        { text: t`Take photo`, onPress: () => resolve('camera') },
+        { text: t`Choose from library`, onPress: () => resolve('library') },
+        { text: t`Cancel`, style: 'cancel', onPress: () => resolve('cancel') },
       ],
       { cancelable: true, onDismiss: () => resolve('cancel') }
     );

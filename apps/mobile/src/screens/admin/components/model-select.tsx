@@ -7,6 +7,7 @@
  * app_settings and read through settingsQueryOptions.
  */
 
+import { t } from '@lingui/core/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { getClient, run } from '@/client/api-client';
@@ -25,7 +26,7 @@ export function ModelSelect() {
       queryClient.setQueryData(adminSettingsKey, next);
     },
     onError() {
-      Alert.alert("Couldn't update model", 'Try again.');
+      Alert.alert(t`Couldn't update model`, t`Try again.`);
     },
   });
 
@@ -49,7 +50,7 @@ export function ModelSelect() {
                 {m.label}
               </Text>
               <Text className="mt-1 text-xs text-ink-soft">
-                {`$${m.pricing.inputPerMTokens.toFixed(2)} in / $${m.pricing.outputPerMTokens.toFixed(2)} out per 1M tok`}
+                {t`$${m.pricing.inputPerMTokens.toFixed(2)} in / $${m.pricing.outputPerMTokens.toFixed(2)} out per 1M tok`}
               </Text>
             </View>
 

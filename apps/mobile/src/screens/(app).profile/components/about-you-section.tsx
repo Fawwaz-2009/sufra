@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
+import { t } from '@lingui/core/macro';
 
 import { formatHeight, formatWeight } from '@/lib/units';
 import { ageFromBirthday } from '@sufra-web/worker/views/derive.ts';
 import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/views/profile-snapshot.ts';
-import { ACTIVITY_DESCRIPTIONS, ACTIVITY_LABELS, useProfilePatch, type ProfileEdit } from '../helpers';
+import { getActivityDescriptions, getActivityLabels, useProfilePatch, type ProfileEdit } from '../helpers';
 import { BirthdaySheet } from './birthday-sheet';
 import { HeightSheet } from './height-sheet';
 import { LogWeightSheet } from '@/components/log-weight-sheet';
@@ -12,19 +13,6 @@ import { OptionSheet } from './option-sheet';
 import { Row, SectionCard } from './section-card';
 
 type OpenSheet = 'sex' | 'birthday' | 'height' | 'weight' | 'activity';
-
-const SEX_OPTIONS = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-] as const;
-
-const ACTIVITY_OPTIONS = (Object.keys(ACTIVITY_LABELS) as (keyof typeof ACTIVITY_LABELS)[]).map(
-  (level) => ({
-    value: level,
-    label: ACTIVITY_LABELS[level],
-    description: ACTIVITY_DESCRIPTIONS[level],
-  })
-);
 
 // The Weight row is read-only here: weight never flows through a Profile edit (ADR 0007) — logging a
 // Weight is its own atomic dual-append flow, deferred on native until the Progress vertical.
@@ -36,45 +24,61 @@ export function AboutYouSection({ profile }: { profile: ProfileSnapshot }) {
   const ageYears = ageFromBirthday(profile.birthday);
   const close = () => setOpen(null);
 
+  // Options defined inside the component so t`` runs inside a render/hook context.
+  const sexOptions = [
+    { value: 'male' as const, label: t`Male` },
+    { value: 'female' as const, label: t`Female` },
+  ] as const;
+
+  const activityLabels = getActivityLabels();
+  const activityDescriptions = getActivityDescriptions();
+  const activityOptions = (Object.keys(activityLabels) as (keyof typeof activityLabels)[]).map(
+    (level) => ({
+      value: level,
+      label: activityLabels[level],
+      description: activityDescriptions[level],
+    })
+  ) as { value: keyof typeof activityLabels; label: string; description: string }[];
+
   // Inline commit for single-tap fields — errors surface as a native alert (the sheet is already
   // closed by the time the request settles).
   const commit = (edit: ProfileEdit) =>
     patch.mutate(edit, {
-      onError: () => Alert.alert("Couldn't save", 'Try again in a moment.'),
+      onError: () => Alert.alert(t`Couldn't save`, t`Try again in a moment.`),
     });
 
   return (
-    <SectionCard label="About you">
+    <SectionCard label={t`About you`}>
       <Row
-        label="Sex"
-        value={profile.sex === 'male' ? 'Male' : 'Female'}
+        label={t`Sex`}
+        value={profile.sex === 'male' ? t`Male` : t`Female`}
         onPress={() => setOpen('sex')}
       />
       <Row
-        label="Birthday"
+        label={t`Birthday`}
         value={`${profile.birthday} · ${ageYears} yr`}
         onPress={() => setOpen('birthday')}
       />
       <Row
-        label="Height"
+        label={t`Height`}
         value={formatHeight(profile.heightCm, profile.displayHeightUnit)}
         onPress={() => setOpen('height')}
       />
       <Row
-        label="Weight"
+        label={t`Weight`}
         value={formatWeight(profile.weightKg, profile.displayWeightUnit)}
         onPress={() => setOpen('weight')}
       />
       <Row
-        label="Activity"
-        value={ACTIVITY_LABELS[profile.activityLevel]}
+        label={t`Activity`}
+        value={activityLabels[profile.activityLevel]}
         onPress={() => setOpen('activity')}
       />
 
       <OptionSheet
         visible={open === 'sex'}
-        title="Which formula should we use?"
-        options={SEX_OPTIONS}
+        title={t`Which formula should we use?`}
+        options={sexOptions}
         selected={profile.sex}
         onSelect={(v) => {
           close();
@@ -84,8 +88,8 @@ export function AboutYouSection({ profile }: { profile: ProfileSnapshot }) {
       />
       <OptionSheet
         visible={open === 'activity'}
-        title="Activity level"
-        options={ACTIVITY_OPTIONS}
+        title={t`Activity level`}
+        options={activityOptions}
         selected={profile.activityLevel}
         onSelect={(v) => {
           close();

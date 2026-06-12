@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import {
@@ -46,12 +48,16 @@ export default function ConnectScreen() {
         ),
       ]);
       if (status.needsSetup) {
-        setError(`This server hasn't been set up yet. Finish setup at ${origin} first, then connect.`);
+        setError(
+          t`This server hasn't been set up yet. Finish setup at ${origin} first, then connect.`
+        );
         return;
       }
       setServerUrl(origin);
     } catch {
-      setError(`Couldn't find a Sufra server at ${origin}. Check the address and try again.`);
+      setError(
+          t`Couldn't find a Sufra server at ${origin}. Check the address and try again.`
+        );
     } finally {
       setProbing(false);
     }
@@ -70,7 +76,7 @@ export default function ConnectScreen() {
               style={{ width: 72, height: 72 }}
             />
             <DisplayText className="text-4xl text-ink">Sufra</DisplayText>
-            <Text className="text-base text-ink-soft text-center">Connect to your server</Text>
+            <Text className="text-base text-ink-soft text-center"><Trans>Connect to your server</Trans></Text>
           </View>
 
           <View className="gap-3">
@@ -79,7 +85,7 @@ export default function ConnectScreen() {
               style={{ color: Palette.ink }}
               value={url}
               onChangeText={setUrl}
-              placeholder="family.example.com"
+              placeholder={t`family.example.com`}
               placeholderTextColor={Palette.inkFaint}
               autoCapitalize="none"
               autoCorrect={false}
@@ -89,7 +95,7 @@ export default function ConnectScreen() {
               editable={!probing}
             />
             <Text className="text-sm text-ink-soft">
-              The web address of your household&apos;s Sufra server.
+              <Trans>The web address of your household&apos;s Sufra server.</Trans>
             </Text>
 
             {error ? <Text className="text-sm text-red">{error}</Text> : null}
@@ -101,7 +107,7 @@ export default function ConnectScreen() {
               {probing ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text className="text-base font-semibold text-white">Connect</Text>
+                <Text className="text-base font-semibold text-white"><Trans>Connect</Trans></Text>
               )}
             </Pressable>
           </View>

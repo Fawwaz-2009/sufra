@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -45,8 +47,8 @@ export function StepWeight({
   return (
     <View className="gap-6">
       <View className="mb-6 gap-1">
-        <DisplayText className="text-2xl text-ink">What do you weigh now?</DisplayText>
-        <Text className="text-sm text-ink-soft">This is your starting weight — we&apos;ll log it.</Text>
+        <DisplayText className="text-2xl text-ink"><Trans>What do you weigh now?</Trans></DisplayText>
+        <Text className="text-sm text-ink-soft"><Trans>This is your starting weight — we&apos;ll log it.</Trans></Text>
       </View>
       <UnitToggle
         value={unit}
@@ -57,7 +59,7 @@ export function StepWeight({
         onChange={handleUnitChange}
       />
       <LabeledInput
-        label={`Weight (${unit})`}
+        label={t`Weight (${unit})`}
         value={text}
         onChangeText={handleTextChange}
         keyboardType="decimal-pad"

@@ -12,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 
 import { Palette } from '@/constants/theme';
 
@@ -28,6 +30,7 @@ import {
   weekRange,
   weekStart,
 } from '@/lib/date';
+import { getLocale } from '@/lib/locale';
 import { prepareMealPhoto } from '@/lib/meal-photo';
 import { pickMealPhotoAsset } from '@/lib/photo-source';
 import { snapshotFor } from '@sufra-web/worker/views/derive.ts';
@@ -79,7 +82,7 @@ export default function TodayScreen() {
       const capturedAt = isViewingToday ? undefined : localDateForCapture(selectedDay);
       return run(
         (await getClient()).meals.create({
-          payload: { photo, ...(capturedAt ? { capturedAt } : {}) },
+          payload: { photo, locale: getLocale(), ...(capturedAt ? { capturedAt } : {}) },
         })
       );
     },
@@ -88,8 +91,8 @@ export default function TodayScreen() {
       const message =
         typeof (error as { message?: unknown })?.message === 'string'
           ? (error as { message: string }).message
-          : "Couldn't save that meal. Try again in a moment.";
-      Alert.alert('Meal not saved', message);
+          : t`Couldn't save that meal. Try again in a moment.`;
+      Alert.alert(t`Meal not saved`, message);
     },
   });
 
@@ -153,7 +156,7 @@ export default function TodayScreen() {
           onPress={() => void logFromPhoto()}
           className="h-12 w-full items-center justify-center rounded-[9999px] bg-flame">
           <Text className="text-[17px] font-semibold text-white">
-            {uploadMutation.isPending ? 'Estimating...' : 'Photo'}
+            {uploadMutation.isPending ? <Trans>Estimating...</Trans> : <Trans>Photo</Trans>}
           </Text>
         </Pressable>
         <View className="flex-row gap-3">
@@ -161,13 +164,13 @@ export default function TodayScreen() {
             disabled={uploadMutation.isPending}
             onPress={() => setDescribeOpen(true)}
             className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-surface">
-            <Text className="text-base font-medium text-flame-deep">Describe</Text>
+            <Text className="text-base font-medium text-flame-deep"><Trans>Describe</Trans></Text>
           </Pressable>
           <Pressable
             disabled={uploadMutation.isPending}
             onPress={() => setSavedSheetOpen(true)}
             className="h-12 flex-1 items-center justify-center rounded-[9999px] bg-surface">
-            <Text className="text-base font-medium text-flame-deep">From saved</Text>
+            <Text className="text-base font-medium text-flame-deep"><Trans>From saved</Trans></Text>
           </Pressable>
         </View>
 
@@ -184,9 +187,9 @@ export default function TodayScreen() {
 
         {/* Meals label */}
         <View className="mt-2 flex-row items-center justify-between">
-          <Text className="text-xs font-bold uppercase text-ink-soft">Meals</Text>
+          <Text className="text-xs font-bold uppercase text-ink-soft"><Trans>Meals</Trans></Text>
           {uploadMutation.isPending ? (
-            <Text className="text-xs text-ink-soft">Estimating...</Text>
+            <Text className="text-xs text-ink-soft"><Trans>Estimating...</Trans></Text>
           ) : null}
         </View>
 
@@ -201,11 +204,11 @@ export default function TodayScreen() {
               style={{ width: 56, height: 56, opacity: 0.4 }}
             />
             <Text className="text-base font-semibold text-ink">
-              {isViewingToday ? 'No meals logged yet' : 'No meals logged this day.'}
+              {isViewingToday ? <Trans>No meals logged yet</Trans> : <Trans>No meals logged this day.</Trans>}
             </Text>
             {isViewingToday ? (
               <Text className="text-center text-sm text-ink-soft">
-                Log your first one — snap a photo or describe it.
+                <Trans>Log your first one — snap a photo or describe it.</Trans>
               </Text>
             ) : null}
           </View>

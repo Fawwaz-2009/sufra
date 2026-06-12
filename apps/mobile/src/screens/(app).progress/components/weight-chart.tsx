@@ -10,7 +10,11 @@ import { Alert, Text, View } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+
 import { getClient, run } from '@/client/api-client';
+import { displayLocale } from '@/lib/date';
 import { Palette } from '@/constants/theme';
 
 type Point = { id: string; weightKg: number; loggedAt: string };
@@ -34,11 +38,11 @@ export function WeightChart({ weights }: { weights: readonly Point[] }) {
   const confirmDelete = (p: Point) => {
     Alert.alert(
       `${p.weightKg.toFixed(1)} kg · ${shortDate(p.loggedAt)}`,
-      'Delete this weight entry?',
+      t`Delete this weight entry?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t`Cancel`, style: 'cancel' },
         {
-          text: 'Delete',
+          text: t`Delete`,
           style: 'destructive',
           onPress: () => deleteMutation.mutate(p.id),
         },
@@ -52,7 +56,9 @@ export function WeightChart({ weights }: { weights: readonly Point[] }) {
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {sorted.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text className="text-xs text-ink-soft">No weights logged in this period.</Text>
+          <Text className="text-xs text-ink-soft">
+            <Trans>No weights logged in this period.</Trans>
+          </Text>
         </View>
       ) : width > 0 ? (
         <WeightChartInner
@@ -176,7 +182,7 @@ function WeightChartInner({
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function shortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString(displayLocale(), { month: 'short', day: 'numeric' });
 }
 
 function xLabelTicks(xs: number[]): { x: number; label: string }[] {

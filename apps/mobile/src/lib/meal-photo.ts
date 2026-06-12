@@ -1,5 +1,6 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import type * as ImagePicker from 'expo-image-picker';
+import { t } from '@lingui/core/macro';
 
 import { Photo } from '@sufra-web/worker/models/meal.ts';
 
@@ -26,7 +27,7 @@ export async function prepareMealPhoto(asset: ImagePicker.ImagePickerAsset): Pro
     }
   }
 
-  throw new Error('That photo is too large. Try another angle or pick a different photo.');
+  throw new Error(t`That photo is too large. Try another angle or pick a different photo.`);
 }
 
 async function uriToBytes(uri: string): Promise<Uint8Array> {

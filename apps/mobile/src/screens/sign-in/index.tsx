@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import {
@@ -33,7 +35,7 @@ export default function SignInScreen() {
     });
     setSubmitting(false);
     if (result.error) {
-      setError(result.error.message ?? 'Could not sign in. Check your username and password.');
+      setError(result.error.message ?? t`Could not sign in. Check your username and password.`);
     }
   }
 
@@ -50,7 +52,7 @@ export default function SignInScreen() {
               style={{ width: 72, height: 72 }}
             />
             <DisplayText className="text-4xl text-ink">Sufra</DisplayText>
-            <Text className="text-base text-ink-soft text-center">Sign in to continue</Text>
+            <Text className="text-base text-ink-soft text-center"><Trans>Sign in to continue</Trans></Text>
           </View>
 
           <View className="gap-3">
@@ -58,7 +60,7 @@ export default function SignInScreen() {
               className="rounded-2xl bg-surface px-4 py-4 text-[17px]"
               style={{ color: Palette.ink }}
               onChangeText={setUsername}
-              placeholder="Username"
+              placeholder={t`Username`}
               placeholderTextColor={Palette.inkFaint}
               autoCapitalize="none"
               autoCorrect={false}
@@ -70,7 +72,7 @@ export default function SignInScreen() {
               className="rounded-2xl bg-surface px-4 py-4 text-[17px]"
               style={{ color: Palette.ink }}
               onChangeText={setPassword}
-              placeholder="Password"
+              placeholder={t`Password`}
               placeholderTextColor={Palette.inkFaint}
               secureTextEntry
               autoCapitalize="none"
@@ -89,7 +91,7 @@ export default function SignInScreen() {
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text className="text-base font-semibold text-white">Sign in</Text>
+                <Text className="text-base font-semibold text-white"><Trans>Sign in</Trans></Text>
               )}
             </Pressable>
           </View>

@@ -4,6 +4,7 @@
  * clipboard as the out-of-band handover mechanism (WhatsApp, iMessage, group chat, etc.).
  */
 
+import { t } from '@lingui/core/macro';
 import { Alert, Share } from 'react-native';
 
 import { getServerUrl } from '@/client/server';
@@ -16,11 +17,11 @@ import { getServerUrl } from '@/client/server';
 export async function sharePasswordLinkMessage(username: string, token: string) {
   const origin = getServerUrl() ?? '';
   const url = `${origin}/set-password/${token}`;
-  const message = `Hi ${username}, here's your link to join Sufra:\n${url}`;
+  const message = t`Hi ${username}, here's your link to join Sufra:` + `\n${url}`;
   try {
     await Share.share({ message });
   } catch {
     // The share sheet failing to open is rare; surface the message so the Host can still relay it.
-    Alert.alert("Couldn't open the share sheet", message);
+    Alert.alert(t`Couldn't open the share sheet`, message);
   }
 }

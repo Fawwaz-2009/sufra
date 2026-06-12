@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { t } from '@lingui/core/macro';
 
 import { getClient, run } from '@/client/api-client';
 import { meKey, meQueryOptions } from '@/client/me';
@@ -58,18 +59,22 @@ export function useProfilePatch() {
   });
 }
 
-// Display labels for activity-level enum values. Used by both the About-you row (read-only display)
-// and the Activity sheet (chip labels).
-export const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
-  sedentary: 'Sedentary',
-  light: 'Light',
-  moderate: 'Moderate',
-  active: 'Active',
-};
+// Display labels for activity-level enum values. Returned as functions so t`` runs inside a
+// render/hook context (never at module scope — ADR 0020 / Lingui macro constraint).
+export function getActivityLabels(): Record<ActivityLevel, string> {
+  return {
+    sedentary: t`Sedentary`,
+    light: t`Light`,
+    moderate: t`Moderate`,
+    active: t`Active`,
+  };
+}
 
-export const ACTIVITY_DESCRIPTIONS: Record<ActivityLevel, string> = {
-  sedentary: 'Little or no exercise',
-  light: 'Exercise 1–3 days/week',
-  moderate: 'Exercise 3–5 days/week',
-  active: 'Exercise 6–7 days/week',
-};
+export function getActivityDescriptions(): Record<ActivityLevel, string> {
+  return {
+    sedentary: t`Little or no exercise`,
+    light: t`Exercise 1–3 days/week`,
+    moderate: t`Exercise 3–5 days/week`,
+    active: t`Exercise 6–7 days/week`,
+  };
+}

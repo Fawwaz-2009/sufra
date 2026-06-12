@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { I18nManager, Pressable, Text, View } from 'react-native';
+import { t } from '@lingui/core/macro';
 
 import { DisplayText } from '@/components/display-text';
 
@@ -19,17 +20,19 @@ export function DayHeader({
       <Pressable
         onPress={onPrev}
         accessibilityRole="button"
-        accessibilityLabel="Previous week"
+        accessibilityLabel={t`Previous week`}
         className="h-10 w-10 items-center justify-center">
-        <Text className="text-2xl text-ink-soft">‹</Text>
+        <Text className="text-2xl text-ink-soft">{I18nManager.isRTL ? '›' : '‹'}</Text>
       </Pressable>
       <Pressable
         onPress={onNext}
         disabled={!canGoNext}
         accessibilityRole="button"
-        accessibilityLabel="Next week"
+        accessibilityLabel={t`Next week`}
         className="h-10 w-10 items-center justify-center">
-        <Text className={`text-2xl ${canGoNext ? 'text-ink-soft' : 'text-ink-faint'}`}>›</Text>
+        <Text className={`text-2xl ${canGoNext ? 'text-ink-soft' : 'text-ink-faint'}`}>
+          {I18nManager.isRTL ? '‹' : '›'}
+        </Text>
       </Pressable>
     </View>
   );

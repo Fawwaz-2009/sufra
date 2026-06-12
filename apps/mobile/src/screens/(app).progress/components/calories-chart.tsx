@@ -4,8 +4,11 @@
  * Bar color comes from the SERVER (computed against the historical per-day Target).
  */
 
+import { Trans } from '@lingui/react/macro';
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
+
+import { displayLocale } from '@/lib/date';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 
 import { Palette } from '@/constants/theme';
@@ -27,7 +30,9 @@ export function CaloriesChart({
     <View style={{ height: 200 }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       {buckets.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text className="text-xs text-ink-soft">No meals logged in this period.</Text>
+          <Text className="text-xs text-ink-soft">
+            <Trans>No meals logged in this period.</Trans>
+          </Text>
         </View>
       ) : width > 0 ? (
         <CaloriesChartInner buckets={buckets} period={period} width={width} />
@@ -134,7 +139,7 @@ function formatBucketLabel(bucketStart: string, period: CaloriePeriod): string {
   // Parse "YYYY-MM-DD" by parts to keep the bucket's LOCAL day (Date.parse would shift via UTC).
   const p = bucketStart.split('-');
   const date = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-  if (period === '7D') return date.toLocaleDateString(undefined, { weekday: 'short' });
-  if (period === '1Y') return date.toLocaleDateString(undefined, { month: 'short' });
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (period === '7D') return date.toLocaleDateString(displayLocale(), { weekday: 'short' });
+  if (period === '1Y') return date.toLocaleDateString(displayLocale(), { month: 'short' });
+  return date.toLocaleDateString(displayLocale(), { month: 'short', day: 'numeric' });
 }

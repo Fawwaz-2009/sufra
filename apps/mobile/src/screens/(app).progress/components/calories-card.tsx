@@ -3,6 +3,8 @@
  * period's average intake. Ports apps/web/src/routes/progress/-components/calories-card.tsx.
  */
 
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
 import { Text, View } from 'react-native';
 
@@ -31,11 +33,13 @@ export function CaloriesCard({
 
   return (
     <View className="rounded-2xl border border-line bg-white p-4">
-      <Text className="text-base font-semibold text-ink">Calories</Text>
+      <Text className="text-base font-semibold text-ink">
+        <Trans>Calories</Trans>
+      </Text>
       <Text className="mb-2 text-xs text-ink-soft">
         {daysWithData > 0
-          ? `Avg ${avgDaily.toLocaleString()} kcal/day · ${periodLabel(period)}`
-          : `No meals · ${periodLabel(period)}`}
+          ? t`Avg ${avgDaily.toLocaleString()} kcal/day · ${periodLabel(period)}`
+          : t`No meals · ${periodLabel(period)}`}
       </Text>
 
       <CaloriesChart buckets={buckets} period={period} />
@@ -52,12 +56,12 @@ export function CaloriesCard({
 function periodLabel(p: CaloriePeriod): string {
   switch (p) {
     case '7D':
-      return 'last 7 days';
+      return t`last 7 days`;
     case '30D':
-      return 'last 30 days';
+      return t`last 30 days`;
     case '90D':
-      return 'last 90 days';
+      return t`last 90 days`;
     case '1Y':
-      return 'last year';
+      return t`last year`;
   }
 }

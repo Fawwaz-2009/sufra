@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 
 import { getAuthClient } from '@/client/auth-client';
 import { meQueryOptions } from '@/client/me';
@@ -49,14 +51,14 @@ export default function ProfileScreen() {
         }>
         <View className="flex-row items-start justify-between gap-3">
           <View>
-            <DisplayText className="text-2xl text-ink">Profile</DisplayText>
-            <Text className="text-sm text-ink-soft">Your account and plan</Text>
+            <DisplayText className="text-2xl text-ink"><Trans>Profile</Trans></DisplayText>
+            <Text className="text-sm text-ink-soft"><Trans>Your account and plan</Trans></Text>
           </View>
           <Pressable
             onPress={signOut}
-            accessibilityLabel="Sign out"
+            accessibilityLabel={t`Sign out`}
             className="h-9 items-center justify-center rounded-[9999px] px-3">
-            <Text className="text-sm font-medium text-ink-soft">Sign out</Text>
+            <Text className="text-sm font-medium text-ink-soft"><Trans>Sign out</Trans></Text>
           </Pressable>
         </View>
 

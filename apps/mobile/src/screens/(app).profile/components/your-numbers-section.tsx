@@ -1,3 +1,5 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { Text, View } from 'react-native';
 
 import { DisplayText } from '@/components/display-text';
@@ -13,26 +15,28 @@ export function YourNumbersSection({
   hasPending: boolean;
 }) {
   return (
-    <SectionCard label="Your numbers">
+    <SectionCard label={t`Your numbers`}>
       <View className="gap-3 px-4 py-3">
         {hasPending ? (
           <View className="rounded-xl bg-surface px-2 py-1">
             <Text className="text-[10px] uppercase text-ink-soft">
-              Pending changes — starts tomorrow
+              <Trans>Pending changes — starts tomorrow</Trans>
             </Text>
           </View>
         ) : null}
         <View className="flex-row items-baseline justify-between">
-          <Text className="text-sm text-ink-soft">Daily target</Text>
+          <Text className="text-sm text-ink-soft">
+            <Trans>Daily target</Trans>
+          </Text>
           <View className="flex-row items-baseline gap-1">
             <DisplayText className="text-2xl text-ink">{targetKcal}</DisplayText>
             <Text className="text-xs text-ink-soft">kcal</Text>
           </View>
         </View>
         <View className="flex-row gap-2">
-          <MacroCell label="Protein" g={macros.proteinG} />
-          <MacroCell label="Carbs" g={macros.carbsG} />
-          <MacroCell label="Fat" g={macros.fatG} />
+          <MacroCell label={t`Protein`} g={macros.proteinG} />
+          <MacroCell label={t`Carbs`} g={macros.carbsG} />
+          <MacroCell label={t`Fat`} g={macros.fatG} />
         </View>
       </View>
     </SectionCard>

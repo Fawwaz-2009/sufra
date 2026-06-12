@@ -1,3 +1,4 @@
+import { t } from '@lingui/core/macro';
 import { useMemo, useState } from 'react';
 import { PanResponder, View } from 'react-native';
 
@@ -49,7 +50,7 @@ export function GoalSlider({
       {...responder.panHandlers}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={{ height: SLIDER_HEIGHT, justifyContent: 'center' }}
-      accessibilityLabel="Goal weight">
+      accessibilityLabel={t`Goal weight`}>
       <View
         pointerEvents="none"
         className="rounded-[9999px] bg-track"

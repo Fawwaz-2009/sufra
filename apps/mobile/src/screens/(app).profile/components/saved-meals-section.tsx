@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, Text, View } from 'react-native';
 
@@ -14,7 +15,9 @@ export function SavedMealsSection() {
 
   return (
     <View>
-      <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">Saved Meals</Text>
+      <Text className="mb-2 text-xs font-medium uppercase text-ink-soft">
+        <Trans>Saved Meals</Trans>
+      </Text>
 
       {savedQuery.isLoading ? (
         <View className="items-center rounded-xl border border-line bg-white py-6">
@@ -22,9 +25,11 @@ export function SavedMealsSection() {
         </View>
       ) : meals.length === 0 ? (
         <View className="items-center rounded-xl border border-line bg-white px-6 py-6">
-          <Text className="text-sm font-medium text-ink">No saved meals yet</Text>
+          <Text className="text-sm font-medium text-ink">
+            <Trans>No saved meals yet</Trans>
+          </Text>
           <Text className="mt-1 text-center text-sm text-ink-soft">
-            Tap Save on any meal to save it for quick re-logging.
+            <Trans>Tap Save on any meal to save it for quick re-logging.</Trans>
           </Text>
         </View>
       ) : (

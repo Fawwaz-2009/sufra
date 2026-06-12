@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
+import { t } from '@lingui/core/macro';
 
 import { LabeledInput } from '@/components/labeled-input';
 
@@ -34,7 +35,7 @@ export function BirthdayFields({
     <View className="flex-row gap-3">
       <View className="flex-1">
         <LabeledInput
-          label="Day"
+          label={t`Day`}
           value={day}
           onChangeText={(v) => {
             setDay(v);
@@ -47,7 +48,7 @@ export function BirthdayFields({
       </View>
       <View className="flex-1">
         <LabeledInput
-          label="Month"
+          label={t`Month`}
           value={month}
           onChangeText={(v) => {
             setMonth(v);
@@ -60,7 +61,7 @@ export function BirthdayFields({
       </View>
       <View className="flex-1">
         <LabeledInput
-          label="Year"
+          label={t`Year`}
           value={year}
           onChangeText={(v) => {
             setYear(v);

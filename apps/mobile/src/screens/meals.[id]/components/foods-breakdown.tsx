@@ -1,6 +1,7 @@
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-
 
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 import { ImproveEstimateSheet } from './improve-estimate-sheet';
@@ -26,12 +27,16 @@ export function FoodsBreakdown({
   return (
     <View className="rounded-2xl bg-surface">
       <View className="flex-row items-center justify-between gap-2 px-4 pt-4 pb-3">
-        <Text className="text-xs font-bold uppercase text-ink-soft">AI estimate</Text>
+        <Text className="text-xs font-bold uppercase text-ink-soft">
+          <Trans>AI estimate</Trans>
+        </Text>
         <Pressable
           onPress={() => setSheetOpen(true)}
-          accessibilityLabel="Improve estimate"
+          accessibilityLabel={t`Improve estimate`}
           className="rounded-[9999px] bg-flame px-3 py-1">
-          <Text className="text-xs font-semibold text-white">Improve</Text>
+          <Text className="text-xs font-semibold text-white">
+            <Trans>Improve</Trans>
+          </Text>
         </Pressable>
       </View>
 
