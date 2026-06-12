@@ -237,9 +237,10 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
 ## Gotchas (Effect 4-beta + the platform)
 
 - **Training data is mostly Effect 3 / older AI SDK and will be WRONG.** Verify against `node_modules`.
-  `docs/refactor-handoff-2.md §7` + `refactor-handoff-3.md §8` pin the VERIFIED facts (Schema `Literals`/
-  `Finite`/`Trim`/`isBetween`, `HttpApi` query/params/payload keys, a handler may return a raw
-  `HttpServerResponse`, `HttpServerResponse.fromWeb` for Set-Cookie, `auth.$context.internalAdapter`, etc.).
+  `docs/effect-gotchas.md` pins the VERIFIED facts (Schema `Literals`/`Finite`/`Trim`/`isBetween`,
+  `HttpApi` query/params/payload keys, a handler may return a raw `HttpServerResponse`,
+  `HttpServerResponse.fromWeb` for Set-Cookie, `auth.$context.internalAdapter`, the gate/cache
+  `refetchType: "all"` rule, etc.).
 - **`noUncheckedIndexedAccess` is on** in both tsconfigs — a `arr[0]` / destructure is `T | undefined`.
 - **D1 has no interactive transactions** — atomicity is `atomically([...commands])` (one `batch()`); D1 has
   no FK cascade — cascades are explicit multi-command writes in the domain.
@@ -260,9 +261,11 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   failures persist for retry, the cost ledger is slimmed, and the vision-model catalog moved to
   `views/setting.ts`. The convention is in the skill's `references/third-party-apis.md`. Full verify green
   (worker + frontend + evals tsc · lint · 48 tests · build).
-- **Cutover — PENDING (ops, needs Cloudflare creds).** Before flipping to `main`: create the prod + staging
-  KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging
-  D1 (no data migration — feature parity is the criterion), deploy. See `docs/refactor-handoff-3.md §6`.
+- **Cutover — DONE (2026-06-12).** Both Workers live on the new stack: prod `sufra` at
+  **`https://lean-sufra.fawwaz.dev`** (the app origin — `sufra.fawwaz.dev` is the marketing site, a
+  separate deployment) and `sufra-staging` on workers.dev. Real KV ids in `wrangler.jsonc`, per-Worker
+  secrets set, D1 reset to the fresh migration baseline (no data migration; the pre-cutover dump is
+  backed up locally outside the repo).
 - **Mobile (Expo) client — core flows COMPLETE.** `apps/mobile`: the four-tier root gate (Connect →
   sign-in → Onboarding → the (app) tabs), the Today vertical (photo → Estimate → Day summary), the
   Meal detail formSheet (foods, Override editor, Improve — text ⇒ Refinement, none ⇒ retry — and delete;

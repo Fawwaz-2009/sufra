@@ -277,6 +277,6 @@ Realizes **ADR 0009, 0011** (calorie-history as a read-model).
 - **Tooling specifics** — the skill `conventions:sync` wiring, the `auth:generate` script, the `kysely@0.28.17` pin, and the split tsconfig (browser-safe vs worker) boundary.
 - ~~**Estimator evals import path**~~ — **CLOSED in Slice 5** (repointed to `callVisionModel` + single-source `MealAnalysis`).
 - ~~**calorie-history read-model placement**~~ — **CLOSED in Slice 5** (`domain/calorie-history.ts`, a read verb; the `Cost.show` precedent).
-- **The cutover (the only thing left before `main`)** — ops, needs Cloudflare creds: create prod + staging KV namespaces (the `wrangler.jsonc` ids are PLACEHOLDERs), set per-env secrets, nuke + migrate prod/staging D1 (no data migration), deploy, flip to `main`, delete memory `project_sufra_replatform`. See `docs/refactor-handoff-3.md §6`.
+- ~~**The cutover**~~ — **CLOSED 2026-06-12** (ops ran: real KV ids, per-Worker secrets, fresh D1 baseline, both Workers deployed; the app's prod origin is `https://lean-sufra.fawwaz.dev`).
 - **The future `packages/contract` lift** — extracting browser-safe `contract`/`models`/`views` into a shared package when Expo lands.
 - **Future Member `displayName` + avatar** — the avatar via the `attachable` model; deferred.
