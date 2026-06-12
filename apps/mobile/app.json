@@ -10,6 +10,7 @@
     "ios": {
       "bundleIdentifier": "com.fawwaz2009.sufra",
       "supportsTablet": true,
+      "associatedDomains": ["applinks:lean-sufra.fawwaz.dev"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocalNetworkUsageDescription": "Sufra connects to the development server on your local network.",
