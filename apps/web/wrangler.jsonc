@@ -32,7 +32,7 @@
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "PLACEHOLDER_CREATE_KV_NAMESPACE",
+      "id": "2cbcacbd26674ff09086145d8d814921",
     },
   ],
   // R2 bucket for meal photos (and any future media). The `attachments` row holds the
@@ -69,7 +69,7 @@
       "kv_namespaces": [
         {
           "binding": "KV",
-          "id": "PLACEHOLDER_CREATE_STAGING_KV_NAMESPACE",
+          "id": "bb42473904394fb6b45bfb56a69ac981",
         },
       ],
       "r2_buckets": [
