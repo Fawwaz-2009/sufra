@@ -487,6 +487,29 @@ _Exit:_ shippable in English. Another host could deploy a fresh Sufra instance f
 
 18. **Override + Refinement interaction — parked UX enhancement.** When a Refinement runs while overridden fields exist, the override-wins resolution already does the right thing (`override.field ?? sum(foods.field)` — the manual values keep showing, the fresh Estimate sits underneath). The parked enhancement is purely informational: surface a subtle inline notice on the Improve sheet listing the overridden fields — e.g. "your manual values for kcal, protein will keep showing until you reset them" — so the Member isn't surprised that a refine didn't visibly move those numbers. Pure UX; no model impact (resolution semantics are unchanged; the `× edited` badge per field from #10 already affords the reset). Deferred — flag, don't build, until dogfooding shows the confusion is real.
 
+19. **Password link should deep-link into the app (Member onboarding friction).** Surfaced by TestFlight
+    dogfooding (2026-06-12). Today the shared Password link is a plain web URL
+    (`${origin}/set-password/${token}` — `screens/admin/helpers.ts`): the Member sets their password in a
+    browser, then must separately open the app, type the server origin into Connect, and sign in — three
+    manual hand-offs. The link should open the APP when installed: an in-app set-password screen fed by the
+    token, and — since the link knows the origin — Connect auto-filled (or auto-probed) from it, so
+    redeeming the link lands the Member at a signed-in state in one flow. NOT auto-login: the token's only
+    power stays "set a password once" (ADR 0016); the deep link just moves where that happens. Design notes:
+    Universal Links (an `apple-app-site-association` served by the Worker) degrade gracefully to the
+    existing web page when the app isn't installed — the right mechanism over a bare `sufra://` scheme,
+    which dead-ends for recipients without the app. The web page stays as the fallback (and the only path
+    for web-only Members). Backend-agnostic caveat (ADR 0018): AASA binds the STORE app's team/bundle to the
+    Host's domain — self-hosted backends get this for free only if the Worker serves the AASA route.
+
+20. **Setup is a web-only ritual — should be doable in-app for the Host.** Confirmed in code
+    (`screens/connect/index.tsx`: a `needsSetup` probe result shows "Finish setup at ${origin} first").
+    Acceptable for the self-hosting developer persona, wrong for a Host whose first contact with their own
+    deployment is the phone. The fix is a native Setup tier in the root gate (Connect → SETUP → sign-in →
+    …): when the probe says `needsSetup`, render the Setup form (family name → Host username + password)
+    against the existing public `POST /api/setup` — the contract already serves it; this is purely a mobile
+    screen. Note the asymmetry deliberately: Members never see Setup; only the very first run of a fresh
+    deployment does. Until built, the web detour is a one-time cost per DEPLOYMENT, not per Member.
+
 ### Risks
 
 1. **The structured confidence flow doesn't pan out.** Load-bearing claim of the whole project. _Mitigation:_ prototype the inference call in isolation on Day 1, before committing to UI work. If clarification questions are bad, positioning needs rethinking before we build the rest.
