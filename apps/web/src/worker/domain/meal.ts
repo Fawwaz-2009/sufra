@@ -69,6 +69,7 @@ const create = Effect.fn("Meal.create")(function* (input: {
   readonly photo?: Upload | undefined
   readonly userText?: string | undefined
   readonly capturedAt?: string | undefined
+  readonly locale?: string | undefined
 }) {
   const { id: userId } = yield* CurrentUser
   const meals = yield* MealsRepo
@@ -97,6 +98,7 @@ const create = Effect.fn("Meal.create")(function* (input: {
     modelId,
     photo: input.photo?.data,
     userText: text,
+    locale: input.locale,
     kind: "estimate"
   })
 
@@ -112,7 +114,10 @@ const create = Effect.fn("Meal.create")(function* (input: {
  * The current Estimate is always the latest "ok", so a failed re-estimate is recorded (cost + retry)
  * WITHOUT wiping a prior good one. Returns the fresh view.
  */
-const reestimate = Effect.fn("Meal.reestimate")(function* (input: { readonly userText?: string | undefined }) {
+const reestimate = Effect.fn("Meal.reestimate")(function* (input: {
+  readonly userText?: string | undefined
+  readonly locale?: string | undefined
+}) {
   const meal = yield* CurrentMeal
   const { id: userId } = yield* CurrentUser
 
@@ -130,6 +135,7 @@ const reestimate = Effect.fn("Meal.reestimate")(function* (input: { readonly use
     modelId,
     photo: Option.isSome(photo) ? photo.value.bytes : undefined,
     userText: resolvedText,
+    locale: input.locale,
     kind: text ? "refinement" : "estimate"
   })
 

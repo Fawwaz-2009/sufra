@@ -8,7 +8,10 @@ import { MealScoped } from "../middleware/meal-scoped.ts"
 /** The re-estimate input — OPTIONAL free-text context. With text it's a Refinement; without, a plain
  *  retry of a failed attempt. Either way it APPENDS a new Estimate (CONTEXT "Refinement"; ADR 0017). */
 export const ReestimateInput = Schema.Struct({
-  userText: Schema.optional(Schema.String.check(Schema.isMinLength(1)))
+  userText: Schema.optional(Schema.String.check(Schema.isMinLength(1))),
+  // The Locale (ADR 0020) — see CreateMeal: client state, allowlisted server-side, current-locale-wins
+  // on retries/Refinements (an Estimate's language is part of its immutable record).
+  locale: Schema.optional(Schema.String)
 })
 
 /**

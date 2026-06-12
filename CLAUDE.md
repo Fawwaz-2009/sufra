@@ -13,18 +13,19 @@ Three things anchor this codebase. Read the relevant one **before** you act:
   **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
 - **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-`docs/adr/0001–0019` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
+`docs/adr/0001–0020` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
 0017 reifies the Estimate as an append-only child + settles the third-party-API convention; 0018 makes the
 native client backend-agnostic — the server origin is user state, bring-your-own backend; 0019 adds the
-userText creation door — the description rides the Estimate, the Meal keeps one shape);
+userText creation door — the description rides the Estimate, the Meal keeps one shape; 0020 adds Arabic +
+RTL — the Locale is CLIENT state riding the Estimate-creating request, Lingui on mobile, history is history);
 `docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
 
 A photo-first calorie tracker for households. **Host-deployed** on the Host's own Cloudflare account,
-**host-paid inference**, multi-user (the Host provisions accounts for Members). PWA, English-only in v1
-(translation deferred to v2; the plumbing exists, exercised by evals), Middle Eastern cuisine as a
-first-class citizen.
+**host-paid inference**, multi-user (the Host provisions accounts for Members). PWA; **English + Arabic
+with full RTL on the mobile app + the AI output (ADR 0020)** — the web SPA and marketing deliberately
+stay English; Middle Eastern cuisine as a first-class citizen.
 
 ## Stack
 
@@ -206,6 +207,15 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   **`@expo/ui` is OUT while alpha** — spiked at SDK 56, failed cross-platform verification (the
   decision record + re-spike protocol: skill's `frontend-expo.md` §`@expo/ui`). Native feel rides
   `NativeTabs`/`Alert`/`RefreshControl` + the inline-commit OptionSheet for single-tap fields.
+- **Arabic + RTL (ADR 0020):** strings ride **Lingui v6** (`<Trans>`/`` t`...` `` macros — NEVER at module
+  scope; catalogs in `src/locales/{en,ar}/messages.po`, compiled `.ts` committed). After touching copy:
+  `pnpm run i18n:extract`, translate the new `ar` entries, `pnpm run i18n:compile` (`--strict` fails on
+  missing translations — the enforcement). **Lingui's CLI silently no-ops on Node < 22.19** (guarded by
+  `import.meta.main`). The Locale is CLIENT state (`lib/locale.ts`, device default + the Profile Language
+  row); direction is BOOT state (`lib/rtl.ts` imported FIRST in the root layout + `extra.supportsRTL`;
+  switch = persist + flags + reload). Charts stay LTR; Western digits everywhere (`ar-u-nu-latn` via
+  `lib/date.ts displayLocale()` — never `toLocaleString(undefined…)`); `DisplayText` drops its tracking
+  under Arabic. The full convention: the skill's `frontend-expo.md` §RTL.
 - **Server counterpart already in place** (apps/web `auth/instance.ts`): the `expo()` plugin +
   `"sufra://"` in `trustedOrigins` — device sign-in 403s without them.
 - **The native client is backend-agnostic (ADR 0018):** v1 is free + bring-your-own backend — the server
@@ -278,6 +288,12 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   public setup-status endpoint; `EXPO_PUBLIC_API_URL` is the dev prefill). The template Explore tab is
   gone. Profile is RN with the inline-commit OptionSheet for single-tap fields (the @expo/ui spike
   was reverted after failing the iPad test — see the skill's decision record). Nothing is web-only.
+- **Arabic + RTL (ADR 0020) — DONE end-to-end on mobile + the AI.** The Locale rides the Estimate-creating
+  request (`locale?: string` on `POST /meals` + `POST /meals/:id/estimates`, allowlisted via `LOCALE_NAMES`,
+  unknown → English, never stored — old backends strip it, verified `onExcessProperty: "ignore"`); all ~213
+  mobile strings in Lingui catalogs with a complete Arabic translation; RTL boots from the stored Locale;
+  the Language row restarts the app; history is history (Improve converts a Meal on demand). Evals cover the
+  text source (all dishes) + Arabic photo/hints/text cases. Web SPA stays English by design.
 - **Meal-creation entry redesign (ADR 0019) — backend + mobile DONE; web UI catch-up PENDING.** Today
   has three visible doors: Photo (native action sheet folds the library in) · Describe (textarea sheet →
   `POST /meals { userText }`) · From saved. Photo-less Meals render the basket placeholder (list) / the

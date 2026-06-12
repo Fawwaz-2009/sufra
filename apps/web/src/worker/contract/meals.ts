@@ -14,7 +14,11 @@ import { MealScoped } from "./middleware/meal-scoped.ts"
 export const CreateMeal = Schema.Struct({
   photo: Schema.optional(Upload),
   userText: Schema.optional(Schema.String.check(Schema.isMinLength(1))),
-  capturedAt: Schema.optional(Schema.String)
+  capturedAt: Schema.optional(Schema.String),
+  // The Locale (ADR 0020) — client state riding the Estimate-creating request so the AI answers in the
+  // Member's language. A free string, ADDITIVE (ADR 0018): the server allowlists it (unknown → English),
+  // so a future client's new locale never 400s against this backend.
+  locale: Schema.optional(Schema.String)
 })
 
 /**

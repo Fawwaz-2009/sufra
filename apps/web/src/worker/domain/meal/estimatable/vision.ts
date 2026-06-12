@@ -55,9 +55,10 @@ export const callVisionModel = (input: {
 }
 
 /**
- * Locale design (multi-language is a v2 frontier; v1 hardcodes "en"): ONE English system prompt is the
- * source of truth; for a non-English locale we append a short instruction to output specific user-read
- * fields in the target language. Adding a language = add its name to LOCALE_NAMES. Exercised by evals only.
+ * Locale design (ADR 0020): ONE English system prompt is the source of truth; for a non-English locale we
+ * append a short instruction to output specific user-read fields in the target language. The locale is
+ * CLIENT state riding the Estimate-creating request (never stored); LOCALE_NAMES doubles as the server
+ * allowlist — adding a language = add its name here. Shipped: en + ar; the rest are exercised by evals.
  */
 export type Locale = "en" | "ar" | (string & {})
 
@@ -145,7 +146,10 @@ const SYSTEM_PROMPTS: Record<Source, string> = {
 export const getSystemPrompt = (locale: Locale = "en", source: Source = "photo"): string => {
   const base = SYSTEM_PROMPTS[source]
   if (locale === "en") return base
-  const name = LOCALE_NAMES[locale] ?? locale
+  // LOCALE_NAMES is the ALLOWLIST (ADR 0020): the locale is a raw client string, so an unknown value
+  // falls back to English — never interpolated into the prompt.
+  const name = LOCALE_NAMES[locale]
+  if (name === undefined) return base
   return `${base}\n\n=== Locale ===\nUser's locale is ${name} (${locale}). Output the user-read fields listed above in ${name}. Everything else stays English. Numbers stay Western (0-9).`
 }
 

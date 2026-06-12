@@ -40,6 +40,8 @@ export interface VisionInput {
   /** Absent = the text source (ADR 0019): the call runs on `userText` alone, no image part. */
   readonly photo?: Uint8Array | undefined
   readonly userText?: string | undefined
+  /** The Locale (ADR 0020): a raw client string; `getSystemPrompt` allowlists it (unknown → English). */
+  readonly locale?: string | undefined
 }
 
 export class Vision extends Context.Service<
@@ -70,14 +72,15 @@ const classify = (e: unknown): EstimateErrorCode => {
 
 export const VisionLive = (env: Bindings): Layer.Layer<Vision> =>
   Layer.succeed(Vision, {
-    call: ({ photo, modelId, userText }: VisionInput) =>
+    call: ({ photo, modelId, userText, locale }: VisionInput) =>
       Effect.gen(function* () {
         const start = yield* nowMillis
 
         // Run the model via the SHARED `callVisionModel` (the same call evals run). A provider throw is a
         // classified transport failure; `matchEffect` stamps latency from the Clock on BOTH paths.
         const generate = Effect.tryPromise({
-          try: () => callVisionModel({ apiKey: env.OPENROUTER_API_KEY, modelId, photo, locale: "en", userText }),
+          try: () =>
+            callVisionModel({ apiKey: env.OPENROUTER_API_KEY, modelId, photo, locale: locale ?? "en", userText }),
           catch: (e) => ({ code: classify(e), usage: extractUsage(e) })
         })
 

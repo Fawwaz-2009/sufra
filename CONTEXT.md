@@ -52,6 +52,10 @@ _Avoid_: Certainty, reliability, accuracy.
 A `[local midnight, next local midnight)` window resolved in the Member's *current* timezone. Days are entirely a client-side bucketing concept — the server stores Meal moments (UTC ISO Z `captured_at`) and exposes range queries (`GET /api/meals?from&to`); the client groups moments into Day buckets using the Member's current TZ. "Today" follows the Member: in NYC it's NYC's day, after flying to Tokyo it's Tokyo's day. Past Meals stay anchored to the moment they happened. The Day view's UI structure is invariant — the same shell renders Today, yesterday, or any past Day.
 _Avoid_: 24-hour period, calendar day, server day.
 
+**Locale**:
+The language Sufra speaks to a Member — UI copy, date formatting, and the user-read fields of any *new* Estimate (dish name, food names, Clarifications). Like the Day's timezone, the Locale is a client-side concept that follows the Member: it defaults to the device language on first run, is overridable via the explicit Language setting in Profile, lives on the device, and is never stored by the server — it travels with each Estimate-creating request so the AI answers in the Member's language (an unrecognized value falls back to English). An Estimate's language is part of its immutable record: switching Locale never rewrites history; Improving a Meal re-estimates it in the current Locale. v1 Locales: English (`en`), Arabic (`ar`). Numbers are Western Arabic numerals (0-9) in every Locale.
+_Avoid_: Language (as the identifier — UI copy may say "Language"), region, translation (the act, not the state).
+
 **Target**:
 The Member's daily kcal goal — what they should eat to achieve their lose/maintain/gain objective. The Day view surfaces it as "calories remaining" = `Target − sum(today's Meal Totals)`. kcal only; no macro Targets in v1. Derived, not stored: read from the active Profile snapshot's inputs at request time via `Target = Maintenance + direction × weekly_rate_kg × 1100`, where `direction = sign(goal_weight_kg − weight_kg)`.
 _Avoid_: Goal, daily calories, calorie budget, allowance.

@@ -168,6 +168,18 @@ describe("Meals (request)", () => {
     expect((await postJson("/api/meals", {}, cookie)).status).toBe(400)
   })
 
+  it("accepts the optional locale on both Estimate-creating endpoints (ADR 0020)", async () => {
+    const cookie = await signInAs("ada")
+    // The Locale is client state riding the request — any string decodes (the allowlist is the
+    // prompt's, not the wire's: a future client's new locale must never 400 against this backend).
+    const res = await postJson("/api/meals", { userText: "grilled halloumi plate", locale: "ar" }, cookie)
+    expect(res.status).toBe(201)
+    const meal = (await res.json()) as MealView
+
+    const reRes = await postJson(`/api/meals/${meal.id}/estimates`, { userText: "two pieces", locale: "xx" }, cookie)
+    expect(reRes.status).toBe(200)
+  })
+
   it("adds a photo to a text-created meal without re-estimating (POST /meals/:id/photo)", async () => {
     const cookie = await signInAs("ada")
     const createRes = await postJson("/api/meals", { userText: "a bowl of lentil soup" }, cookie)
