@@ -11,6 +11,7 @@
       "bundleIdentifier": "com.fawwaz2009.sufra",
       "supportsTablet": true,
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSLocalNetworkUsageDescription": "Sufra connects to the development server on your local network.",
         "NSBonjourServices": [
           "_expo._tcp"

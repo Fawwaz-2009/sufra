@@ -17,6 +17,12 @@ import Purchases, {
  * root gate re-renders when a purchase or restore flips the entitlement. Android ships dev-build
  * only in v1 (and the web export never sells) — both bypass to `unlocked`, as does a build with
  * no RevenueCat key (the key arrives via `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, inlined at build time).
+ *
+ * v1 LAUNCHES FREE — DELIBERATELY. `eas.json`'s production profile carries NO RevenueCat key, so
+ * store builds bypass the gate and hide every purchase surface. This is the chosen launch state,
+ * not a missing secret. The later paid flip: create the IAPs + the RevenueCat App Store app, put
+ * the `appl_` public key in eas.json's production env, and grandfather free-era installs via the
+ * receipt's `originalApplicationVersion` (on `CustomerInfo`) in `derive()`.
  */
 export const TRIAL_PRODUCT_ID = 'sufra_trial_30';
 export const UNLOCK_PRODUCT_ID = 'sufra_unlock';
