@@ -1,4 +1,5 @@
 import { serveBackend } from "./worker/handler.ts"
+import { serveFallback } from "./worker/pages.ts"
 import { MAX_REQUEST_BYTES } from "./worker/config.ts"
 import type { Bindings } from "./worker/env.ts"
 
@@ -7,9 +8,9 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH"])
 
 /**
  * The single Worker entry — a thin composer. The backend handles its own routes (`/api/auth/*`,
- * `/api/*`) and returns a Response; anything it doesn't claim falls through to the ASSETS binding,
- * which serves the built SPA (with `not_found_handling: single-page-application` doing the client
- * routing fallback). One Worker, both halves — no SSR (ADR 0015).
+ * `/api/*`) and returns a Response; anything it doesn't claim falls to the static surface (the
+ * set-password fallback page, the Universal-Links file, the marketing redirect). The SPA is
+ * retired — Expo is the only client (ADR 0021).
  */
 export default {
   async fetch(request: Request, env: Bindings): Promise<Response> {
@@ -23,6 +24,6 @@ export default {
     }
 
     const backendResponse = await serveBackend(request, env)
-    return backendResponse ?? env.ASSETS.fetch(request)
+    return backendResponse ?? serveFallback(request)
   }
 } satisfies ExportedHandler<Bindings>

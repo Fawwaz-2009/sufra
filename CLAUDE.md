@@ -13,34 +13,36 @@ Three things anchor this codebase. Read the relevant one **before** you act:
   **Use this vocabulary exactly in code, comments, commit messages, and PRs.**
 - **`PRD.md`** — product decisions, milestones, positioning, open questions (§10).
 
-`docs/adr/0001–0020` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
+`docs/adr/0001–0021` record the architecture decisions (0009–0016 are the Effect + Cloudflare re-platform;
 0017 reifies the Estimate as an append-only child + settles the third-party-API convention; 0018 makes the
 native client backend-agnostic — the server origin is user state, bring-your-own backend; 0019 adds the
 userText creation door — the description rides the Estimate, the Meal keeps one shape; 0020 adds Arabic +
-RTL — the Locale is CLIENT state riding the Estimate-creating request, Lingui on mobile, history is history);
+RTL — the Locale is CLIENT state riding the Estimate-creating request, Lingui on mobile, history is history;
+0021 retires the web SPA — Expo is the only client, the Worker is API + a static set-password fallback);
 `docs/refactor-plan.md` records the re-platform's per-slice decisions. This file is the short orientation.
 
 ## What this is
 
 A photo-first calorie tracker for households. **Host-deployed** on the Host's own Cloudflare account,
-**host-paid inference**, multi-user (the Host provisions accounts for Members). PWA; **English + Arabic
-with full RTL on the mobile app + the AI output (ADR 0020)** — the web SPA and marketing deliberately
-stay English; Middle Eastern cuisine as a first-class citizen.
+**host-paid inference**, multi-user (the Host provisions accounts for Members). **The Expo app is the
+ONLY client (ADR 0021 — the web SPA is retired)**; **English + Arabic with full RTL on the app + the
+AI output (ADR 0020)** — marketing deliberately stays English; Middle Eastern cuisine as a
+first-class citizen.
 
 ## Stack
 
-Backend **and** frontend run on **one Cloudflare Worker** (the Rails / 37signals tradition), in the
-**fawwaz-coding-style** (Effect v4-beta). The pre-2026 Hono + Drizzle + zod stack is gone — don't look for it.
+The backend is **one Cloudflare Worker** in the **fawwaz-coding-style** (Effect v4-beta); the client is
+the Expo app. The pre-2026 Hono + Drizzle + zod stack is gone, and so is the React SPA (ADR 0021) —
+don't look for either.
 
 - **Backend:** an **Effect `HttpApi`** on Cloudflare Workers (no Hono). D1 via Effect's SQL stack
-  (`@effect/sql-d1` + a thin `Command` / `makeTable` layer — **no Drizzle anywhere**). One Worker serves
-  the SPA assets and `/api/*`.
+  (`@effect/sql-d1` + a thin `Command` / `makeTable` layer — **no Drizzle anywhere**). The Worker serves
+  `/api/*` plus a tiny static surface (`worker/pages.ts`): the no-app set-password fallback page, the
+  Universal-Links AASA file, and a `/` redirect to marketing (ADR 0021).
 - **Auth:** **Better Auth** on the **Kysely-D1 dialect** (not Drizzle), sessions in **Cloudflare KV** via
   `secondaryStorage`; `username` + `admin` plugins; **no email anywhere** (username + password).
-- **Frontend:** Vite + React 19 + **TanStack Router** (file-based, `beforeLoad` gate + loader +
-  `useSuspenseQuery`) + TanStack Query + Tailwind v4 + shadcn. The browser reaches the backend ONLY over
-  HTTP, through a **typed `HttpApiClient` derived from `worker/contract`** (no codegen). SPA, not SSR
-  (ADR 0015).
+- **Client:** `apps/mobile`, the Expo app (see the Mobile section). It reaches the backend ONLY over
+  HTTP, through a **typed `HttpApiClient` derived from `worker/contract`** (no codegen).
 - **Storage:** Cloudflare R2 (binding `BUCKET`) via a `Blobs` service; photos serve through the
   **authenticated Worker proxy** `GET /api/meals/:id/photo`, never a public/presigned URL (ADR 0014).
 - **Inference:** OpenRouter via the AI SDK, baked INTO the Meal domain as the `estimatable` concern
@@ -48,9 +50,9 @@ Backend **and** frontend run on **one Cloudflare Worker** (the Rails / 37signals
   The humble call is `estimatable/vision.ts` (`callVisionModel`, Effect-free, shared by prod AND the eval
   harness so they never drift); the env-swapped `Vision` service (`estimatable/service.ts` —
   `VisionLive`/`VisionTest`) is just the test stub.
-- **Monorepo:** pnpm workspaces + Turborepo. `apps/web` (SPA + Worker, kept together — the Cloudflare
-  Vite plugin glues them) + `apps/evals` (promptfoo harness; imports the prod `callVisionModel` + the
-  single-source `Analysis`) + `apps/mobile` (the Expo client — see the Mobile section below).
+- **Monorepo:** pnpm workspaces + Turborepo. `apps/web` (the Worker — the name predates the SPA's
+  retirement) + `apps/evals` (promptfoo harness; imports the prod `callVisionModel` + the single-source
+  `Analysis`) + `apps/mobile` (the Expo client — see the Mobile section below).
 
 ## Run it
 
@@ -58,20 +60,18 @@ The work loop runs **from `apps/web`** (root scripts proxy through turbo/pnpm fi
 
 ```
 cd apps/web
-pnpm exec tsc -p tsconfig.worker.json && pnpm exec tsc -p tsconfig.json   # typecheck (worker + frontend — two scopes)
-pnpm exec vitest run                                                      # all tests (unit + in-process request tests)
+pnpm exec tsc -p tsconfig.worker.json                                    # typecheck (one scope — the SPA is gone, ADR 0021)
+pnpm exec vitest run                                                     # all tests (unit + in-process request tests)
 pnpm exec wrangler d1 migrations apply DB --local                        # apply migrations to local D1
 pnpm run lint                                                            # eslint
-pnpm exec vite build                                                     # regenerates src/routeTree.gen.ts (gitignored) + proves the build
+pnpm exec vite build                                                     # worker-only build (the Cloudflare Vite plugin)
 pnpm exec wrangler types                                                 # regen worker-configuration.d.ts after wrangler.jsonc changes
 pnpm run auth:generate                                                   # regen migrations/0001_better_auth.sql after a BA upgrade/plugin
 ```
 
-- **Two typecheck scopes are intentional** (the browser-safe boundary, below): `tsconfig.worker.json`
-  (Worker globals, no DOM) for `src/worker` + `src/server.ts` + tests; `tsconfig.json` (DOM, no Worker
-  globals) for the frontend, which may import only the browser-safe `src/worker/{contract,models,views}`.
-- **The route tree is generated + gitignored.** After moving/adding route files, `vite build` regenerates
-  `src/routeTree.gen.ts` — until then `<Link to="/x">` / `redirect({to:"/x"})` won't typecheck. Build, then typecheck.
+- **The browser-safe set `worker/{contract,models,views}` still matters** — it's the mobile app's typed
+  window into the backend (apps/mobile typechecks it under its own DOM-less RN scope). Keep it free of
+  Worker globals and server-only imports.
 - **Local D1 "table already exists":** `rm -rf apps/web/.wrangler/state`, then re-apply migrations.
 - `pnpm dev` (root) runs Vite + workerd in one port. `pnpm deploy` / `pnpm deploy:staging` build + deploy
   (staging needs BOTH `CLOUDFLARE_ENV=staging` at build AND `--env staging` at deploy — the script does both).
@@ -85,10 +85,12 @@ concept; a feature is found by NAME across the layers.
 apps/web/
   migrations/                 wrangler-native D1 migrations (0001_better_auth from the BA CLI + hand-written domain SQL)
   src/
-    server.ts                 entry: MAX_REQUEST_BYTES guard → serveBackend(req,env) ?? SPA assets
+    server.ts                 entry: MAX_REQUEST_BYTES guard → serveBackend(req,env) ?? serveFallback(req)
     worker/                   ── THE BACKEND (Effect) ──
       handler.ts              serveBackend: /api/auth/* → Better Auth (+ login rate-limit); the public
                               prefixes (/api/setup, /api/password-links) → publicHandler; else /api/* → handler
+      pages.ts                the post-SPA static surface (ADR 0021): the no-app set-password fallback
+                              page, the Universal-Links AASA, the / → marketing redirect
       app.ts                  getApp/getAuth: build the app + Better Auth ONCE per isolate (bindings are stable)
       runtime.ts              assembleHandler: wires controllers + middleware + the request data layer into
                               TWO web handlers — `handler` (authed `api`) + `publicHandler` (unauth `publicApi`)
@@ -103,18 +105,13 @@ apps/web/
       controllers/ middleware/ support/  ── server ── thin handlers · scoping/auth gates · small combinators
       auth/                   ── server ── Better Auth instance (Kysely-D1 + KV) + permissions (ac/roles)
       blobs/                  ── server ── the R2 blob seam (the AI vision call lives in domain/meal/estimatable/, not here — ADR 0017)
-    client/                   browser transport: api-client.ts (getClient + getPublicClient + run), auth-client.ts, gate.ts, me.ts, setup.ts
-    routes/                   ── THE FRONTEND ── TanStack file routes (index, meals/$id, onboarding, profile, progress, admin, setup, set-password, login, how-it-works)
-    components/ lib/          shared UI (bottom-nav, day-summary-panel, log-weight-sheet, meal-card) · cn() · date/units
-                              (the SVG charts are route-co-located under routes/progress/-components/)
   test/                       in-process request tests over real local D1 + KV (miniflare); support/harness.ts
   auth.cli.ts                 GENERATION-ONLY Better Auth config (mirrors instance.ts plugins) → migrations/0001_better_auth.sql
 ```
 
-**Browser-safe set is exactly `worker/{contract, models, views}`** — the frontend's only window into the
-backend (the typed client derives from `contract`). The split tsconfig enforces it: server-only `worker/*`
-can't compile under the frontend's DOM scope. (The old ADR 0005 "isomorphism" eslint rule is gone — the
-boundary is now structural.)
+**Browser-safe set is exactly `worker/{contract, models, views}`** — the mobile app's only window into
+the backend (its typed client derives from `contract`). Keep it free of Worker globals and server-only
+imports; apps/mobile's own tsconfig is what compiles it on the client side now.
 
 ### The two-API split (a Sufra decision the skill doesn't cover — recorded in refactor-plan.md Slice 4)
 
@@ -122,7 +119,7 @@ The api-wide `Authentication` middleware means every endpoint on `api` needs a s
 bootstrap** — Setup (runs before any Host) + Password-link redemption (the token IS the credential) — can't
 sit there. So there are **two `HttpApi`s**: `contract/api.ts` (authed) and `contract/public-api.ts` (no
 middleware), built as two separate `toWebHandler`s in `runtime.ts` and dispatched by path prefix in
-`handler.ts`. The frontend reaches the public one via a second typed client, `getPublicClient`.
+`handler.ts`. The mobile app reaches the public one via a second typed client, `getPublicClient`.
 
 ## Auth model (ADR 0010)
 
@@ -296,18 +293,22 @@ https://docs.expo.dev/versions/v56.0.0/ before writing any code.
   unknown → English, never stored — old backends strip it, verified `onExcessProperty: "ignore"`); all ~213
   mobile strings in Lingui catalogs with a complete Arabic translation; RTL boots from the stored Locale;
   the Language row restarts the app; history is history (Improve converts a Meal on demand). Evals cover the
-  text source (all dishes) + Arabic photo/hints/text cases. Web SPA stays English by design.
-- **Meal-creation entry redesign (ADR 0019) — backend + mobile DONE; web UI catch-up PENDING.** Today
-  has three visible doors: Photo (native action sheet folds the library in) · Describe (textarea sheet →
-  `POST /meals { userText }`) · From saved. Photo-less Meals render the basket placeholder (list) / the
-  Add-photo target (detail); photo Meals get a corner Edit chip — both `POST /meals/:id/photo`, never
-  re-estimating. Against an old backend the Describe path maps the 400 to "update your deployment" (no
-  capability probe). **The web Today still has the old two-button entry and no Describe — the
-  nothing-is-mobile-only parity invariant is deliberately broken until the web catches up.**
+  text source (all dishes) + Arabic photo/hints/text cases.
+- **Meal-creation entry redesign (ADR 0019) — DONE.** Today has three visible doors: Photo (native
+  action sheet folds the library in) · Describe (textarea sheet → `POST /meals { userText }`) · From
+  saved. Photo-less Meals render the basket placeholder (list) / the Add-photo target (detail); photo
+  Meals get a corner Edit chip — both `POST /meals/:id/photo`, never re-estimating. Against an old
+  backend the Describe path maps the 400 to "update your deployment" (no capability probe). (The web
+  catch-up this ADR left pending was cancelled by ADR 0021 — there is no web UI anymore.)
+- **The web client retired (ADR 0021) — DONE (2026-06-12).** The SPA is deleted; the Worker serves
+  `/api/*` + `worker/pages.ts` (the static no-app set-password fallback, the AASA for Universal Links,
+  `/` → marketing). Onboarding is fully native: the Setup wizard (Connect's `needsSetup` pushes it) and
+  the set-password screen (`sufra://set-password/<token>?origin=…` today; the https Universal Link once
+  build 3's associated-domains entitlement is live). One typecheck scope; frontend deps pruned.
 
 ## Pointers
 
 - House style: `~/.claude/skills/fawwaz-coding-style/` · Glossary: `CONTEXT.md` · Product: `PRD.md`
-- ADRs: `docs/adr/0001–0019` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
-- Better Auth: https://www.better-auth.com/docs · TanStack Router: https://tanstack.com/router/latest
+- ADRs: `docs/adr/0001–0021` · Re-platform plan + per-slice decisions: `docs/refactor-plan.md`
+- Better Auth: https://www.better-auth.com/docs
 - Cloudflare Vite plugin: https://developers.cloudflare.com/workers/vite-plugin/
