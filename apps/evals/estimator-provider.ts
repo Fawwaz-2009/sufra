@@ -12,10 +12,11 @@ import { Analysis } from "../web/src/worker/models/estimate.ts"
 import type { Locale } from "../web/src/worker/domain/meal/estimatable/vision.ts"
 
 // Promptfoo custom provider that exercises the PRODUCTION vision call directly: `callVisionModel` is the
-// exact OpenRouter invocation `EstimatorLive` runs (same model, system + user prompts, derived JSON
-// Schema, response_format), and the output is decoded through the SAME single-source `MealAnalysis`. No
-// response_format divergence, no schema/prompt drift. The only knob prod doesn't expose is `locale` (prod
-// hardcodes "en"); the harness exercises the locale plumbing.
+// exact OpenRouter invocation prod runs (same model, system + user prompts, derived JSON Schema,
+// response_format), and the output is decoded through the SAME single-source `Analysis`. No
+// response_format divergence, no schema/prompt drift. `locale` is a prod knob since ADR 0020 (the client
+// sends it per Estimate-creating request); `vars.imageUrl` is OPTIONAL since ADR 0019 — a row without it
+// exercises the TEXT source (the Describe door): `callVisionModel` runs on `userText` alone.
 
 const decodeAnalysis = Schema.decodeUnknownSync(Analysis)
 
@@ -52,16 +53,15 @@ export default class EstimatorProvider implements ApiProvider {
     }
 
     const imageUrl = vars.imageUrl as string | undefined
-    if (!imageUrl) {
+    const locale = (vars.locale as Locale | undefined) ?? "en"
+    const userText = stripPromptPrefix(vars.userText as string | undefined)
+    const photo = imageUrl ? dataUrlToBytes(imageUrl) : undefined
+    if (photo === undefined && userText === undefined) {
       return {
-        error: "test vars.imageUrl missing",
+        error: "test vars need imageUrl and/or userText (the create-time at-least-one rule, ADR 0019)",
         tokenUsage: { total: 0, prompt: 0, completion: 0 },
       }
     }
-
-    const locale = (vars.locale as Locale | undefined) ?? "en"
-    const userText = stripPromptPrefix(vars.userText as string | undefined)
-    const photo = dataUrlToBytes(imageUrl)
 
     try {
       const result = await callVisionModel({ apiKey, modelId: this.modelId, photo, locale, userText })
