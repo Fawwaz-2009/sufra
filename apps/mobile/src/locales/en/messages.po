@@ -26,6 +26,15 @@ msgstr "{diffDays, plural, one {# day ago} other {# days ago}}"
 msgid "{runCount, plural, one {# run} other {# runs}}"
 msgstr "{runCount, plural, one {# run} other {# runs}}"
 
+#: src/screens/set-password/index.tsx:200
+#: src/screens/setup/index.tsx:339
+msgid "← Back"
+msgstr "← Back"
+
+#: src/screens/setup/index.tsx:224
+msgid "← Back to Connect"
+msgstr "← Back to Connect"
+
 #. placeholder {0}: perMemberAvgUsd.toFixed(2)
 #: src/screens/admin/components/cost-card.tsx:27
 msgid "~${0} / member"
@@ -164,6 +173,10 @@ msgstr "Change server?"
 msgid "Check your connection, or that your Sufra server is up."
 msgstr "Check your connection, or that your Sufra server is up."
 
+#: src/screens/set-password/index.tsx:176
+msgid "Checking your link…"
+msgstr "Checking your link…"
+
 #: src/screens/(app).index/components/describe-sheet.tsx:91
 msgid "Chicken shawarma wrap with garlic sauce…"
 msgstr "Chicken shawarma wrap with garlic sauce…"
@@ -181,17 +194,26 @@ msgstr "Choose from library"
 msgid "Close"
 msgstr "Close"
 
-#: src/screens/connect/index.tsx:110
+#: src/screens/set-password/index.tsx:262
+#: src/screens/setup/index.tsx:309
+msgid "Confirm password"
+msgstr "Confirm password"
+
+#: src/screens/connect/index.tsx:112
 msgid "Connect"
 msgstr "Connect"
 
-#: src/screens/connect/index.tsx:79
+#: src/screens/connect/index.tsx:81
 msgid "Connect to your server"
 msgstr "Connect to your server"
 
 #: src/screens/onboarding/index.tsx:183
 msgid "Continue"
 msgstr "Continue"
+
+#: src/screens/setup/index.tsx:216
+msgid "Continue →"
+msgstr "Continue →"
 
 #: src/screens/sign-in/index.tsx:38
 msgid "Could not sign in. Check your username and password."
@@ -221,7 +243,7 @@ msgstr "Couldn't delete"
 msgid "Couldn't delete. Try again."
 msgstr "Couldn't delete. Try again."
 
-#: src/screens/connect/index.tsx:59
+#: src/screens/connect/index.tsx:61
 msgid "Couldn't find a Sufra server at {origin}. Check the address and try again."
 msgstr "Couldn't find a Sufra server at {origin}. Check the address and try again."
 
@@ -229,7 +251,7 @@ msgstr "Couldn't find a Sufra server at {origin}. Check the address and try agai
 msgid "Couldn't log that. Try again."
 msgstr "Couldn't log that. Try again."
 
-#: src/screens/admin/helpers.ts:25
+#: src/screens/admin/helpers.ts:30
 msgid "Couldn't open the share sheet"
 msgstr "Couldn't open the share sheet"
 
@@ -267,6 +289,14 @@ msgstr "Couldn't save. Try again."
 #: src/screens/admin/components/model-select.tsx:30
 msgid "Couldn't update model"
 msgstr "Couldn't update model"
+
+#: src/screens/setup/index.tsx:329
+msgid "Create the {familyName} Sufra →"
+msgstr "Create the {familyName} Sufra →"
+
+#: src/screens/setup/index.tsx:267
+msgid "Create your account"
+msgstr "Create your account"
 
 #: src/screens/onboarding/components/step-goal.tsx:88
 msgid "Current: {currentDisplay}"
@@ -357,7 +387,7 @@ msgstr "Exercise 3–5 days/week"
 msgid "Exercise 6–7 days/week"
 msgstr "Exercise 6–7 days/week"
 
-#: src/screens/connect/index.tsx:88
+#: src/screens/connect/index.tsx:90
 msgid "family.example.com"
 msgstr "family.example.com"
 
@@ -409,9 +439,13 @@ msgstr "Height"
 msgid "Height (cm)"
 msgstr "Height (cm)"
 
-#: src/screens/admin/helpers.ts:20
+#: src/screens/admin/helpers.ts:25
 msgid "Hi {username}, here's your link to join Sufra:"
 msgstr "Hi {username}, here's your link to join Sufra:"
+
+#: src/screens/set-password/index.tsx:237
+msgid "Hi {username}! Choose a password to set up your account."
+msgstr "Hi {username}! Choose a password to set up your account."
 
 #: src/screens/admin/components/members-list.tsx:94
 msgid "Host"
@@ -496,6 +530,10 @@ msgstr "Light"
 msgid "Link"
 msgstr "Link"
 
+#: src/screens/set-password/index.tsx:187
+msgid "Link expired or invalid"
+msgstr "Link expired or invalid"
+
 #: src/screens/(app).profile/helpers.ts:75
 #: src/screens/onboarding/components/step-activity.tsx:22
 msgid "Little or no exercise"
@@ -570,7 +608,7 @@ msgstr "Month"
 msgid "Multiplier applied to your BMR: {0}× → {1}×."
 msgstr "Multiplier applied to your BMR: {0}× → {1}×."
 
-#: src/screens/(app).index/components/day-header.tsx:32
+#: src/screens/(app).index/components/day-header.tsx:36
 msgid "Next week"
 msgstr "Next week"
 
@@ -627,6 +665,21 @@ msgstr "P {0}g · C {1}g · F {2}g"
 msgid "Password"
 msgstr "Password"
 
+#: src/screens/set-password/index.tsx:249
+#: src/screens/setup/index.tsx:296
+msgid "Password (6+ characters)"
+msgstr "Password (6+ characters)"
+
+#: src/screens/set-password/index.tsx:90
+#: src/screens/setup/index.tsx:51
+msgid "Password must be at least 6 characters."
+msgstr "Password must be at least 6 characters."
+
+#: src/screens/set-password/index.tsx:91
+#: src/screens/setup/index.tsx:52
+msgid "Passwords don't match."
+msgstr "Passwords don't match."
+
 #: src/screens/(app).profile/components/your-numbers-section.tsx:23
 msgid "Pending changes — starts tomorrow"
 msgstr "Pending changes — starts tomorrow"
@@ -651,7 +704,7 @@ msgstr "Pick a goal weight. Slide to current to maintain."
 msgid "Pick a saved meal"
 msgstr "Pick a saved meal"
 
-#: src/screens/(app).index/components/day-header.tsx:24
+#: src/screens/(app).index/components/day-header.tsx:25
 msgid "Previous week"
 msgstr "Previous week"
 
@@ -733,6 +786,14 @@ msgstr "Sedentary"
 msgid "Server"
 msgstr "Server"
 
+#: src/screens/set-password/index.tsx:282
+msgid "Set password →"
+msgstr "Set password →"
+
+#: src/screens/setup/index.tsx:86
+msgid "Setup failed. Please try again."
+msgstr "Setup failed. Please try again."
+
 #: src/screens/(app).profile/components/about-you-section.tsx:53
 msgid "Sex"
 msgstr "Sex"
@@ -764,6 +825,10 @@ msgstr "Slowly"
 msgid "Some fields are still empty."
 msgstr "Some fields are still empty."
 
+#: src/screens/set-password/index.tsx:116
+msgid "Something went wrong. Please try again."
+msgstr "Something went wrong. Please try again."
+
 #: src/screens/onboarding/index.tsx:170
 msgid "Something went wrong. Try again."
 msgstr "Something went wrong. Try again."
@@ -779,6 +844,10 @@ msgstr "Still couldn't reach the vision service. Try again."
 #: src/screens/(app).profile/components/account-section.tsx:124
 msgid "Sufra"
 msgstr "Sufra"
+
+#: src/screens/setup/index.tsx:182
+msgid "Sufra is the Arabic word for the dining table — more than the furniture, it's the spread of food and the people gathered around it. Sufra exists to help you stay at yours."
+msgstr "Sufra is the Arabic word for the dining table — more than the furniture, it's the spread of food and the people gathered around it. Sufra exists to help you stay at yours."
 
 #: src/lib/photo-source.ts:42
 #: src/lib/photo-source.ts:51
@@ -814,7 +883,7 @@ msgstr "The AI wasn't sure about"
 msgid "The vision service is busy right now. Try again in a moment."
 msgstr "The vision service is busy right now. Try again in a moment."
 
-#: src/screens/connect/index.tsx:98
+#: src/screens/connect/index.tsx:100
 msgid "The web address of your household's Sufra server."
 msgstr "The web address of your household's Sufra server."
 
@@ -827,9 +896,13 @@ msgstr "This deletes {0} and everything they logged — meals, photos, weights. 
 msgid "This is your starting weight — we'll log it."
 msgstr "This is your starting weight — we'll log it."
 
+#: src/screens/set-password/index.tsx:190
+msgid "This link has already been used, expired (links are valid for 24 hours), or isn't valid. Ask your Host for a new link."
+msgstr "This link has already been used, expired (links are valid for 24 hours), or isn't valid. Ask your Host for a new link."
+
 #: src/screens/connect/index.tsx:52
-msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
-msgstr "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
+#~ msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
+#~ msgstr "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
 
 #: src/screens/meals.[id]/index.tsx:390
 msgid "This will permanently remove this meal and its photo."
@@ -877,9 +950,18 @@ msgid "username"
 msgstr "username"
 
 #: src/screens/(app).profile/components/account-section.tsx:47
+#: src/screens/setup/index.tsx:283
 #: src/screens/sign-in/index.tsx:63
 msgid "Username"
 msgstr "Username"
+
+#: src/screens/setup/index.tsx:49
+msgid "Username must be at least 3 characters."
+msgstr "Username must be at least 3 characters."
+
+#: src/screens/setup/index.tsx:50
+msgid "Username: letters, numbers, underscore only."
+msgstr "Username: letters, numbers, underscore only."
 
 #: src/screens/admin/index.tsx:98
 msgid "Vision Model"
@@ -906,9 +988,21 @@ msgstr "Weight ({unit})"
 msgid "Weight over time"
 msgstr "Weight over time"
 
+#: src/screens/setup/index.tsx:179
+msgid "Welcome to Sufra"
+msgstr "Welcome to Sufra"
+
+#: src/screens/set-password/index.tsx:234
+msgid "Welcome to the {familyName} Sufra"
+msgstr "Welcome to the {familyName} Sufra"
+
 #: src/screens/(app).index/components/describe-sheet.tsx:82
 msgid "What did you eat? Portions help"
 msgstr "What did you eat? Portions help"
+
+#: src/screens/setup/index.tsx:191
+msgid "What do you call your sufra?"
+msgstr "What do you call your sufra?"
 
 #: src/screens/onboarding/components/step-weight.tsx:50
 msgid "What do you weigh now?"
@@ -936,9 +1030,17 @@ msgstr "Yesterday"
 msgid "You'll be signed out, and this device will forget the current server."
 msgstr "You'll be signed out, and this device will forget the current server."
 
+#: src/screens/setup/index.tsx:270
+msgid "You're the Host. You manage the {familyName} Sufra and invite the people who'll join you at it."
+msgstr "You're the Host. You manage the {familyName} Sufra and invite the people who'll join you at it."
+
 #: src/screens/(app).profile/index.tsx:56
 msgid "Your account and plan"
 msgstr "Your account and plan"
+
+#: src/screens/setup/index.tsx:198
+msgid "Your family name"
+msgstr "Your family name"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:46
 #: src/screens/onboarding/components/step-goal.tsx:76
@@ -957,3 +1059,7 @@ msgstr "Your numbers"
 #: src/screens/(app).index/components/describe-sheet.tsx:134
 msgid "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."
 msgstr "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."
+
+#: src/screens/setup/index.tsx:208
+msgid "Your Sufra will be called the {previewName} Sufra"
+msgstr "Your Sufra will be called the {previewName} Sufra"

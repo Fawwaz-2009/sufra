@@ -1,6 +1,7 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,11 +24,12 @@ const PROBE_TIMEOUT_MS = 10_000;
 /**
  * The Connect tier — first run of a bring-your-own-backend app (ADR 0018). The Member enters their
  * household's server URL; the public setup-status probe doubles as "is this actually a Sufra server?".
- * `needsSetup` means a fresh deploy with no Host yet — Setup stays a web ritual, so the app points
- * there instead of storing the origin. On success the origin becomes user state and the gate advances
- * to sign-in.
+ * `needsSetup` means a fresh deploy with no Host yet — the app navigates to the native Setup wizard
+ * (passing the candidate origin as a param) so the Host can finish setup without leaving the app.
+ * On success the origin becomes user state and the gate advances to sign-in.
  */
 export default function ConnectScreen() {
+  const router = useRouter();
   // EXPO_PUBLIC_API_URL is the dev prefill only — in the emulator you type nothing (ADR 0018).
   const [url, setUrl] = useState(process.env.EXPO_PUBLIC_API_URL ?? '');
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +50,9 @@ export default function ConnectScreen() {
         ),
       ]);
       if (status.needsSetup) {
-        setError(
-          t`This server hasn't been set up yet. Finish setup at ${origin} first, then connect.`
-        );
+        // Fresh deploy with no Host yet — push into the native Setup wizard.
+        // Typed routes regenerate on the next `expo start`/`expo export`; the cast bridges until then.
+        router.push({ pathname: '/setup' as never, params: { origin } });
         return;
       }
       setServerUrl(origin);

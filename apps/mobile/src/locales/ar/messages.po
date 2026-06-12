@@ -26,6 +26,15 @@ msgstr "{diffDays, plural, one {منذ يوم} two {منذ يومين} few {من
 msgid "{runCount, plural, one {# run} other {# runs}}"
 msgstr "{runCount, plural, zero {لا عمليات} one {عملية واحدة} two {عمليتان} few {# عمليات} many {# عملية} other {# عملية}}"
 
+#: src/screens/set-password/index.tsx:200
+#: src/screens/setup/index.tsx:339
+msgid "← Back"
+msgstr "→ رجوع"
+
+#: src/screens/setup/index.tsx:224
+msgid "← Back to Connect"
+msgstr "→ رجوع إلى الاتصال"
+
 #. placeholder {0}: perMemberAvgUsd.toFixed(2)
 #: src/screens/admin/components/cost-card.tsx:27
 msgid "~${0} / member"
@@ -164,6 +173,10 @@ msgstr "تغيير الخادم؟"
 msgid "Check your connection, or that your Sufra server is up."
 msgstr "تحقّق من اتصالك، أو من أن خادم سفرة يعمل."
 
+#: src/screens/set-password/index.tsx:176
+msgid "Checking your link…"
+msgstr "جارٍ التحقّق من رابطك…"
+
 #: src/screens/(app).index/components/describe-sheet.tsx:91
 msgid "Chicken shawarma wrap with garlic sauce…"
 msgstr "راب شاورما دجاج مع صوص الثوم…"
@@ -181,17 +194,26 @@ msgstr "اختر من المكتبة"
 msgid "Close"
 msgstr "إغلاق"
 
-#: src/screens/connect/index.tsx:110
+#: src/screens/set-password/index.tsx:262
+#: src/screens/setup/index.tsx:309
+msgid "Confirm password"
+msgstr "تأكيد كلمة المرور"
+
+#: src/screens/connect/index.tsx:112
 msgid "Connect"
 msgstr "اتصال"
 
-#: src/screens/connect/index.tsx:79
+#: src/screens/connect/index.tsx:81
 msgid "Connect to your server"
 msgstr "اتصل بخادمك"
 
 #: src/screens/onboarding/index.tsx:183
 msgid "Continue"
 msgstr "متابعة"
+
+#: src/screens/setup/index.tsx:216
+msgid "Continue →"
+msgstr "متابعة ←"
 
 #: src/screens/sign-in/index.tsx:38
 msgid "Could not sign in. Check your username and password."
@@ -221,7 +243,7 @@ msgstr "تعذّر الحذف"
 msgid "Couldn't delete. Try again."
 msgstr "تعذّر الحذف. حاول مرة أخرى."
 
-#: src/screens/connect/index.tsx:59
+#: src/screens/connect/index.tsx:61
 msgid "Couldn't find a Sufra server at {origin}. Check the address and try again."
 msgstr "لم نجد خادم سفرة على {origin}. تحقّق من العنوان وحاول مرة أخرى."
 
@@ -229,7 +251,7 @@ msgstr "لم نجد خادم سفرة على {origin}. تحقّق من العن�
 msgid "Couldn't log that. Try again."
 msgstr "تعذّر التسجيل. حاول مرة أخرى."
 
-#: src/screens/admin/helpers.ts:25
+#: src/screens/admin/helpers.ts:30
 msgid "Couldn't open the share sheet"
 msgstr "تعذّر فتح نافذة المشاركة"
 
@@ -267,6 +289,14 @@ msgstr "تعذّر الحفظ. حاول مرة أخرى."
 #: src/screens/admin/components/model-select.tsx:30
 msgid "Couldn't update model"
 msgstr "تعذّر تحديث النموذج"
+
+#: src/screens/setup/index.tsx:329
+msgid "Create the {familyName} Sufra →"
+msgstr "إنشاء سفرة {familyName} ←"
+
+#: src/screens/setup/index.tsx:267
+msgid "Create your account"
+msgstr "أنشئ حسابك"
 
 #: src/screens/onboarding/components/step-goal.tsx:88
 msgid "Current: {currentDisplay}"
@@ -357,7 +387,7 @@ msgstr "تمارين 3–5 أيام بالأسبوع"
 msgid "Exercise 6–7 days/week"
 msgstr "تمارين 6–7 أيام بالأسبوع"
 
-#: src/screens/connect/index.tsx:88
+#: src/screens/connect/index.tsx:90
 msgid "family.example.com"
 msgstr "family.example.com"
 
@@ -409,9 +439,13 @@ msgstr "الطول"
 msgid "Height (cm)"
 msgstr "الطول (سم)"
 
-#: src/screens/admin/helpers.ts:20
+#: src/screens/admin/helpers.ts:25
 msgid "Hi {username}, here's your link to join Sufra:"
 msgstr "مرحبًا {username}، هذا رابطك للانضمام إلى سفرة:"
+
+#: src/screens/set-password/index.tsx:237
+msgid "Hi {username}! Choose a password to set up your account."
+msgstr "مرحبًا {username}! اختر كلمة مرور لإعداد حسابك."
 
 #: src/screens/admin/components/members-list.tsx:94
 msgid "Host"
@@ -496,6 +530,10 @@ msgstr "خفيف"
 msgid "Link"
 msgstr "رابط"
 
+#: src/screens/set-password/index.tsx:187
+msgid "Link expired or invalid"
+msgstr "الرابط منتهي الصلاحية أو غير صالح"
+
 #: src/screens/(app).profile/helpers.ts:75
 #: src/screens/onboarding/components/step-activity.tsx:22
 msgid "Little or no exercise"
@@ -570,7 +608,7 @@ msgstr "الشهر"
 msgid "Multiplier applied to your BMR: {0}× → {1}×."
 msgstr "المعامل المطبّق على معدل الأيض: {0}× ← {1}×."
 
-#: src/screens/(app).index/components/day-header.tsx:32
+#: src/screens/(app).index/components/day-header.tsx:36
 msgid "Next week"
 msgstr "الأسبوع التالي"
 
@@ -627,6 +665,21 @@ msgstr "ب {0}غ · ك {1}غ · د {2}غ"
 msgid "Password"
 msgstr "كلمة المرور"
 
+#: src/screens/set-password/index.tsx:249
+#: src/screens/setup/index.tsx:296
+msgid "Password (6+ characters)"
+msgstr "كلمة المرور (6 أحرف فأكثر)"
+
+#: src/screens/set-password/index.tsx:90
+#: src/screens/setup/index.tsx:51
+msgid "Password must be at least 6 characters."
+msgstr "يجب أن تكون كلمة المرور 6 أحرف على الأقل."
+
+#: src/screens/set-password/index.tsx:91
+#: src/screens/setup/index.tsx:52
+msgid "Passwords don't match."
+msgstr "كلمتا المرور غير متطابقتين."
+
 #: src/screens/(app).profile/components/your-numbers-section.tsx:23
 msgid "Pending changes — starts tomorrow"
 msgstr "تغييرات معلّقة — تبدأ غدًا"
@@ -651,7 +704,7 @@ msgstr "اختر وزنًا مستهدفًا. حرّك إلى وزنك الحا�
 msgid "Pick a saved meal"
 msgstr "اختر وجبة محفوظة"
 
-#: src/screens/(app).index/components/day-header.tsx:24
+#: src/screens/(app).index/components/day-header.tsx:25
 msgid "Previous week"
 msgstr "الأسبوع السابق"
 
@@ -733,6 +786,14 @@ msgstr "خامل"
 msgid "Server"
 msgstr "الخادم"
 
+#: src/screens/set-password/index.tsx:282
+msgid "Set password →"
+msgstr "تعيين كلمة المرور ←"
+
+#: src/screens/setup/index.tsx:86
+msgid "Setup failed. Please try again."
+msgstr "فشل الإعداد. حاول مرة أخرى."
+
 #: src/screens/(app).profile/components/about-you-section.tsx:53
 msgid "Sex"
 msgstr "الجنس"
@@ -764,6 +825,10 @@ msgstr "ببطء"
 msgid "Some fields are still empty."
 msgstr "بعض الحقول ما زالت فارغة."
 
+#: src/screens/set-password/index.tsx:116
+msgid "Something went wrong. Please try again."
+msgstr "حدث خطأ ما. حاول مرة أخرى."
+
 #: src/screens/onboarding/index.tsx:170
 msgid "Something went wrong. Try again."
 msgstr "حدث خطأ ما. حاول مرة أخرى."
@@ -779,6 +844,10 @@ msgstr "ما زال الوصول إلى خدمة الرؤية متعذّرًا. 
 #: src/screens/(app).profile/components/account-section.tsx:124
 msgid "Sufra"
 msgstr "سفرة"
+
+#: src/screens/setup/index.tsx:182
+msgid "Sufra is the Arabic word for the dining table — more than the furniture, it's the spread of food and the people gathered around it. Sufra exists to help you stay at yours."
+msgstr "السفرة أكثر من مجرد مائدة — إنها ما يُبسَط عليها من طعام ومن يجتمع حولها من الناس. «سفرة» وُجدت لتساعدك على البقاء حول سفرتك."
 
 #: src/lib/photo-source.ts:42
 #: src/lib/photo-source.ts:51
@@ -814,7 +883,7 @@ msgstr "لم يكن الذكاء الاصطناعي متأكدًا من"
 msgid "The vision service is busy right now. Try again in a moment."
 msgstr "خدمة الرؤية مشغولة حاليًا. حاول بعد قليل."
 
-#: src/screens/connect/index.tsx:98
+#: src/screens/connect/index.tsx:100
 msgid "The web address of your household's Sufra server."
 msgstr "عنوان خادم سفرة الخاص بأسرتك."
 
@@ -827,9 +896,13 @@ msgstr "سيحذف هذا {0} وكل ما سجّله — وجبات وصور و�
 msgid "This is your starting weight — we'll log it."
 msgstr "هذا وزنك الابتدائي — سنسجّله."
 
+#: src/screens/set-password/index.tsx:190
+msgid "This link has already been used, expired (links are valid for 24 hours), or isn't valid. Ask your Host for a new link."
+msgstr "تم استخدام هذا الرابط من قبل، أو انتهت صلاحيته (صالح لمدة 24 ساعة)، أو أنه غير صالح. اطلب من المضيف إرسال رابط جديد."
+
 #: src/screens/connect/index.tsx:52
-msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
-msgstr "لم يُجهَّز هذا الخادم بعد. أكمل الإعداد على {origin} أولًا ثم اتصل."
+#~ msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
+#~ msgstr "لم يُجهَّز هذا الخادم بعد. أكمل الإعداد على {origin} أولًا ثم اتصل."
 
 #: src/screens/meals.[id]/index.tsx:390
 msgid "This will permanently remove this meal and its photo."
@@ -877,9 +950,18 @@ msgid "username"
 msgstr "اسم المستخدم"
 
 #: src/screens/(app).profile/components/account-section.tsx:47
+#: src/screens/setup/index.tsx:283
 #: src/screens/sign-in/index.tsx:63
 msgid "Username"
 msgstr "اسم المستخدم"
+
+#: src/screens/setup/index.tsx:49
+msgid "Username must be at least 3 characters."
+msgstr "يجب أن يكون اسم المستخدم 3 أحرف على الأقل."
+
+#: src/screens/setup/index.tsx:50
+msgid "Username: letters, numbers, underscore only."
+msgstr "اسم المستخدم: أحرف وأرقام وشرطة سفلية فقط."
 
 #: src/screens/admin/index.tsx:98
 msgid "Vision Model"
@@ -906,9 +988,21 @@ msgstr "الوزن ({unit})"
 msgid "Weight over time"
 msgstr "الوزن عبر الزمن"
 
+#: src/screens/setup/index.tsx:179
+msgid "Welcome to Sufra"
+msgstr "أهلًا بك في سفرة"
+
+#: src/screens/set-password/index.tsx:234
+msgid "Welcome to the {familyName} Sufra"
+msgstr "أهلًا في سفرة {familyName}"
+
 #: src/screens/(app).index/components/describe-sheet.tsx:82
 msgid "What did you eat? Portions help"
 msgstr "ماذا أكلت؟ ذكر الكميات يساعد"
+
+#: src/screens/setup/index.tsx:191
+msgid "What do you call your sufra?"
+msgstr "ماذا تسمّون سفرتكم؟"
 
 #: src/screens/onboarding/components/step-weight.tsx:50
 msgid "What do you weigh now?"
@@ -936,9 +1030,17 @@ msgstr "أمس"
 msgid "You'll be signed out, and this device will forget the current server."
 msgstr "سيُسجَّل خروجك، وسينسى هذا الجهاز الخادم الحالي."
 
+#: src/screens/setup/index.tsx:270
+msgid "You're the Host. You manage the {familyName} Sufra and invite the people who'll join you at it."
+msgstr "أنت المضيف. تدير سفرة {familyName} وتدعو من سيشاركونك إليها."
+
 #: src/screens/(app).profile/index.tsx:56
 msgid "Your account and plan"
 msgstr "حسابك وخطتك"
+
+#: src/screens/setup/index.tsx:198
+msgid "Your family name"
+msgstr "اسم عائلتك"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:46
 #: src/screens/onboarding/components/step-goal.tsx:76
@@ -957,3 +1059,7 @@ msgstr "أرقامك"
 #: src/screens/(app).index/components/describe-sheet.tsx:134
 msgid "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."
 msgstr "خادم سفرة لديك لا يدعم وصف الوجبات بعد. حدّث نشرك لاستخدام هذه الميزة."
+
+#: src/screens/setup/index.tsx:208
+msgid "Your Sufra will be called the {previewName} Sufra"
+msgstr "ستُسمى سفرتكم سفرة {previewName}"

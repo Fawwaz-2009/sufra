@@ -82,7 +82,7 @@ export default function RootLayout() {
   );
 }
 
-/** First run (or after Change server): only the Connect screen is reachable. */
+/** First run (or after Change server): only Connect (and the native Setup wizard) is reachable. */
 function ConnectGate() {
   useEffect(() => {
     void SplashScreen.hideAsync();
@@ -91,6 +91,15 @@ function ConnectGate() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="connect" />
+      {/* Pushed from Connect when the probe returns needsSetup — the native Setup wizard. */}
+      <Stack.Screen name="setup" />
+      {/*
+       * Password-link redemption — the new-Member case. The deep link arrives when the app
+       * is freshly installed with no stored server origin, so ConnectGate must include it.
+       * The screen derives the origin from the `origin` query param (present on both the
+       * custom-scheme and Universal-Link entry paths — see screens/set-password/index.tsx).
+       */}
+      <Stack.Screen name="set-password/[token]" />
       <Stack.Protected guard={false}>
         <Stack.Screen name="paywall" />
         <Stack.Screen name="sign-in" />
@@ -176,6 +185,10 @@ function SessionGate() {
         <Stack.Screen name="admin" />
         {/* The early unlock, pushed from Profile's trial row (the screen's `trial` mode). */}
         <Stack.Screen name="paywall" options={{ presentation: 'formSheet' }} />
+        {/* A signed-in Host can click a test link they just issued — the screen handles it
+            gracefully (redemption succeeds → sign-in is skipped because they already have a
+            session; the gate stays put). Also covers Members switching from an old link. */}
+        <Stack.Screen name="set-password/[token]" />
       </Stack.Protected>
       <Stack.Protected guard={!!session && !isOnboarded}>
         <Stack.Screen name="onboarding" />

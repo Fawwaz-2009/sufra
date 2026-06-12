@@ -16,7 +16,12 @@ import { getServerUrl } from '@/client/server';
  */
 export async function sharePasswordLinkMessage(username: string, token: string) {
   const origin = getServerUrl() ?? '';
-  const url = `${origin}/set-password/${token}`;
+  // The URL keeps the canonical shape `https://<origin>/set-password/<token>` (ADR 0016 / ADR 0021),
+  // which is the Universal-Link shape the AASA will bind to. The `?origin=` param lets the Expo
+  // app derive the backend origin from the link itself — necessary for the custom-scheme entry
+  // (`sufra://set-password/<token>?origin=...`) and harmless for Universal Links (redundant but
+  // keeps both paths uniform; the static web fallback page ignores unknown query params).
+  const url = `${origin}/set-password/${token}?origin=${encodeURIComponent(origin)}`;
   const message = t`Hi ${username}, here's your link to join Sufra:` + `\n${url}`;
   try {
     await Share.share({ message });
