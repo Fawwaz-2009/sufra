@@ -1,7 +1,8 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useMemo } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { DisplayText } from '@/components/display-text';
 import { GoalSlider } from '@/components/goal-slider';

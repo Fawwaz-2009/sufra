@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { PanResponder, View } from 'react-native';
 
 import { Palette } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 const THUMB_SIZE = 28;
 const TRACK_HEIGHT = 8;
@@ -35,13 +36,20 @@ export function GoalSlider({
     const kgPerPx = width > 0 ? (max - min) / width : 0;
     const clamp = (v: number) => Math.min(max, Math.max(min, Math.round(v)));
     const valueAt = (locationX: number) => clamp(min + locationX * kgPerPx);
+    const emit = (locationX: number) => {
+      const v = valueAt(locationX);
+      // A detent tick per whole-kg crossed: `value` is the committed prop, so a drag holding
+      // still is silent and every kg the thumb passes clicks once.
+      if (v !== value) haptics.selection();
+      onChange(v);
+    };
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => onChange(valueAt(e.nativeEvent.locationX)),
-      onPanResponderMove: (e) => onChange(valueAt(e.nativeEvent.locationX)),
+      onPanResponderGrant: (e) => emit(e.nativeEvent.locationX),
+      onPanResponderMove: (e) => emit(e.nativeEvent.locationX),
     });
-  }, [width, min, max, onChange]);
+  }, [width, min, max, value, onChange]);
 
   const ratio = max > min ? (Math.min(max, Math.max(min, value)) - min) / (max - min) : 0;
 

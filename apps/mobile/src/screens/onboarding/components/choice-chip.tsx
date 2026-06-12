@@ -1,4 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
+import { haptics } from '@/lib/haptics';
 
 export function ChoiceChip({
   label,
@@ -13,7 +15,10 @@ export function ChoiceChip({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
       accessibilityState={{ selected }}
       className={`rounded-xl px-4 py-3 ${selected ? 'border border-flame bg-surface' : 'bg-surface'}`}>
       <View className="gap-1">

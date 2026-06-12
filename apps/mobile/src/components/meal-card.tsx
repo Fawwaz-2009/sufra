@@ -1,6 +1,8 @@
+import { Trans } from '@lingui/react/macro';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { DisplayText } from '@/components/display-text';
 import { getAuthClient } from '@/client/auth-client';
@@ -41,6 +43,7 @@ export function MealCard({
           source={{ uri: `${getServerUrl()}${meal.photoUrl}`, headers: { Cookie: cookie } }}
           style={{ width: '100%', height: 190, backgroundColor: Palette.track }}
           contentFit="cover"
+          transition={200}
         />
       )}
 
@@ -51,7 +54,7 @@ export function MealCard({
             numberOfLines={1}
             ellipsizeMode="tail"
             className="min-w-0 flex-1 text-[17px] font-semibold text-ink">
-            {meal.dishName ?? "Couldn't read this meal"}
+            {meal.dishName ?? <Trans>Couldn&apos;t read this meal</Trans>}
           </Text>
           <View className="shrink-0 flex-row items-baseline">
             <DisplayText className="text-[17px] text-ink">
@@ -68,7 +71,7 @@ export function MealCard({
           </Text>
         ) : (
           <Text numberOfLines={1} className="text-sm font-medium text-flame-deep">
-            Tap to retry the estimate
+            <Trans>Tap to retry the estimate</Trans>
           </Text>
         )}
       </View>

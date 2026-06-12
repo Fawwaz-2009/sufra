@@ -9,12 +9,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
-  Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DisplayText } from '@/components/display-text';
@@ -58,6 +58,9 @@ export default function AdminScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="mx-auto w-full max-w-md sm:max-w-2xl gap-6 px-5 pb-28 pt-4"
+        // The add-Member input lives mid-scroll: without `handled`, the first tap on its Add
+        // button only dismisses the keyboard and the press is swallowed.
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />
         }

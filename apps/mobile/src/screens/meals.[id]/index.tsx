@@ -6,16 +6,17 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getClient, run } from '@/client/api-client';
 import { displayLocale } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { getLocale } from '@/lib/locale';
 import { DisplayText } from '@/components/display-text';
 import { Palette } from '@/constants/theme';
@@ -94,7 +95,12 @@ export default function MealDetailScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: Palette.white }}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-12">
+        contentContainerClassName="pb-12"
+        // The Override editor's decimal-pad inputs live mid-scroll: keep them above the keyboard
+        // (iOS insets), let a drag dismiss, and let a button press land while the keyboard is up.
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled">
         {/* Close handle for formSheet */}
         <View className="items-center py-2">
           <View className="h-1 w-10 rounded-[9999px] bg-track" />
@@ -158,7 +164,10 @@ function BookmarkButton({ mealId, saved }: { mealId: string; saved: boolean }) {
 
   return (
     <Pressable
-      onPress={() => toggle.mutate()}
+      onPress={() => {
+        haptics.selection();
+        toggle.mutate();
+      }}
       disabled={toggle.isPending}
       accessibilityRole="button"
       accessibilityLabel={saved ? t`Remove from saved meals` : t`Save meal for re-logging`}
@@ -198,6 +207,7 @@ function OverrideEditor({
       return run(client.override.update({ params: { id: meal.id }, payload: override }));
     },
     onSuccess: (_data, override) => {
+      haptics.success();
       setDraft(overrideToInputs(override));
       onSaved();
     },
@@ -331,7 +341,10 @@ function RetryPanel({
           payload: { locale: getLocale() },
         })
       ),
-    onSuccess: onRetried,
+    onSuccess: () => {
+      haptics.success();
+      onRetried();
+    },
   });
 
   const errorMsg = localizedEstimateErrorMessage(errorCode);
@@ -379,7 +392,10 @@ function DeleteButton({ mealId, onDeleted }: { mealId: string; onDeleted: () => 
       {
         text: t`Delete`,
         style: 'destructive',
-        onPress: () => deleteMutation.mutate(),
+        onPress: () => {
+          haptics.destructive();
+          deleteMutation.mutate();
+        },
       },
     ]);
   };

@@ -1,7 +1,15 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
-import { type Dispatch, type SetStateAction } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { Pressable } from '@/components/pressable';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import { DisplayText } from '@/components/display-text';
@@ -16,6 +24,12 @@ const R = 93.5;
 const CX = 100;
 const CY = 100;
 const C = 2 * Math.PI * R;
+
+// The fill answers the question the Member just asked (opened the Day, logged a meal) — fast,
+// settle-out, no bounce. Shared by the ring arc and the macro bars so they move as one gesture.
+const FILL_TIMING = { duration: 350, easing: Easing.out(Easing.cubic) };
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export function SummaryPanel({
   ringMode,
@@ -83,19 +97,7 @@ export function SummaryPanel({
             fill="none"
           />
           {/* Progress */}
-          {p > 0 && (
-            <Circle
-              cx={CX}
-              cy={CY}
-              r={R}
-              stroke={progressStroke}
-              strokeWidth={STROKE_WIDTH}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${C * p} ${C}`}
-              transform="rotate(-90 100 100)"
-            />
-          )}
+          {p > 0 && <ProgressArc p={p} stroke={progressStroke} />}
         </Svg>
         <View style={StyleSheet.absoluteFill} className="items-center justify-center">
           <DisplayText
@@ -132,6 +134,32 @@ export function SummaryPanel({
   );
 }
 
+/** The ring's fill arc — strokeDashoffset animated so a logged meal sweeps the arc to its new
+ *  angle instead of snapping. Mounts at offset C (empty) and draws in. */
+function ProgressArc({ p, stroke }: { p: number; stroke: string }) {
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    progress.set(withTiming(p, FILL_TIMING));
+  }, [p, progress]);
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: C * (1 - progress.get()),
+  }));
+  return (
+    <AnimatedCircle
+      cx={CX}
+      cy={CY}
+      r={R}
+      stroke={stroke}
+      strokeWidth={STROKE_WIDTH}
+      fill="none"
+      strokeLinecap="round"
+      strokeDasharray={`${C} ${C}`}
+      animatedProps={animatedProps}
+      transform="rotate(-90 100 100)"
+    />
+  );
+}
+
 function MacroColumn({
   label,
   eaten,
@@ -144,14 +172,23 @@ function MacroColumn({
   color: string;
 }) {
   const pct = goal > 0 ? Math.min(1, eaten / goal) : 0;
+  // The fill animates a MEASURED pixel width (percent strings don't tween); plain styles on the
+  // Animated.View — className never reaches reanimated-wrapped components.
+  const [trackW, setTrackW] = useState(0);
+  const w = useSharedValue(0);
+  useEffect(() => {
+    w.set(withTiming(pct * trackW, FILL_TIMING));
+  }, [pct, trackW, w]);
+  const fill = useAnimatedStyle(() => ({ width: w.get() }));
   return (
     <View className="flex-1 gap-1">
       <Text className="text-[10px] font-bold uppercase text-ink-soft">{label}</Text>
       <Text className="text-sm text-ink">{`${eaten} / ${goal}g`}</Text>
-      <View className="h-1 w-full overflow-hidden rounded-[9999px] bg-track">
-        <View
-          className="h-1 rounded-[9999px]"
-          style={{ backgroundColor: color, width: `${pct * 100}%` }}
+      <View
+        onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}
+        className="h-1 w-full overflow-hidden rounded-[9999px] bg-track">
+        <Animated.View
+          style={[{ height: 4, borderRadius: 9999, backgroundColor: color }, fill]}
         />
       </View>
     </View>

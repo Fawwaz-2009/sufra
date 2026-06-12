@@ -1,7 +1,8 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
 import { ImproveEstimateSheet } from './improve-estimate-sheet';

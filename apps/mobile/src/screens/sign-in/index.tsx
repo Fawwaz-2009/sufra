@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getAuthClient } from '@/client/auth-client';

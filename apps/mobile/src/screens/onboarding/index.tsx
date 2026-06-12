@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/theme';
@@ -18,6 +18,7 @@ import { Palette } from '@/constants/theme';
 import { getClient, run } from '@/client/api-client';
 import { meKey } from '@/client/me';
 import { formatLocalDate, todayLocal } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 
 import { StepActivity } from './components/step-activity';
 import { StepBirthday } from './components/step-birthday';
@@ -77,12 +78,16 @@ export default function OnboardingScreen() {
     },
     // `refetchType: 'all'` + await, like web: force the `/me` refetch and only then let the gate
     // (which observes the same key) read `isOnboarded` and swap this screen for the (app) shell.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: meKey, refetchType: 'all' }),
+    onSuccess: () => {
+      haptics.success();
+      return queryClient.invalidateQueries({ queryKey: meKey, refetchType: 'all' });
+    },
   });
 
   const isSubmitting = submitMutation.isPending;
   const onContinue = () => {
     if (!isStepValid(step, draft) || isSubmitting) return;
+    haptics.selection();
     if (step === 6) submitMutation.mutate();
     else goNext();
   };

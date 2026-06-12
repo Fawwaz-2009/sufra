@@ -3,7 +3,8 @@
  * Ports apps/web/src/routes/progress/-components/period-chips.tsx onto RN primitives.
  */
 
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 interface PeriodChipsProps<T extends string> {
   options: readonly T[];

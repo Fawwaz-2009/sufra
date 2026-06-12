@@ -9,7 +9,8 @@
 
 import { t } from '@lingui/core/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { getClient, run } from '@/client/api-client';
 import { VISION_MODELS } from '@sufra-web/worker/views/setting.ts';
 import { adminSettingsKey, settingsQueryOptions } from '../queries';

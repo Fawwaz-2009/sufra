@@ -6,7 +6,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { plural, t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 

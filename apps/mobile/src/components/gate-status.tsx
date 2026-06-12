@@ -1,5 +1,6 @@
 import { Trans } from '@lingui/react/macro';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { Palette } from '@/constants/theme';
 

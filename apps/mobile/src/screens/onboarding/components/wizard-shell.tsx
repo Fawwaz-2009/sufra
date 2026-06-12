@@ -1,5 +1,6 @@
 import { t } from '@lingui/core/macro';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 export function BackButton({ onPress, disabled }: { onPress: () => void; disabled: boolean }) {
   return (

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 export function SectionCard({ label, children }: { label: string; children: ReactNode }) {
   return (

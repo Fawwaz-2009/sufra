@@ -15,6 +15,7 @@ import { Trans } from '@lingui/react/macro';
 
 import { getClient, run } from '@/client/api-client';
 import { displayLocale } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { Palette } from '@/constants/theme';
 
 type Point = { id: string; weightKg: number; loggedAt: string };
@@ -44,7 +45,10 @@ export function WeightChart({ weights }: { weights: readonly Point[] }) {
         {
           text: t`Delete`,
           style: 'destructive',
-          onPress: () => deleteMutation.mutate(p.id),
+          onPress: () => {
+            haptics.destructive();
+            deleteMutation.mutate(p.id);
+          },
         },
       ],
     );

@@ -7,6 +7,7 @@ import { UnitToggle } from '@/components/unit-toggle';
 import { getClient, run } from '@/client/api-client';
 import { meKey } from '@/client/me';
 import { tomorrowLocalDate } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { kgToLb, lbToKg } from '@/lib/units';
 import { deriveProfile } from '@sufra-web/worker/views/derive.ts';
 import type { ProfileSnapshotView as ProfileSnapshot } from '@sufra-web/worker/views/profile-snapshot.ts';
@@ -52,6 +53,7 @@ export function LogWeightSheet({
         })
       ),
     onSuccess: async () => {
+      haptics.success();
       // The dual-append also wrote a tomorrow Profile snapshot → invalidate /me (the profile + Day
       // summary). Invalidate the weight series + calorie-history too (Progress chart, calorie bars).
       await queryClient.invalidateQueries({ queryKey: meKey });

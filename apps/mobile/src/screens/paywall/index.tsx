@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -15,6 +16,7 @@ import {
 import { getServerUrl } from '@/client/server';
 import { DisplayText } from '@/components/display-text';
 import { Palette } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 /**
  * The unlock screen, mode-switched off the entitlement store. As the gate tier: no trial yet → the
@@ -46,9 +48,13 @@ export default function PaywallScreen() {
     setNotice(null);
     setBusy(action);
     try {
-      if (action === 'trial') await startTrial();
-      else if (action === 'unlock') await purchaseUnlock();
-      else {
+      if (action === 'trial') {
+        await startTrial();
+        haptics.success();
+      } else if (action === 'unlock') {
+        await purchaseUnlock();
+        haptics.success();
+      } else {
         const restored = await restorePurchases();
         if (restored.kind === 'trialAvailable' || restored.kind === 'expired') {
           setNotice('No purchases found for this Apple Account.');

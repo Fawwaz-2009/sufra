@@ -5,12 +5,12 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
@@ -30,6 +30,7 @@ import {
   weekRange,
   weekStart,
 } from '@/lib/date';
+import { haptics } from '@/lib/haptics';
 import { getLocale } from '@/lib/locale';
 import { prepareMealPhoto } from '@/lib/meal-photo';
 import { pickMealPhotoAsset } from '@/lib/photo-source';
@@ -86,8 +87,12 @@ export default function TodayScreen() {
         })
       );
     },
-    onSuccess: () => query.invalidateQueries({ queryKey: ['meals'] }),
+    onSuccess: () => {
+      haptics.success();
+      return query.invalidateQueries({ queryKey: ['meals'] });
+    },
     onError: (error: unknown) => {
+      haptics.warning();
       const message =
         typeof (error as { message?: unknown })?.message === 'string'
           ? (error as { message: string }).message
@@ -188,16 +193,15 @@ export default function TodayScreen() {
         {/* Meals label */}
         <View className="mt-2 flex-row items-center justify-between">
           <Text className="text-xs font-bold uppercase text-ink-soft"><Trans>Meals</Trans></Text>
-          {uploadMutation.isPending ? (
-            <Text className="text-xs text-ink-soft"><Trans>Estimating...</Trans></Text>
-          ) : null}
         </View>
 
+        {/* While the photo path estimates, a placeholder card holds the new meal's place at the top
+            of the list (and suppresses the empty state) — the multi-second AI wait has a stage. */}
         {mealsQuery.isLoading ? (
           <View className="items-center py-10">
             <ActivityIndicator />
           </View>
-        ) : mealsForSelectedDay.length === 0 ? (
+        ) : mealsForSelectedDay.length === 0 && !uploadMutation.isPending ? (
           <View className="items-center gap-2 py-12">
             <Image
               source={require('@/assets/images/sufra-circle.png')}
@@ -214,6 +218,7 @@ export default function TodayScreen() {
           </View>
         ) : (
           <View className="gap-3">
+            {uploadMutation.isPending ? <EstimatingCard /> : null}
             {mealsForSelectedDay.map((meal) => (
               <MealCard key={meal.id} meal={meal} />
             ))}
@@ -221,5 +226,22 @@ export default function TodayScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** The pending Meal's stand-in — the MealCard frame (media area + title row) so the list doesn't
+ *  reflow when the real card replaces it. */
+function EstimatingCard() {
+  return (
+    <View className="w-full overflow-hidden rounded-2xl border border-line bg-white">
+      <View
+        className="w-full items-center justify-center"
+        style={{ height: 190, backgroundColor: Palette.track }}>
+        <ActivityIndicator />
+      </View>
+      <View className="px-3 pt-2 pb-3">
+        <Text className="text-[17px] font-semibold text-ink-soft"><Trans>Estimating...</Trans></Text>
+      </View>
+    </View>
   );
 }

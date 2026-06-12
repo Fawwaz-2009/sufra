@@ -4,16 +4,18 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
-  Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { getClient, run } from '@/client/api-client';
+import { haptics } from '@/lib/haptics';
 import { getLocale } from '@/lib/locale';
 import { Palette } from '@/constants/theme';
 import type { Analysis } from '@sufra-web/worker/models/estimate.ts';
@@ -56,6 +58,7 @@ export function ImproveEstimateSheet({
         })
       ),
     onSuccess: () => {
+      haptics.success();
       onRefined();
     },
   });
@@ -69,7 +72,16 @@ export function ImproveEstimateSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-end"
         style={{ backgroundColor: Palette.backdrop }}>
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel={t`Close`} />
+        {/* Dismiss the keyboard WITH the sheet — without this an Android backdrop tap closes the
+            sheet and strands the keyboard over the screen behind it. */}
+        <Pressable
+          className="flex-1"
+          onPress={() => {
+            Keyboard.dismiss();
+            onClose();
+          }}
+          accessibilityLabel={t`Close`}
+        />
         <View className="rounded-t-2xl bg-white px-6 pb-10 pt-5">
           <Text className="text-lg font-semibold text-ink">
             <Trans>Improve this estimate</Trans>

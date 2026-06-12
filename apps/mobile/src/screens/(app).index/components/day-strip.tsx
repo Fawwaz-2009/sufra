@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { diffInLocalDays, displayLocale, formatLocalDate, isSameLocalDay, weekDays } from '@/lib/date';
 

@@ -14,11 +14,11 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: member.username
-#: src/screens/admin/components/add-member-form.tsx:48
+#: src/screens/admin/components/add-member-form.tsx:49
 msgid "{0} added"
 msgstr "{0} added"
 
-#: src/screens/(app).progress/components/weight-card.tsx:82
+#: src/screens/(app).progress/components/weight-card.tsx:83
 msgid "{diffDays, plural, one {# day ago} other {# days ago}}"
 msgstr "{diffDays, plural, one {# day ago} other {# days ago}}"
 
@@ -33,7 +33,7 @@ msgstr "~${0} / member"
 
 #. placeholder {0}: m.pricing.inputPerMTokens.toFixed(2)
 #. placeholder {1}: m.pricing.outputPerMTokens.toFixed(2)
-#: src/screens/admin/components/model-select.tsx:53
+#: src/screens/admin/components/model-select.tsx:54
 msgid "${0} in / ${1} out per 1M tok"
 msgstr "${0} in / ${1} out per 1M tok"
 
@@ -62,32 +62,32 @@ msgstr "Activity level"
 msgid "Add a photo"
 msgstr "Add a photo"
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:61
+#: src/screens/meals.[id]/components/meal-photo.tsx:64
 msgid "Add a photo to this meal"
 msgstr "Add a photo to this meal"
 
-#: src/screens/admin/components/add-member-form.tsx:89
+#: src/screens/admin/components/add-member-form.tsx:90
 msgid "Add Member"
 msgstr "Add Member"
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:72
+#: src/screens/meals.[id]/components/meal-photo.tsx:75
 msgid "Add photo"
 msgstr "Add photo"
 
-#: src/screens/admin/components/add-member-form.tsx:89
+#: src/screens/admin/components/add-member-form.tsx:90
 msgid "Adding…"
 msgstr "Adding…"
 
 #: src/screens/(app).profile/components/account-section.tsx:51
-#: src/screens/admin/index.tsx:74
+#: src/screens/admin/index.tsx:77
 msgid "Admin"
 msgstr "Admin"
 
-#: src/screens/meals.[id]/components/foods-breakdown.tsx:31
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:32
 msgid "AI estimate"
 msgstr "AI estimate"
 
-#: src/screens/meals.[id]/index.tsx:291
+#: src/screens/meals.[id]/index.tsx:301
 msgid "AI:"
 msgstr "AI:"
 
@@ -100,7 +100,7 @@ msgid "Allow photo access to choose a Meal photo."
 msgstr "Allow photo access to choose a Meal photo."
 
 #. placeholder {0}: Math.round(etaWeeks)
-#: src/screens/onboarding/components/step-goal.tsx:121
+#: src/screens/onboarding/components/step-goal.tsx:122
 msgid "At this rate, ~{0} weeks to reach your goal."
 msgstr "At this rate, ~{0} weeks to reach your goal."
 
@@ -110,7 +110,7 @@ msgstr "At this rate, ~{0} weeks to reach your goal."
 msgid "Avg {0} kcal/day · {1}"
 msgstr "Avg {0} kcal/day · {1}"
 
-#: src/screens/onboarding/components/wizard-shell.tsx:9
+#: src/screens/onboarding/components/wizard-shell.tsx:10
 msgid "Back"
 msgstr "Back"
 
@@ -118,12 +118,12 @@ msgstr "Back"
 msgid "Birthday"
 msgstr "Birthday"
 
-#: src/screens/admin/components/add-member-form.tsx:49
+#: src/screens/admin/components/add-member-form.tsx:50
 msgid "But the link didn't generate. Tap the key button to retry."
 msgstr "But the link didn't generate. Tap the key button to retry."
 
 #: src/screens/(app).progress/components/calories-card.tsx:37
-#: src/screens/meals.[id]/index.tsx:223
+#: src/screens/meals.[id]/index.tsx:233
 msgid "Calories"
 msgstr "Calories"
 
@@ -131,27 +131,27 @@ msgstr "Calories"
 msgid "Camera access required"
 msgstr "Camera access required"
 
-#: src/components/sheet-shell.tsx:64
+#: src/components/sheet-shell.tsx:74
 #: src/lib/photo-source.ts:42
 #: src/lib/photo-source.ts:53
 #: src/screens/(app).profile/components/account-section.tsx:25
-#: src/screens/(app).progress/components/weight-chart.tsx:43
-#: src/screens/admin/components/members-list.tsx:53
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:124
-#: src/screens/meals.[id]/index.tsx:378
+#: src/screens/(app).progress/components/weight-chart.tsx:44
+#: src/screens/admin/components/members-list.tsx:55
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:136
+#: src/screens/meals.[id]/index.tsx:391
 msgid "Cancel"
 msgstr "Cancel"
 
 #: src/screens/(app).profile/components/your-numbers-section.tsx:38
-#: src/screens/meals.[id]/index.tsx:237
+#: src/screens/meals.[id]/index.tsx:247
 msgid "Carbs"
 msgstr "Carbs"
 
-#: src/screens/(app).index/components/summary-panel.tsx:119
+#: src/screens/(app).index/components/summary-panel.tsx:121
 msgid "CARBS"
 msgstr "CARBS"
 
-#: src/components/gate-status.tsx:43
+#: src/components/gate-status.tsx:44
 #: src/screens/(app).profile/components/account-section.tsx:27
 msgid "Change server"
 msgstr "Change server"
@@ -160,11 +160,11 @@ msgstr "Change server"
 msgid "Change server?"
 msgstr "Change server?"
 
-#: src/components/gate-status.tsx:32
+#: src/components/gate-status.tsx:33
 msgid "Check your connection, or that your Sufra server is up."
 msgstr "Check your connection, or that your Sufra server is up."
 
-#: src/screens/(app).index/components/describe-sheet.tsx:78
+#: src/screens/(app).index/components/describe-sheet.tsx:91
 msgid "Chicken shawarma wrap with garlic sauce…"
 msgstr "Chicken shawarma wrap with garlic sauce…"
 
@@ -173,11 +173,11 @@ msgstr "Chicken shawarma wrap with garlic sauce…"
 msgid "Choose from library"
 msgstr "Choose from library"
 
-#: src/components/sheet-shell.tsx:49
-#: src/screens/(app).index/components/describe-sheet.tsx:63
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:52
-#: src/screens/(app).profile/components/option-sheet.tsx:30
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:72
+#: src/components/sheet-shell.tsx:58
+#: src/screens/(app).index/components/describe-sheet.tsx:75
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:56
+#: src/screens/(app).profile/components/option-sheet.tsx:32
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:83
 msgid "Close"
 msgstr "Close"
 
@@ -189,7 +189,7 @@ msgstr "Connect"
 msgid "Connect to your server"
 msgstr "Connect to your server"
 
-#: src/screens/onboarding/index.tsx:178
+#: src/screens/onboarding/index.tsx:183
 msgid "Continue"
 msgstr "Continue"
 
@@ -197,27 +197,27 @@ msgstr "Continue"
 msgid "Could not sign in. Check your username and password."
 msgstr "Could not sign in. Check your username and password."
 
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:45
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:49
 msgid "Couldn't add"
 msgstr "Couldn't add"
 
-#: src/screens/admin/components/add-member-form.tsx:56
+#: src/screens/admin/components/add-member-form.tsx:57
 msgid "Couldn't add member"
 msgstr "Couldn't add member"
 
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:45
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:49
 msgid "Couldn't add that meal. Try again."
 msgstr "Couldn't add that meal. Try again."
 
-#: src/screens/admin/components/members-list.tsx:33
+#: src/screens/admin/components/members-list.tsx:35
 msgid "Couldn't create link"
 msgstr "Couldn't create link"
 
-#: src/screens/admin/components/members-list.tsx:44
+#: src/screens/admin/components/members-list.tsx:46
 msgid "Couldn't delete"
 msgstr "Couldn't delete"
 
-#: src/screens/meals.[id]/index.tsx:398
+#: src/screens/meals.[id]/index.tsx:414
 msgid "Couldn't delete. Try again."
 msgstr "Couldn't delete. Try again."
 
@@ -225,7 +225,7 @@ msgstr "Couldn't delete. Try again."
 msgid "Couldn't find a Sufra server at {origin}. Check the address and try again."
 msgstr "Couldn't find a Sufra server at {origin}. Check the address and try again."
 
-#: src/components/log-weight-sheet.tsx:91
+#: src/components/log-weight-sheet.tsx:93
 msgid "Couldn't log that. Try again."
 msgstr "Couldn't log that. Try again."
 
@@ -233,15 +233,16 @@ msgstr "Couldn't log that. Try again."
 msgid "Couldn't open the share sheet"
 msgstr "Couldn't open the share sheet"
 
-#: src/components/gate-status.tsx:29
+#: src/components/gate-status.tsx:30
 msgid "Couldn't reach your server"
 msgstr "Couldn't reach your server"
 
-#: src/screens/meals.[id]/index.tsx:109
+#: src/components/meal-card.tsx:57
+#: src/screens/meals.[id]/index.tsx:115
 msgid "Couldn't read this meal"
 msgstr "Couldn't read this meal"
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:115
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:127
 msgid "Couldn't refine. Try again."
 msgstr "Couldn't refine. Try again."
 
@@ -249,31 +250,31 @@ msgstr "Couldn't refine. Try again."
 msgid "Couldn't save"
 msgstr "Couldn't save"
 
-#: src/screens/(app).index/components/describe-sheet.tsx:123
-#: src/screens/(app).index/index.tsx:94
+#: src/screens/(app).index/components/describe-sheet.tsx:136
+#: src/screens/(app).index/index.tsx:99
 msgid "Couldn't save that meal. Try again in a moment."
 msgstr "Couldn't save that meal. Try again in a moment."
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:45
+#: src/screens/meals.[id]/components/meal-photo.tsx:48
 msgid "Couldn't save that photo. Try again in a moment."
 msgstr "Couldn't save that photo. Try again in a moment."
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:53
-#: src/screens/meals.[id]/index.tsx:269
+#: src/screens/meals.[id]/index.tsx:279
 msgid "Couldn't save. Try again."
 msgstr "Couldn't save. Try again."
 
-#: src/screens/admin/components/model-select.tsx:29
+#: src/screens/admin/components/model-select.tsx:30
 msgid "Couldn't update model"
 msgstr "Couldn't update model"
 
-#: src/screens/onboarding/components/step-goal.tsx:87
+#: src/screens/onboarding/components/step-goal.tsx:88
 msgid "Current: {currentDisplay}"
 msgstr "Current: {currentDisplay}"
 
-#: src/components/sheet-shell.tsx:100
+#: src/components/sheet-shell.tsx:110
 #: src/screens/(app).profile/components/your-numbers-section.tsx:29
-#: src/screens/onboarding/components/step-goal.tsx:114
+#: src/screens/onboarding/components/step-goal.tsx:115
 msgid "Daily target"
 msgstr "Daily target"
 
@@ -281,63 +282,63 @@ msgstr "Daily target"
 msgid "Day"
 msgstr "Day"
 
-#: src/screens/(app).progress/components/weight-chart.tsx:45
-#: src/screens/admin/components/members-list.tsx:54
-#: src/screens/admin/components/members-list.tsx:109
-#: src/screens/meals.[id]/index.tsx:380
+#: src/screens/(app).progress/components/weight-chart.tsx:46
+#: src/screens/admin/components/members-list.tsx:57
+#: src/screens/admin/components/members-list.tsx:118
+#: src/screens/meals.[id]/index.tsx:393
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: m.username
-#: src/screens/admin/components/members-list.tsx:104
+#: src/screens/admin/components/members-list.tsx:113
 msgid "Delete {0}"
 msgstr "Delete {0}"
 
 #. placeholder {0}: m.username
-#: src/screens/admin/components/members-list.tsx:50
+#: src/screens/admin/components/members-list.tsx:52
 msgid "Delete {0}?"
 msgstr "Delete {0}?"
 
-#: src/screens/meals.[id]/index.tsx:377
-#: src/screens/meals.[id]/index.tsx:394
+#: src/screens/meals.[id]/index.tsx:390
+#: src/screens/meals.[id]/index.tsx:410
 msgid "Delete meal"
 msgstr "Delete meal"
 
-#: src/screens/(app).progress/components/weight-chart.tsx:41
+#: src/screens/(app).progress/components/weight-chart.tsx:42
 msgid "Delete this weight entry?"
 msgstr "Delete this weight entry?"
 
-#: src/screens/meals.[id]/index.tsx:394
+#: src/screens/meals.[id]/index.tsx:410
 msgid "Deleting..."
 msgstr "Deleting..."
 
-#: src/screens/(app).index/index.tsx:167
+#: src/screens/(app).index/index.tsx:172
 msgid "Describe"
 msgstr "Describe"
 
-#: src/screens/(app).index/components/describe-sheet.tsx:66
+#: src/screens/(app).index/components/describe-sheet.tsx:79
 msgid "Describe your meal"
 msgstr "Describe your meal"
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:97
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:109
 msgid "e.g. 2 scoops mixed with water"
 msgstr "e.g. 2 scoops mixed with water"
 
-#: src/screens/(app).index/components/summary-panel.tsx:49
+#: src/screens/(app).index/components/summary-panel.tsx:63
 msgid "eaten"
 msgstr "eaten"
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:104
+#: src/screens/meals.[id]/components/meal-photo.tsx:108
 msgid "Edit"
 msgstr "Edit"
 
 #. placeholder {0}: submitMutation.error.message
-#: src/screens/onboarding/index.tsx:164
+#: src/screens/onboarding/index.tsx:169
 msgid "Error: {0}"
 msgstr "Error: {0}"
 
-#: src/screens/(app).index/index.tsx:159
-#: src/screens/(app).index/index.tsx:192
+#: src/screens/(app).index/index.tsx:164
+#: src/screens/(app).index/index.tsx:243
 msgid "Estimating..."
 msgstr "Estimating..."
 
@@ -361,11 +362,11 @@ msgid "family.example.com"
 msgstr "family.example.com"
 
 #: src/screens/(app).profile/components/your-numbers-section.tsx:39
-#: src/screens/meals.[id]/index.tsx:244
+#: src/screens/meals.[id]/index.tsx:254
 msgid "Fat"
 msgstr "Fat"
 
-#: src/screens/(app).index/components/summary-panel.tsx:125
+#: src/screens/(app).index/components/summary-panel.tsx:127
 msgid "FAT"
 msgstr "FAT"
 
@@ -375,28 +376,28 @@ msgstr "Feet"
 
 #: src/screens/(app).profile/components/about-you-section.tsx:30
 #: src/screens/(app).profile/components/about-you-section.tsx:54
-#: src/screens/onboarding/components/step-sex.tsx:24
+#: src/screens/onboarding/components/step-sex.tsx:25
 msgid "Female"
 msgstr "Female"
 
-#: src/screens/onboarding/index.tsx:178
+#: src/screens/onboarding/index.tsx:183
 msgid "Finish"
 msgstr "Finish"
 
-#: src/screens/(app).index/index.tsx:173
+#: src/screens/(app).index/index.tsx:178
 msgid "From saved"
 msgstr "From saved"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:36
-#: src/screens/onboarding/components/step-goal.tsx:33
+#: src/screens/onboarding/components/step-goal.tsx:34
 msgid "Gain"
 msgstr "Gain"
 
-#: src/screens/meals.[id]/index.tsx:78
+#: src/screens/meals.[id]/index.tsx:79
 msgid "Go back"
 msgstr "Go back"
 
-#: src/components/goal-slider.tsx:53
+#: src/components/goal-slider.tsx:61
 msgid "Goal weight"
 msgstr "Goal weight"
 
@@ -412,11 +413,11 @@ msgstr "Height (cm)"
 msgid "Hi {username}, here's your link to join Sufra:"
 msgstr "Hi {username}, here's your link to join Sufra:"
 
-#: src/screens/admin/components/members-list.tsx:85
+#: src/screens/admin/components/members-list.tsx:94
 msgid "Host"
 msgstr "Host"
 
-#: src/screens/admin/index.tsx:75
+#: src/screens/admin/index.tsx:78
 msgid "Host only"
 msgstr "Host only"
 
@@ -425,7 +426,7 @@ msgid "How active are you?"
 msgstr "How active are you?"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:72
-#: src/screens/onboarding/components/step-goal.tsx:94
+#: src/screens/onboarding/components/step-goal.tsx:95
 msgid "How fast?"
 msgstr "How fast?"
 
@@ -433,15 +434,15 @@ msgstr "How fast?"
 msgid "How tall are you?"
 msgstr "How tall are you?"
 
-#: src/screens/meals.[id]/components/foods-breakdown.tsx:38
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:39
 msgid "Improve"
 msgstr "Improve"
 
-#: src/screens/meals.[id]/components/foods-breakdown.tsx:35
+#: src/screens/meals.[id]/components/foods-breakdown.tsx:36
 msgid "Improve estimate"
 msgstr "Improve estimate"
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:75
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:87
 msgid "Improve this estimate"
 msgstr "Improve this estimate"
 
@@ -453,7 +454,7 @@ msgstr "Inches"
 msgid "Inference cost this month"
 msgstr "Inference cost this month"
 
-#: src/components/sheet-shell.tsx:103
+#: src/components/sheet-shell.tsx:113
 msgid "kcal"
 msgstr "kcal"
 
@@ -478,11 +479,11 @@ msgstr "last 90 days"
 msgid "last year"
 msgstr "last year"
 
-#: src/screens/(app).progress/components/weight-card.tsx:51
+#: src/screens/(app).progress/components/weight-card.tsx:52
 msgid "Latest:"
 msgstr "Latest:"
 
-#: src/screens/(app).index/components/summary-panel.tsx:49
+#: src/screens/(app).index/components/summary-panel.tsx:63
 msgid "left"
 msgstr "left"
 
@@ -491,7 +492,7 @@ msgstr "left"
 msgid "Light"
 msgstr "Light"
 
-#: src/screens/admin/components/members-list.tsx:98
+#: src/screens/admin/components/members-list.tsx:107
 msgid "Link"
 msgstr "Link"
 
@@ -500,52 +501,52 @@ msgstr "Link"
 msgid "Little or no exercise"
 msgstr "Little or no exercise"
 
-#: src/screens/(app).index/components/describe-sheet.tsx:99
+#: src/screens/(app).index/components/describe-sheet.tsx:112
 msgid "Log meal"
 msgstr "Log meal"
 
-#: src/components/log-weight-sheet.tsx:86
-#: src/screens/(app).progress/components/weight-card.tsx:44
+#: src/components/log-weight-sheet.tsx:88
+#: src/screens/(app).progress/components/weight-card.tsx:45
 msgid "Log weight"
 msgstr "Log weight"
 
-#: src/screens/(app).index/index.tsx:211
+#: src/screens/(app).index/index.tsx:215
 msgid "Log your first one — snap a photo or describe it."
 msgstr "Log your first one — snap a photo or describe it."
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:36
-#: src/screens/onboarding/components/step-goal.tsx:33
+#: src/screens/onboarding/components/step-goal.tsx:34
 msgid "Lose"
 msgstr "Lose"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:36
-#: src/screens/onboarding/components/step-goal.tsx:33
+#: src/screens/onboarding/components/step-goal.tsx:34
 msgid "Maintain"
 msgstr "Maintain"
 
 #: src/screens/(app).profile/components/about-you-section.tsx:29
 #: src/screens/(app).profile/components/about-you-section.tsx:54
-#: src/screens/onboarding/components/step-sex.tsx:18
+#: src/screens/onboarding/components/step-sex.tsx:19
 msgid "Male"
 msgstr "Male"
 
-#: src/screens/meals.[id]/index.tsx:74
+#: src/screens/meals.[id]/index.tsx:75
 msgid "Meal not found"
 msgstr "Meal not found"
 
-#: src/screens/(app).index/index.tsx:95
+#: src/screens/(app).index/index.tsx:100
 msgid "Meal not saved"
 msgstr "Meal not saved"
 
-#: src/screens/(app).index/index.tsx:190
+#: src/screens/(app).index/index.tsx:195
 msgid "Meals"
 msgstr "Meals"
 
-#: src/screens/(app).index/components/summary-panel.tsx:36
+#: src/screens/(app).index/components/summary-panel.tsx:50
 msgid "Meals can be logged now. The Day Target appears after onboarding lands on native."
 msgstr "Meals can be logged now. The Day Target appears after onboarding lands on native."
 
-#: src/screens/admin/index.tsx:103
+#: src/screens/admin/index.tsx:106
 msgid "Members"
 msgstr "Members"
 
@@ -555,7 +556,7 @@ msgid "Moderate"
 msgstr "Moderate"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:85
-#: src/screens/onboarding/components/step-goal.tsx:103
+#: src/screens/onboarding/components/step-goal.tsx:104
 msgid "Moderately"
 msgstr "Moderately"
 
@@ -569,7 +570,7 @@ msgstr "Month"
 msgid "Multiplier applied to your BMR: {0}× → {1}×."
 msgstr "Multiplier applied to your BMR: {0}× → {1}×."
 
-#: src/screens/(app).index/components/day-header.tsx:31
+#: src/screens/(app).index/components/day-header.tsx:32
 msgid "Next week"
 msgstr "Next week"
 
@@ -582,24 +583,24 @@ msgstr "No meals · {0}"
 msgid "No meals logged in this period."
 msgstr "No meals logged in this period."
 
-#: src/screens/(app).index/index.tsx:207
+#: src/screens/(app).index/index.tsx:211
 msgid "No meals logged this day."
 msgstr "No meals logged this day."
 
-#: src/screens/(app).index/index.tsx:207
+#: src/screens/(app).index/index.tsx:211
 msgid "No meals logged yet"
 msgstr "No meals logged yet"
 
-#: src/screens/admin/components/members-list.tsx:63
+#: src/screens/admin/components/members-list.tsx:72
 msgid "No Members yet. Add one above."
 msgstr "No Members yet. Add one above."
 
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:62
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:66
 #: src/screens/(app).profile/components/saved-meals-section.tsx:29
 msgid "No saved meals yet"
 msgstr "No saved meals yet"
 
-#: src/screens/(app).progress/components/weight-chart.tsx:60
+#: src/screens/(app).progress/components/weight-chart.tsx:64
 msgid "No weights logged in this period."
 msgstr "No weights logged in this period."
 
@@ -607,7 +608,7 @@ msgstr "No weights logged in this period."
 msgid "Now: {currentDisplay}"
 msgstr "Now: {currentDisplay}"
 
-#: src/screens/(app).index/components/summary-panel.tsx:49
+#: src/screens/(app).index/components/summary-panel.tsx:63
 msgid "over"
 msgstr "over"
 
@@ -617,8 +618,8 @@ msgstr "over"
 #. placeholder {1}: preview.macros.carbsG
 #. placeholder {2}: derived.macros.fatG
 #. placeholder {2}: preview.macros.fatG
-#: src/components/sheet-shell.tsx:107
-#: src/screens/onboarding/components/step-goal.tsx:125
+#: src/components/sheet-shell.tsx:117
+#: src/screens/onboarding/components/step-goal.tsx:126
 msgid "P {0}g · C {1}g · F {2}g"
 msgstr "P {0}g · C {1}g · F {2}g"
 
@@ -630,7 +631,7 @@ msgstr "Password"
 msgid "Pending changes — starts tomorrow"
 msgstr "Pending changes — starts tomorrow"
 
-#: src/screens/(app).index/index.tsx:159
+#: src/screens/(app).index/index.tsx:164
 msgid "Photo"
 msgstr "Photo"
 
@@ -638,28 +639,28 @@ msgstr "Photo"
 msgid "Photo access required"
 msgstr "Photo access required"
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:46
+#: src/screens/meals.[id]/components/meal-photo.tsx:49
 msgid "Photo not saved"
 msgstr "Photo not saved"
 
-#: src/screens/onboarding/components/step-goal.tsx:76
+#: src/screens/onboarding/components/step-goal.tsx:77
 msgid "Pick a goal weight. Slide to current to maintain."
 msgstr "Pick a goal weight. Slide to current to maintain."
 
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:54
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:58
 msgid "Pick a saved meal"
 msgstr "Pick a saved meal"
 
-#: src/screens/(app).index/components/day-header.tsx:23
+#: src/screens/(app).index/components/day-header.tsx:24
 msgid "Previous week"
 msgstr "Previous week"
 
 #: src/components/app-tabs.tsx:32
-#: src/screens/(app).profile/index.tsx:54
+#: src/screens/(app).profile/index.tsx:55
 msgid "Profile"
 msgstr "Profile"
 
-#: src/screens/(app).index/components/summary-panel.tsx:33
+#: src/screens/(app).index/components/summary-panel.tsx:47
 msgid "Profile setup is next"
 msgstr "Profile setup is next"
 
@@ -669,49 +670,49 @@ msgid "Progress"
 msgstr "Progress"
 
 #: src/screens/(app).profile/components/your-numbers-section.tsx:37
-#: src/screens/meals.[id]/index.tsx:230
+#: src/screens/meals.[id]/index.tsx:240
 msgid "Protein"
 msgstr "Protein"
 
-#: src/screens/(app).index/components/summary-panel.tsx:113
+#: src/screens/(app).index/components/summary-panel.tsx:115
 msgid "PROTEIN"
 msgstr "PROTEIN"
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:135
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:147
 msgid "Refine with AI"
 msgstr "Refine with AI"
 
-#: src/screens/meals.[id]/index.tsx:164
+#: src/screens/meals.[id]/index.tsx:173
 msgid "Remove from saved meals"
 msgstr "Remove from saved meals"
 
-#: src/screens/meals.[id]/components/meal-photo.tsx:90
+#: src/screens/meals.[id]/components/meal-photo.tsx:94
 msgid "Replace this meal's photo"
 msgstr "Replace this meal's photo"
 
-#: src/screens/meals.[id]/index.tsx:265
+#: src/screens/meals.[id]/index.tsx:275
 msgid "Reset"
 msgstr "Reset"
 
-#: src/components/gate-status.tsx:38
+#: src/components/gate-status.tsx:39
 msgid "Retry"
 msgstr "Retry"
 
-#: src/screens/meals.[id]/index.tsx:349
+#: src/screens/meals.[id]/index.tsx:362
 msgid "Retry estimate"
 msgstr "Retry estimate"
 
-#: src/components/sheet-shell.tsx:75
-#: src/screens/meals.[id]/index.tsx:168
-#: src/screens/meals.[id]/index.tsx:258
+#: src/components/sheet-shell.tsx:85
+#: src/screens/meals.[id]/index.tsx:177
+#: src/screens/meals.[id]/index.tsx:268
 msgid "Save"
 msgstr "Save"
 
-#: src/screens/meals.[id]/index.tsx:164
+#: src/screens/meals.[id]/index.tsx:173
 msgid "Save meal for re-logging"
 msgstr "Save meal for re-logging"
 
-#: src/screens/meals.[id]/index.tsx:168
+#: src/screens/meals.[id]/index.tsx:177
 msgid "Saved"
 msgstr "Saved"
 
@@ -719,7 +720,7 @@ msgstr "Saved"
 msgid "Saved Meals"
 msgstr "Saved Meals"
 
-#: src/screens/meals.[id]/index.tsx:258
+#: src/screens/meals.[id]/index.tsx:268
 msgid "Saving…"
 msgstr "Saving…"
 
@@ -737,7 +738,7 @@ msgid "Sex"
 msgstr "Sex"
 
 #. placeholder {0}: m.username
-#: src/screens/admin/components/members-list.tsx:92
+#: src/screens/admin/components/members-list.tsx:101
 msgid "Share password link for {0}"
 msgstr "Share password link for {0}"
 
@@ -749,29 +750,29 @@ msgstr "Sign in"
 msgid "Sign in to continue"
 msgstr "Sign in to continue"
 
-#: src/screens/(app).profile/index.tsx:59
-#: src/screens/(app).profile/index.tsx:61
+#: src/screens/(app).profile/index.tsx:60
+#: src/screens/(app).profile/index.tsx:62
 msgid "Sign out"
 msgstr "Sign out"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:77
-#: src/screens/onboarding/components/step-goal.tsx:97
+#: src/screens/onboarding/components/step-goal.tsx:98
 msgid "Slowly"
 msgstr "Slowly"
 
-#: src/screens/onboarding/index.tsx:57
+#: src/screens/onboarding/index.tsx:58
 msgid "Some fields are still empty."
 msgstr "Some fields are still empty."
 
-#: src/screens/onboarding/index.tsx:165
+#: src/screens/onboarding/index.tsx:170
 msgid "Something went wrong. Try again."
 msgstr "Something went wrong. Try again."
 
-#: src/components/sheet-shell.tsx:55
+#: src/components/sheet-shell.tsx:65
 msgid "Starts tomorrow at midnight (your local time)."
 msgstr "Starts tomorrow at midnight (your local time)."
 
-#: src/screens/meals.[id]/index.tsx:353
+#: src/screens/meals.[id]/index.tsx:366
 msgid "Still couldn't reach the vision service. Try again."
 msgstr "Still couldn't reach the vision service. Try again."
 
@@ -784,12 +785,16 @@ msgstr "Sufra"
 msgid "Take photo"
 msgstr "Take photo"
 
-#: src/screens/(app).index/components/saved-meals-sheet.tsx:64
+#: src/screens/(app).index/components/saved-meals-sheet.tsx:68
 #: src/screens/(app).profile/components/saved-meals-section.tsx:32
 msgid "Tap Save on any meal to save it for quick re-logging."
 msgstr "Tap Save on any meal to save it for quick re-logging."
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:92
+#: src/components/meal-card.tsx:74
+msgid "Tap to retry the estimate"
+msgstr "Tap to retry the estimate"
+
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:104
 msgid "Tell the AI what it missed"
 msgstr "Tell the AI what it missed"
 
@@ -797,15 +802,15 @@ msgstr "Tell the AI what it missed"
 msgid "That photo is too large. Try another angle or pick a different photo."
 msgstr "That photo is too large. Try another angle or pick a different photo."
 
-#: src/screens/meals.[id]/index.tsx:39
+#: src/screens/meals.[id]/index.tsx:40
 msgid "The AI couldn't read this meal. Add more detail and try again."
 msgstr "The AI couldn't read this meal. Add more detail and try again."
 
-#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:81
+#: src/screens/meals.[id]/components/improve-estimate-sheet.tsx:93
 msgid "The AI wasn't sure about"
 msgstr "The AI wasn't sure about"
 
-#: src/screens/meals.[id]/index.tsx:37
+#: src/screens/meals.[id]/index.tsx:38
 msgid "The vision service is busy right now. Try again in a moment."
 msgstr "The vision service is busy right now. Try again in a moment."
 
@@ -814,7 +819,7 @@ msgid "The web address of your household's Sufra server."
 msgstr "The web address of your household's Sufra server."
 
 #. placeholder {0}: m.username
-#: src/screens/admin/components/members-list.tsx:51
+#: src/screens/admin/components/members-list.tsx:53
 msgid "This deletes {0} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone."
 msgstr "This deletes {0} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone."
 
@@ -826,21 +831,21 @@ msgstr "This is your starting weight — we'll log it."
 msgid "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
 msgstr "This server hasn't been set up yet. Finish setup at {origin} first, then connect."
 
-#: src/screens/meals.[id]/index.tsx:377
+#: src/screens/meals.[id]/index.tsx:390
 msgid "This will permanently remove this meal and its photo."
 msgstr "This will permanently remove this meal and its photo."
 
 #: src/components/app-tabs.tsx:14
 #: src/lib/date.ts:98
-#: src/screens/(app).progress/components/weight-card.tsx:79
+#: src/screens/(app).progress/components/weight-card.tsx:80
 msgid "Today"
 msgstr "Today"
 
-#: src/screens/(app).index/components/summary-panel.tsx:66
+#: src/screens/(app).index/components/summary-panel.tsx:80
 msgid "Toggle Day summary reading"
 msgstr "Toggle Day summary reading"
 
-#: src/screens/(app).index/components/summary-panel.tsx:67
+#: src/screens/(app).index/components/summary-panel.tsx:81
 msgid "Toggles between remaining and consumed"
 msgstr "Toggles between remaining and consumed"
 
@@ -852,10 +857,10 @@ msgstr "Trial · {days, plural, one {# day left} other {# days left}}"
 msgid "Try again in a moment."
 msgstr "Try again in a moment."
 
-#: src/screens/admin/components/add-member-form.tsx:57
-#: src/screens/admin/components/members-list.tsx:33
-#: src/screens/admin/components/members-list.tsx:44
-#: src/screens/admin/components/model-select.tsx:29
+#: src/screens/admin/components/add-member-form.tsx:58
+#: src/screens/admin/components/members-list.tsx:35
+#: src/screens/admin/components/members-list.tsx:46
+#: src/screens/admin/components/model-select.tsx:30
 msgid "Try again."
 msgstr "Try again."
 
@@ -867,7 +872,7 @@ msgstr "Unlock Sufra"
 msgid "Unlocked"
 msgstr "Unlocked"
 
-#: src/screens/admin/components/add-member-form.tsx:73
+#: src/screens/admin/components/add-member-form.tsx:74
 msgid "username"
 msgstr "username"
 
@@ -876,11 +881,11 @@ msgstr "username"
 msgid "Username"
 msgstr "Username"
 
-#: src/screens/admin/index.tsx:95
+#: src/screens/admin/index.tsx:98
 msgid "Vision Model"
 msgstr "Vision Model"
 
-#: src/components/sheet-shell.tsx:104
+#: src/components/sheet-shell.tsx:114
 msgid "was {previousTarget}"
 msgstr "was {previousTarget}"
 
@@ -892,16 +897,16 @@ msgstr "We use this to compute your age each time we run the formula."
 msgid "Weight"
 msgstr "Weight"
 
-#: src/components/log-weight-sheet.tsx:101
+#: src/components/log-weight-sheet.tsx:103
 #: src/screens/onboarding/components/step-weight.tsx:62
 msgid "Weight ({unit})"
 msgstr "Weight ({unit})"
 
-#: src/screens/(app).progress/components/weight-card.tsx:40
+#: src/screens/(app).progress/components/weight-card.tsx:41
 msgid "Weight over time"
 msgstr "Weight over time"
 
-#: src/screens/(app).index/components/describe-sheet.tsx:69
+#: src/screens/(app).index/components/describe-sheet.tsx:82
 msgid "What did you eat? Portions help"
 msgstr "What did you eat? Portions help"
 
@@ -914,7 +919,7 @@ msgid "When were you born?"
 msgstr "When were you born?"
 
 #: src/screens/(app).profile/components/about-you-section.tsx:80
-#: src/screens/onboarding/components/step-sex.tsx:11
+#: src/screens/onboarding/components/step-sex.tsx:12
 msgid "Which formula should we use?"
 msgstr "Which formula should we use?"
 
@@ -923,7 +928,7 @@ msgid "Year"
 msgstr "Year"
 
 #: src/lib/date.ts:99
-#: src/screens/(app).progress/components/weight-card.tsx:80
+#: src/screens/(app).progress/components/weight-card.tsx:81
 msgid "Yesterday"
 msgstr "Yesterday"
 
@@ -931,12 +936,12 @@ msgstr "Yesterday"
 msgid "You'll be signed out, and this device will forget the current server."
 msgstr "You'll be signed out, and this device will forget the current server."
 
-#: src/screens/(app).profile/index.tsx:55
+#: src/screens/(app).profile/index.tsx:56
 msgid "Your account and plan"
 msgstr "Your account and plan"
 
 #: src/screens/(app).profile/components/goal-sheet.tsx:46
-#: src/screens/onboarding/components/step-goal.tsx:75
+#: src/screens/onboarding/components/step-goal.tsx:76
 msgid "Your goal"
 msgstr "Your goal"
 
@@ -945,10 +950,10 @@ msgid "Your intake and progress over time"
 msgstr "Your intake and progress over time"
 
 #: src/screens/(app).profile/components/your-numbers-section.tsx:18
-#: src/screens/meals.[id]/index.tsx:212
+#: src/screens/meals.[id]/index.tsx:222
 msgid "Your numbers"
 msgstr "Your numbers"
 
-#: src/screens/(app).index/components/describe-sheet.tsx:121
+#: src/screens/(app).index/components/describe-sheet.tsx:134
 msgid "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."
 msgstr "Your Sufra server doesn't support describing meals yet. Update your deployment to use this."

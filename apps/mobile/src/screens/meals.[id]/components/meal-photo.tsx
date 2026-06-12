@@ -3,12 +3,14 @@ import { Trans } from '@lingui/react/macro';
 import { useMutation } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, I18nManager, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, I18nManager, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { getClient, run } from '@/client/api-client';
 import { getAuthClient } from '@/client/auth-client';
 import { getServerUrl } from '@/client/server';
 import { Palette } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 import { prepareMealPhoto } from '@/lib/meal-photo';
 import { pickMealPhotoAsset } from '@/lib/photo-source';
 import type { MealView } from '@sufra-web/worker/views/meal.ts';
@@ -39,6 +41,7 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
       onChanged();
     },
     onError: (error: unknown) => {
+      haptics.warning();
       const message =
         typeof (error as { message?: unknown })?.message === 'string'
           ? (error as { message: string }).message
@@ -82,6 +85,7 @@ export function MealPhoto({ meal, onChanged }: { meal: MealView; onChanged: () =
         source={{ uri: `${getServerUrl()}${meal.photoUrl}?v=${nonce}`, headers: { Cookie: cookie } }}
         style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 24, backgroundColor: Palette.track }}
         contentFit="cover"
+        transition={200}
       />
       <Pressable
         onPress={() => void pick()}

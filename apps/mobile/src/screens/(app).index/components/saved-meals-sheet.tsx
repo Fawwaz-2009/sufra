@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 
 import { Palette } from '@/constants/theme';
 
 import { getClient, run } from '@/client/api-client';
+import { haptics } from '@/lib/haptics';
 import { MealCard } from '@/components/meal-card';
 import { savedMealsQueryOptions } from '@/screens/meals.[id]/queries';
 
@@ -38,10 +40,12 @@ export function SavedMealsSheet({
         })
       ),
     onSuccess: () => {
+      haptics.success();
       void queryClient.invalidateQueries({ queryKey: ['meals'] });
       onClose();
     },
     onError: () => {
+      haptics.warning();
       Alert.alert(t`Couldn't add`, t`Couldn't add that meal. Try again.`);
     },
   });

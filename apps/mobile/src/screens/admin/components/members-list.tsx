@@ -12,8 +12,10 @@
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 import { getClient, run } from '@/client/api-client';
+import { haptics } from '@/lib/haptics';
 import { adminMembersKey, membersQueryOptions, type Member } from '../queries';
 import { sharePasswordLinkMessage } from '../helpers';
 
@@ -51,7 +53,14 @@ export function MembersList() {
       t`This deletes ${m.username} and everything they logged — meals, photos, weights. Inference cost stays on the books. This cannot be undone.`,
       [
         { text: t`Cancel`, style: 'cancel' },
-        { text: t`Delete`, style: 'destructive', onPress: () => deleteMember.mutate(m.id) },
+        {
+          text: t`Delete`,
+          style: 'destructive',
+          onPress: () => {
+            haptics.destructive();
+            deleteMember.mutate(m.id);
+          },
+        },
       ],
     );
   }

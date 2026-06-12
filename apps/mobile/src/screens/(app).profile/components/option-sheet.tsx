@@ -1,7 +1,9 @@
 import { t } from '@lingui/core/macro';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Text, View } from 'react-native';
+import { Pressable } from '@/components/pressable';
 
 import { Palette } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 /**
  * A single-select bottom sheet for Profile's single-tap fields (Sex, Activity) — the INLINE-COMMIT
@@ -34,7 +36,10 @@ export function OptionSheet<T extends string>({
             {options.map((option) => (
               <Pressable
                 key={option.value}
-                onPress={() => onSelect(option.value)}
+                onPress={() => {
+                  haptics.selection();
+                  onSelect(option.value);
+                }}
                 accessibilityState={{ selected: selected === option.value }}
                 className={`flex-row items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
                   selected === option.value ? 'border-flame bg-surface' : 'border-line'
