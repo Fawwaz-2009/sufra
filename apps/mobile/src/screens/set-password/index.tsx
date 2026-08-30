@@ -143,7 +143,9 @@ export default function SetPasswordScreen() {
               {lookupState.kind === 'loading' ? (
                 <LoadingState />
               ) : lookupState.kind === 'invalid' ? (
-                <InvalidState onBack={() => router.back()} />
+                <InvalidState
+                  onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+                />
               ) : (
                 <PasswordForm
                   username={lookupState.username}

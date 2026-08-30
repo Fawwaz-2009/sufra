@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ember · Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--ember:#E2552B;--ink:#241712;--cream:#F6EFE4;--clay:#C8825A;--sage:#6E7B5B;--gold:#D8A24A;--line:rgba(36,23,18,.12)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  html,body{width:100%}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);min-height:100%;display:flex;flex-direction:column;
+    background:radial-gradient(120% 70% at 100% 0%,rgba(226,85,43,.12),transparent 55%),
+               radial-gradient(100% 60% at 0% 100%,rgba(110,123,91,.10),transparent 55%),var(--cream);
+    -webkit-font-smoothing:antialiased}
+  .status{display:flex;justify-content:space-between;align-items:center;padding:14px 24px 0;font-size:13px;font-weight:600}
+  .status .right{letter-spacing:1px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
+  .back{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.6);
+    display:grid;place-items:center;font-size:18px;color:var(--ink)}
+  .wm{display:flex;align-items:center;gap:7px;font-family:'Fraunces',serif;font-weight:600;font-size:18px}
+  .wm .flame{width:13px;height:16px;background:radial-gradient(circle at 50% 75%,var(--gold),var(--ember));
+    border-radius:50% 50% 50% 50%/62% 62% 38% 38%;transform:rotate(-5deg)}
+  .skip{font-size:13px;color:rgba(36,23,18,.45);font-weight:500}
+  .prog{display:flex;gap:6px;padding:22px 24px 0}
+  .prog span{height:5px;border-radius:999px;flex:1;background:rgba(36,23,18,.10)}
+  .prog span.on{background:linear-gradient(90deg,var(--ember),var(--gold))}
+  .head{padding:24px 26px 0}
+  .eyebrow{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ember)}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:31px;line-height:1.08;letter-spacing:-.02em;margin-top:11px}
+  h1 em{font-style:italic;color:var(--ember)}
+  .sub{font-size:13.5px;line-height:1.45;color:rgba(36,23,18,.6);margin-top:11px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:24px 26px 0}
+  .opt{position:relative;padding:16px 14px;border-radius:18px;background:rgba(255,255,255,.62);
+    border:1.5px solid var(--line);cursor:pointer;text-align:left;transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease}
+  .opt:hover{transform:translateY(-2px)}
+  .opt .glyph{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:23px;
+    background:rgba(36,23,18,.05);transition:.22s}
+  .opt .lbl{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-top:13px}
+  .opt .desc{font-size:11px;color:rgba(36,23,18,.5);margin-top:2px}
+  .opt .tick{position:absolute;top:13px;right:13px;width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);
+    display:grid;place-items:center;color:transparent;font-size:12px;transition:.2s}
+  .opt.sel{border-color:var(--ember);background:#fff;box-shadow:0 16px 34px -18px rgba(226,85,43,.65)}
+  .opt.sel .glyph{background:linear-gradient(150deg,var(--ember),var(--clay));transform:rotate(-4deg)}
+  .opt.sel .tick{background:var(--ember);border-color:var(--ember);color:var(--cream)}
+  .foot{margin-top:auto;padding:18px 26px 22px;background:linear-gradient(180deg,transparent,var(--cream) 36%)}
+  .btn{width:100%;padding:16px;border:none;border-radius:16px;background:var(--ink);color:var(--cream);
+    font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:.01em;
+    box-shadow:0 12px 26px -12px rgba(36,23,18,.7);transition:transform .15s ease}
+  .btn:active{transform:scale(.985)}
+  .home{width:124px;height:5px;border-radius:999px;background:rgba(36,23,18,.25);margin:8px auto 0}
+</style>
+</head>
+<body>
+  <div class="status"><span>9:41</span><span class="right">●●● ◗ ▮</span></div>
+  <div class="topbar">
+    <div class="back">‹</div>
+    <div class="wm"><span class="flame"></span>ember</div>
+    <div class="skip">Skip</div>
+  </div>
+  <div class="prog"><span class="on"></span><span></span><span></span></div>
+  <div class="head">
+    <div class="eyebrow">Step 1 of 3 · Your ritual</div>
+    <h1>How do you take your <em>coffee?</em></h1>
+    <div class="sub">We'll tune your first matches to the cup you actually reach for.</div>
+  </div>
+  <div class="grid" id="grid">
+    <button class="opt sel" data-v="Black"><div class="glyph">☕️</div><div class="lbl">Black</div><div class="desc">Pure & unhurried</div><div class="tick">✓</div></button>
+    <button class="opt" data-v="With milk"><div class="glyph">🥛</div><div class="lbl">With milk</div><div class="desc">Soft & rounded</div><div class="tick">✓</div></button>
+    <button class="opt" data-v="Espresso"><div class="glyph">⚡️</div><div class="lbl">Espresso</div><div class="desc">Short & intense</div><div class="tick">✓</div></button>
+    <button class="opt" data-v="Iced"><div class="glyph">🧊</div><div class="lbl">Iced</div><div class="desc">Bright & long</div><div class="tick">✓</div></button>
+  </div>
+  <div class="foot">
+    <button class="btn" id="cta">Continue</button>
+    <div class="home"></div>
+  </div>
+<script>
+  const grid = document.getElementById('grid'), cta = document.getElementById('cta');
+  grid.addEventListener('click', e => {
+    const b = e.target.closest('.opt'); if(!b) return;
+    grid.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+    b.classList.add('sel'); cta.textContent = 'Continue';
+  });
+  cta.addEventListener('click', () => {
+    const s = grid.querySelector('.opt.sel');
+    cta.textContent = 'Saved · ' + (s ? s.dataset.v : '');
+  });
+</script>
+</body>
+</html>

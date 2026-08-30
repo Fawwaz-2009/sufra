@@ -1,0 +1,19 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "mobile-onboarding",
+  "title": "Mobile onboarding",
+  "kind": "html",
+  "entry": "index.html",
+  "frame": {
+    "x": 1130,
+    "y": 0,
+    "w": 380,
+    "h": 760
+  },
+  "tier": "html",
+  "tags": [
+    "mobile",
+    "product"
+  ],
+  "status": "draft"
+}

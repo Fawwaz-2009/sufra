@@ -1,0 +1,19 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "landing",
+  "title": "Landing page",
+  "kind": "html",
+  "entry": "index.html",
+  "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 520,
+    "h": 700
+  },
+  "tier": "html",
+  "tags": [
+    "marketing",
+    "web"
+  ],
+  "status": "draft"
+}

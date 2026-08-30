@@ -1,0 +1,21 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* In this tldraw build the floating UI panels don't receive their container
+   background (only the buttons do), leaving the toolbar camouflaged on the
+   near-white canvas. Restore the intended panel background + shadow using
+   tldraw's own color token. (Unlayered, so it wins over tldraw's @layer rules.) */
+.tlui-toolbar {
+  background-color: var(--tl-color-panel, #fcfcfc);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 5px 18px rgba(0, 0, 0, 0.13);
+  border-radius: 11px;
+}

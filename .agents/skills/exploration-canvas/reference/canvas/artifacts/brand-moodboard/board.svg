@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="420" viewBox="0 0 520 420" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="emberGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D8A24A"/>
+      <stop offset="0.45" stop-color="#E2552B"/>
+      <stop offset="1" stop-color="#241712"/>
+    </linearGradient>
+    <linearGradient id="creamGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF6EC"/>
+      <stop offset="1" stop-color="#F2E8D7"/>
+    </linearGradient>
+    <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#E2552B"/>
+      <stop offset="1" stop-color="#D8A24A"/>
+    </linearGradient>
+    <radialGradient id="panelGlow" cx="0.3" cy="0.25" r="0.9">
+      <stop offset="0" stop-color="#F2C66B" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#F2C66B" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(0)">
+      <circle cx="2" cy="2" r="0.9" fill="#241712" fill-opacity="0.10"/>
+    </pattern>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.6" fill="#FFFFFF" fill-opacity="0.10"/>
+      <circle cx="4" cy="4" r="0.5" fill="#241712" fill-opacity="0.10"/>
+    </pattern>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="520" height="420" fill="url(#creamGrad)"/>
+  <rect width="520" height="420" fill="url(#dots)"/>
+  <rect x="10" y="10" width="500" height="400" rx="14" fill="none" stroke="#241712" stroke-opacity="0.12"/>
+
+  <!-- Header -->
+  <text x="34" y="44" font-size="11" letter-spacing="3" font-weight="600" fill="#E2552B">EMBER — BRAND SYSTEM</text>
+  <text x="486" y="44" text-anchor="end" font-size="10" letter-spacing="1.5" fill="#241712" fill-opacity="0.55">v.01 / moodboard</text>
+  <line x1="34" y1="56" x2="486" y2="56" stroke="#241712" stroke-opacity="0.15"/>
+
+  <!-- Type specimen -->
+  <text x="32" y="132" font-family="'Fraunces', Georgia, serif" font-size="86" font-weight="600" fill="#241712" letter-spacing="-1">Ember</text>
+  <text x="36" y="158" font-size="11.5" letter-spacing="0.6" fill="#241712" fill-opacity="0.72">Single-origin roasts, matched to your taste.</text>
+  <text x="36" y="176" font-size="9.5" letter-spacing="2.5" fill="#6E7B5B" font-weight="600">FRAUNCES DISPLAY · INTER TEXT</text>
+
+  <!-- Mark lozenges -->
+  <!-- Flame mark -->
+  <g transform="translate(372,92)">
+    <rect x="0" y="0" width="52" height="52" rx="14" fill="#241712"/>
+    <path d="M26 12 C34 22 38 28 38 36 a12 12 0 0 1 -24 0 C14 30 18 26 20 22 C21 27 24 28 26 30 C27 25 25 19 26 12 Z" fill="url(#flameGrad)"/>
+    <circle cx="26" cy="38" r="4" fill="#241712" fill-opacity="0.55"/>
+  </g>
+  <!-- Bean mark -->
+  <g transform="translate(430,92)">
+    <rect x="0" y="0" width="52" height="52" rx="14" fill="#F6EFE4" stroke="#241712" stroke-opacity="0.18"/>
+    <ellipse cx="26" cy="26" rx="14" ry="18" fill="#241712"/>
+    <path d="M26 9 C20 17 32 35 26 43" fill="none" stroke="#F6EFE4" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- Wordmark monogram -->
+  <g transform="translate(372,150)">
+    <rect x="0" y="0" width="110" height="34" rx="17" fill="#E2552B"/>
+    <text x="55" y="23" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-weight="600" font-size="18" fill="#F6EFE4" letter-spacing="0.5">ember.</text>
+  </g>
+
+  <!-- Textured gradient panel -->
+  <g transform="translate(34,202)">
+    <rect width="280" height="124" rx="14" fill="url(#emberGrad)"/>
+    <rect width="280" height="124" rx="14" fill="url(#panelGlow)"/>
+    <rect width="280" height="124" rx="14" fill="url(#grain)"/>
+    <rect width="280" height="124" rx="14" fill="none" stroke="#241712" stroke-opacity="0.25"/>
+    <text x="20" y="40" font-family="'Fraunces', Georgia, serif" font-size="22" font-weight="600" fill="#F6EFE4">Warmth, brewed.</text>
+    <text x="21" y="62" font-size="10.5" fill="#F6EFE4" fill-opacity="0.85" letter-spacing="0.3">A gradient from gold heat through ember</text>
+    <text x="21" y="77" font-size="10.5" fill="#F6EFE4" fill-opacity="0.85" letter-spacing="0.3">to deep espresso — the cup, abstracted.</text>
+    <text x="20" y="108" font-size="9" letter-spacing="2" fill="#F6EFE4" fill-opacity="0.7">GRADIENT · TEXTURE · CREAM ON ESPRESSO</text>
+  </g>
+
+  <!-- Side voice card -->
+  <g transform="translate(330,202)">
+    <rect width="152" height="124" rx="14" fill="#F6EFE4" stroke="#241712" stroke-opacity="0.15"/>
+    <text x="16" y="30" font-size="9" letter-spacing="2.5" font-weight="600" fill="#C8825A">VOICE</text>
+    <text x="16" y="54" font-family="'Fraunces', Georgia, serif" font-size="15" fill="#241712">Warm. Considered.</text>
+    <text x="16" y="73" font-family="'Fraunces', Georgia, serif" font-size="15" fill="#241712">Lightly editorial.</text>
+    <line x1="16" y1="86" x2="136" y2="86" stroke="#241712" stroke-opacity="0.12"/>
+    <text x="16" y="106" font-size="9.5" fill="#241712" fill-opacity="0.7" letter-spacing="0.3">Confident, never salesy. We write</text>
+    <text x="16" y="119" font-size="9.5" fill="#241712" fill-opacity="0.7" letter-spacing="0.3">about coffee like people who love it.</text>
+  </g>
+
+  <!-- Swatch row -->
+  <g transform="translate(34,344)">
+    <g transform="translate(0,0)">
+      <rect width="68" height="44" rx="9" fill="#E2552B"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">EMBER</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#E2552B</text>
+    </g>
+    <g transform="translate(76,0)">
+      <rect width="68" height="44" rx="9" fill="#241712"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">ESPRESSO</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#241712</text>
+    </g>
+    <g transform="translate(152,0)">
+      <rect width="68" height="44" rx="9" fill="#F6EFE4" stroke="#241712" stroke-opacity="0.18"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">CREAM</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#F6EFE4</text>
+    </g>
+    <g transform="translate(228,0)">
+      <rect width="68" height="44" rx="9" fill="#C8825A"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">CLAY</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#C8825A</text>
+    </g>
+    <g transform="translate(304,0)">
+      <rect width="68" height="44" rx="9" fill="#6E7B5B"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">SAGE</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#6E7B5B</text>
+    </g>
+    <g transform="translate(380,0)">
+      <rect width="68" height="44" rx="9" fill="#D8A24A"/>
+      <text x="4" y="58" font-size="9" font-weight="600" fill="#241712">GOLD</text>
+      <text x="4" y="68" font-size="8" fill="#241712" fill-opacity="0.6">#D8A24A</text>
+    </g>
+  </g>
+</svg>

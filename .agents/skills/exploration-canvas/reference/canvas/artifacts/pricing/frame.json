@@ -1,0 +1,19 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "pricing",
+  "title": "Subscription plans",
+  "kind": "html",
+  "entry": "index.html",
+  "frame": {
+    "x": 560,
+    "y": 0,
+    "w": 470,
+    "h": 540
+  },
+  "tier": "html",
+  "tags": [
+    "pricing",
+    "web"
+  ],
+  "status": "draft"
+}

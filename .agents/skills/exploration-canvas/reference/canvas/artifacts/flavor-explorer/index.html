@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ember · Flavor Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--ember:#E2552B;--ink:#241712;--cream:#F6EFE4;--clay:#C8825A;--sage:#6E7B5B;--gold:#D8A24A;--line:rgba(36,23,18,.12)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body,#root{width:100%;height:100%;overflow:hidden}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(120% 90% at 100% 0%,rgba(226,85,43,.10),transparent 55%),
+               radial-gradient(100% 80% at 0% 100%,rgba(110,123,91,.10),transparent 50%),var(--cream);
+    -webkit-font-smoothing:antialiased}
+  .app{height:100%;padding:15px 18px;display:flex;flex-direction:column}
+  .head{display:flex;justify-content:space-between;align-items:flex-end}
+  .kicker{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ember)}
+  .title{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:-.015em;margin-top:2px}
+  .title em{font-style:italic;color:var(--ember)}
+  .count{font-size:10px;color:rgba(36,23,18,.55);text-align:right}
+  .count b{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);display:block;line-height:1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 10px}
+  .chip{font-size:10.5px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid var(--line);
+    background:rgba(255,255,255,.55);cursor:pointer;display:inline-flex;align-items:center;gap:6px;user-select:none;
+    transition:transform .14s ease,background .18s ease,color .18s ease,border-color .18s ease}
+  .chip:hover{transform:translateY(-1px)}
+  .chip .dot{width:7px;height:7px;border-radius:50%}
+  .chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding-right:4px}
+  .list::-webkit-scrollbar{width:4px}.list::-webkit-scrollbar-thumb{background:rgba(36,23,18,.16);border-radius:4px}
+  .card{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:13px;
+    background:rgba(255,255,255,.6);border:1px solid var(--line);animation:rise .3s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .bean{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--cream);
+    background:linear-gradient(150deg,var(--clay),var(--ember))}
+  .meta{flex:1;min-width:0}
+  .roast{font-family:'Fraunces',serif;font-weight:600;font-size:14px;letter-spacing:-.01em}
+  .origin{font-size:9.5px;color:rgba(36,23,18,.55);margin-top:1px}
+  .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .tag{font-size:8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px;
+    color:rgba(36,23,18,.6);background:rgba(36,23,18,.06)}
+  .tag.hit{color:var(--cream);background:var(--ember)}
+  .empty{flex:1;display:grid;place-items:center;text-align:center;color:rgba(36,23,18,.5);padding:0 24px}
+  .empty .t{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);margin-bottom:3px}
+  .empty .s{font-size:10.5px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import React, { useState, useMemo } from "https://esm.sh/react@18";
+import { createRoot } from "https://esm.sh/react-dom@18/client";
+import htm from "https://esm.sh/htm@3.1.1";
+const html = htm.bind(React.createElement);
+
+const NOTES = [
+  {id:"fruity",label:"Fruity",c:"#E2552B"},
+  {id:"chocolatey",label:"Chocolatey",c:"#241712"},
+  {id:"nutty",label:"Nutty",c:"#C8825A"},
+  {id:"floral",label:"Floral",c:"#6E7B5B"},
+  {id:"bright",label:"Bright",c:"#D8A24A"},
+];
+const ROASTS = [
+  {n:"Sunrise Yirgacheffe",o:"Ethiopia",init:"Y",t:["fruity","floral","bright"]},
+  {n:"Kirinyaga AA",o:"Kenya",init:"K",t:["fruity","bright"]},
+  {n:"Orchard Honey",o:"Costa Rica",init:"O",t:["nutty","bright"]},
+  {n:"Dusk Antigua",o:"Guatemala",init:"A",t:["chocolatey","floral"]},
+  {n:"Cellar Reserve",o:"Sumatra",init:"S",t:["chocolatey","nutty"]},
+  {n:"Cocoa Cellar",o:"Brazil",init:"B",t:["chocolatey","nutty"]},
+];
+const LABEL = Object.fromEntries(NOTES.map(x=>[x.id,x.label]));
+
+function App(){
+  const [active,setActive] = useState([]);
+  const toggle = id => setActive(a => a.includes(id) ? a.filter(x=>x!==id) : [...a,id]);
+  const list = useMemo(()=>ROASTS.filter(r=>active.every(a=>r.t.includes(a))),[active]);
+  return html`
+    <div class="app">
+      <div class="head">
+        <div>
+          <div class="kicker">Match by taste</div>
+          <div class="title">Flavor <em>explorer</em></div>
+        </div>
+        <div class="count"><b>${list.length}</b>roasts</div>
+      </div>
+      <div class="chips">
+        ${NOTES.map(n => html`
+          <button key=${n.id} class=${"chip"+(active.includes(n.id)?" on":"")}
+                  onClick=${()=>toggle(n.id)} aria-pressed=${active.includes(n.id)}>
+            <span class="dot" style=${{background:n.c}}></span>${n.label}
+          </button>`)}
+      </div>
+      ${list.length ? html`
+        <div class="list">
+          ${list.map(r => html`
+            <div class="card" key=${r.n}>
+              <div class="bean">${r.init}</div>
+              <div class="meta">
+                <div class="roast">${r.n}</div>
+                <div class="origin">${r.o}</div>
+                <div class="tags">
+                  ${r.t.map(t => html`<span key=${t} class=${"tag"+(active.includes(t)?" hit":"")}>${LABEL[t]}</span>`)}
+                </div>
+              </div>
+            </div>`)}
+        </div>` : html`
+        <div class="empty"><div>
+          <div class="t">No roast quite like that — yet</div>
+          <div class="s">Try fewer notes to widen the match.</div>
+        </div></div>`}
+    </div>`;
+}
+createRoot(document.getElementById("root")).render(html`<${App}/>`);
+</script>
+</body>
+</html>

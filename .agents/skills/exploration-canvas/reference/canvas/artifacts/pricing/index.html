@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ember — Plans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ember:#E2552B;
+    --ink:#241712;
+    --cream:#F6EFE4;
+    --clay:#C8825A;
+    --sage:#6E7B5B;
+    --gold:#D8A24A;
+    --line:rgba(36,23,18,.12);
+    --ink-60:rgba(36,23,18,.60);
+    --ink-45:rgba(36,23,18,.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  html,body{width:100%;min-height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 88% -8%, rgba(226,85,43,.16), transparent 52%),
+      radial-gradient(90% 70% at -6% 108%, rgba(110,123,91,.14), transparent 50%),
+      linear-gradient(168deg,#FBF6EC 0%, var(--cream) 46%, #F1E7D6 100%);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  /* faint paper grain */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:5;
+    opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{
+    position:relative;z-index:6;
+    width:470px;height:540px;
+    padding:24px 24px 22px;
+    display:flex;flex-direction:column;
+  }
+
+  /* ---- header ---- */
+  .top{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .brand{display:flex;align-items:center;gap:8px}
+  .mark{
+    width:24px;height:24px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--gold), var(--ember) 58%, #B23E1C 100%);
+    box-shadow:0 0 0 3px rgba(226,85,43,.12), 0 4px 9px rgba(178,62,28,.32);
+    position:relative;flex:none;
+  }
+  .mark::after{
+    content:"";position:absolute;left:50%;top:-4px;width:3px;height:7px;
+    transform:translateX(-50%);border-radius:2px;
+    background:linear-gradient(to top, var(--ember), transparent);
+    filter:blur(.3px);
+  }
+  .brand-name{
+    font-family:'Fraunces',serif;font-weight:600;font-size:18px;
+    letter-spacing:.2px;line-height:1;
+  }
+  .brand-sub{
+    font-size:9.5px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--ink-45);margin-top:3px;font-weight:500;
+  }
+
+  .eyebrow{
+    font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+    color:var(--ember);font-weight:600;text-align:right;line-height:1.3;
+  }
+  .eyebrow span{display:block;color:var(--ink-45);font-weight:500;letter-spacing:.18em;margin-top:3px}
+
+  .lead{
+    font-family:'Fraunces',serif;font-weight:500;font-size:23px;line-height:1.12;
+    letter-spacing:-.2px;margin-bottom:13px;max-width:330px;
+  }
+  .lead em{font-style:italic;color:var(--ember)}
+
+  /* ---- toggle ---- */
+  .switch{
+    display:inline-flex;align-items:center;gap:0;
+    background:rgba(36,23,18,.05);
+    border:1px solid var(--line);
+    border-radius:999px;padding:3px;
+    margin-bottom:15px;align-self:flex-start;
+    position:relative;
+  }
+  .switch button{
+    font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.02em;
+    color:var(--ink-60);background:none;border:none;cursor:pointer;
+    padding:6px 14px;border-radius:999px;position:relative;z-index:2;
+    transition:color .25s ease;white-space:nowrap;
+  }
+  .switch button.on{color:#fff}
+  .switch .thumb{
+    position:absolute;z-index:1;top:3px;left:3px;height:calc(100% - 6px);
+    border-radius:999px;
+    background:linear-gradient(140deg, var(--ember), #C8421E);
+    box-shadow:0 4px 10px rgba(178,62,28,.34);
+    transition:transform .32s cubic-bezier(.65,.05,.2,1), width .32s cubic-bezier(.65,.05,.2,1);
+  }
+  .save{
+    margin-left:8px;font-size:9.5px;font-weight:600;letter-spacing:.04em;
+    color:var(--sage);background:rgba(110,123,91,.13);
+    padding:4px 9px;border-radius:999px;white-space:nowrap;
+    transition:opacity .25s ease;
+  }
+
+  /* ---- tiers ---- */
+  .tiers{display:flex;gap:10px;flex:1;align-items:stretch}
+  .card{
+    flex:1;background:rgba(255,255,255,.55);
+    border:1px solid var(--line);border-radius:15px;
+    padding:14px 13px 13px;display:flex;flex-direction:column;
+    position:relative;backdrop-filter:blur(2px);
+    box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 16px rgba(36,23,18,.05);
+  }
+  .card.feat{
+    flex:1.18;
+    background:linear-gradient(180deg,#2C1C16 0%, var(--ink) 100%);
+    border-color:transparent;color:var(--cream);
+    box-shadow:0 14px 30px rgba(36,23,18,.32);
+    transform:translateY(-2px);
+  }
+  .tag{
+    position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+    font-size:8.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:#fff;background:linear-gradient(140deg,var(--gold),var(--ember));
+    padding:4px 11px;border-radius:999px;white-space:nowrap;
+    box-shadow:0 4px 10px rgba(178,62,28,.4);
+  }
+  .t-name{
+    font-family:'Fraunces',serif;font-weight:600;font-size:15px;line-height:1;
+    margin-bottom:5px;letter-spacing:.1px;
+  }
+  .t-desc{
+    font-size:9.5px;line-height:1.38;color:var(--ink-60);
+    min-height:26px;margin-bottom:9px;
+  }
+  .feat .t-desc{color:rgba(246,239,228,.66)}
+
+  .price{display:flex;align-items:baseline;gap:2px;margin-bottom:2px}
+  .cur{font-family:'Fraunces',serif;font-size:14px;font-weight:500;transform:translateY(-7px)}
+  .amt{
+    font-family:'Fraunces',serif;font-weight:600;font-size:31px;line-height:.9;
+    letter-spacing:-.5px;
+  }
+  .feat .amt{color:var(--cream)}
+  .per{font-size:9.5px;color:var(--ink-45);font-weight:500;align-self:flex-end;transform:translateY(-3px)}
+  .feat .per{color:rgba(246,239,228,.55)}
+  .billed{
+    font-size:8.5px;color:var(--ink-45);letter-spacing:.01em;
+    margin-bottom:11px;min-height:11px;
+  }
+  .feat .billed{color:rgba(246,239,228,.5)}
+
+  .rule{height:1px;background:var(--line);margin:0 0 10px}
+  .feat .rule{background:rgba(246,239,228,.15)}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:7px;flex:1}
+  li{
+    font-size:10px;line-height:1.28;display:flex;gap:7px;align-items:flex-start;
+    color:rgba(36,23,18,.82);
+  }
+  .feat li{color:rgba(246,239,228,.9)}
+  li .tick{
+    flex:none;width:13px;height:13px;margin-top:.5px;
+    border-radius:50%;background:rgba(110,123,91,.16);
+    display:grid;place-items:center;
+  }
+  li .tick svg{width:7px;height:7px}
+  li .tick svg path{stroke:var(--sage)}
+  .feat li .tick{background:rgba(216,162,74,.22)}
+  .feat li .tick svg path{stroke:var(--gold)}
+
+  .cta{
+    margin-top:11px;font-family:inherit;font-size:11px;font-weight:600;
+    letter-spacing:.01em;cursor:pointer;border-radius:9px;padding:8px 0;
+    width:100%;border:1px solid var(--line);background:transparent;color:var(--ink);
+    transition:background .2s ease,border-color .2s ease;
+  }
+  .cta:hover{background:rgba(36,23,18,.05)}
+  .cta.solid{
+    border:none;color:#fff;
+    background:linear-gradient(140deg,var(--ember),#C8421E);
+    box-shadow:0 6px 14px rgba(178,62,28,.4);
+  }
+  .cta.solid:hover{filter:brightness(1.06)}
+
+  .foot{
+    margin-top:12px;text-align:center;font-size:9px;color:var(--ink-45);
+    letter-spacing:.02em;
+  }
+  .foot b{color:var(--ink-60);font-weight:600}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="mark"></div>
+        <div>
+          <div class="brand-name">Ember</div>
+          <div class="brand-sub">Coffee, matched</div>
+        </div>
+      </div>
+      <div class="eyebrow">Choose your pour<span>Skip or pause anytime</span></div>
+    </div>
+
+    <h1 class="lead">Roasts chosen for <em>your</em> taste — sent the week they're roasted.</h1>
+
+    <div class="switch" role="group" aria-label="Billing period">
+      <span class="thumb" id="thumb"></span>
+      <button id="m" class="on" onclick="setCycle('m')">Monthly</button>
+      <button id="a" onclick="setCycle('a')">Annual</button>
+      <span class="save" id="save">2 months free</span>
+    </div>
+
+    <div class="tiers">
+      <!-- Taster -->
+      <div class="card">
+        <div class="t-name">Taster</div>
+        <div class="t-desc">A gentle start — one bag, every other week.</div>
+        <div class="price">
+          <span class="cur">$</span><span class="amt" data-m="16" data-a="13">16</span>
+          <span class="per">/mo</span>
+        </div>
+        <div class="billed" data-billed></div>
+        <div class="rule"></div>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>One 250g single-origin</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Roaster's tasting note card</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Free post on every order</li>
+        </ul>
+        <button class="cta" onclick="pick(this,'Taster')">Start tasting</button>
+      </div>
+
+      <!-- Ritual -->
+      <div class="card feat">
+        <span class="tag">Most loved</span>
+        <div class="t-name">Ritual</div>
+        <div class="t-desc">Two bags a month, tuned to the cup you keep returning to.</div>
+        <div class="price">
+          <span class="cur">$</span><span class="amt" data-m="29" data-a="24">29</span>
+          <span class="per">/mo</span>
+        </div>
+        <div class="billed" data-billed></div>
+        <div class="rule"></div>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Two 250g roasts, your style</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Smart palate tuning</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Priority on micro-lots</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Brew guides for each origin</li>
+        </ul>
+        <button class="cta solid" onclick="pick(this,'Ritual')">Choose Ritual</button>
+      </div>
+
+      <!-- Connoisseur -->
+      <div class="card">
+        <div class="t-name">Connoisseur</div>
+        <div class="t-desc">First pick of rare lots, for the serious cup.</div>
+        <div class="price">
+          <span class="cur">$</span><span class="amt" data-m="48" data-a="40">48</span>
+          <span class="per">/mo</span>
+        </div>
+        <div class="billed" data-billed></div>
+        <div class="rule"></div>
+        <ul>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Three reserve micro-lots</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Early access to allocations</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Quarterly cupping invite</li>
+          <li><span class="tick"><svg viewBox="0 0 8 8" fill="none"><path d="M1 4.2 3 6.2 7 1.5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Producer story dossier</li>
+        </ul>
+        <button class="cta" onclick="pick(this,'Connoisseur')">Go deeper</button>
+      </div>
+    </div>
+
+    <div class="foot">Every plan ships carbon-neutral · <b>Cancel whenever</b>, no fuss.</div>
+  </div>
+
+<script>
+  var cycle='m';
+  function sizeThumb(){
+    var thumb=document.getElementById('thumb');
+    var active=document.getElementById(cycle);
+    thumb.style.width=active.offsetWidth+'px';
+    thumb.style.transform='translateX('+(active.offsetLeft-3)+'px)';
+  }
+  function render(){
+    document.querySelectorAll('.amt').forEach(function(el){
+      el.textContent=el.getAttribute('data-'+cycle);
+    });
+    document.querySelectorAll('[data-billed]').forEach(function(el){
+      var amt=el.previousElementSibling.querySelector('.amt');
+      if(cycle==='a'){
+        el.textContent='$'+(amt.getAttribute('data-a')*12)+' billed yearly';
+      }else{
+        el.textContent='Billed monthly';
+      }
+    });
+    document.getElementById('save').style.opacity = cycle==='a' ? '1':'.55';
+  }
+  function setCycle(c){
+    cycle=c;
+    document.getElementById('m').classList.toggle('on',c==='m');
+    document.getElementById('a').classList.toggle('on',c==='a');
+    sizeThumb();render();
+  }
+  function pick(btn,name){
+    var old=btn.textContent;
+    btn.textContent='✓ '+name+' selected';
+    setTimeout(function(){btn.textContent=old;},1400);
+  }
+  sizeThumb();render();
+  window.addEventListener('resize',sizeThumb);
+</script>
+</body>
+</html>

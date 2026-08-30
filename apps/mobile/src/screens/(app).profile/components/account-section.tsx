@@ -1,15 +1,11 @@
 import { useRouter } from 'expo-router';
-import * as Updates from 'expo-updates';
-import { useState } from 'react';
-import { Alert, DevSettings, I18nManager } from 'react-native';
+import { Alert } from 'react-native';
 import { t, plural } from '@lingui/core/macro';
 
 import { getAuthClient } from '@/client/auth-client';
 import { trialDaysLeft, unlockGated, useEntitlement } from '@/client/entitlement';
 import { queryClient } from '@/client/query-client';
 import { getServerUrl, setServerUrl } from '@/client/server';
-import { getLocale, setLocale, useLocale, type AppLocale } from '@/lib/locale';
-import { OptionSheet } from './option-sheet';
 import { Row, SectionCard } from './section-card';
 
 export function AccountSection({ username, isHost }: { username: string; isHost: boolean }) {
@@ -46,57 +42,10 @@ export function AccountSection({ username, isHost }: { username: string; isHost:
     <SectionCard label={t`Account`}>
       <Row label={t`Username`} value={username} />
       <Row label={t`Server`} value={getServerUrl() ?? ''} onPress={changeServer} labelClassName="text-flame" />
-      <LanguageRow />
       {/* The row is UX only — the real Host gate is the server's uniform 404 scoping (ADR 0013). */}
       {isHost && <Row label={t`Admin`} value="" onPress={() => router.push('/admin')} labelClassName="text-flame" />}
       <UnlockRow />
     </SectionCard>
-  );
-}
-
-// A language names itself in itself — these labels are deliberately NOT translated.
-const LANGUAGE_OPTIONS = [
-  { value: 'en', label: 'English' },
-  { value: 'ar', label: 'العربية' },
-] as const satisfies readonly { value: AppLocale; label: string }[];
-
-/**
- * The Language row (ADR 0020) — the inline-commit OptionSheet, like Sex/Activity. Locale and
- * direction are BOOT state (I18nManager flags apply at launch; the Lingui catalog activates at
- * import), so a switch persists the Locale, sets the native flags, and immediately reloads the
- * app — one clean transition, never Arabic strings in an LTR shell.
- */
-function LanguageRow() {
-  const locale = useLocale();
-  const [open, setOpen] = useState(false);
-
-  const switchTo = (next: AppLocale) => {
-    setOpen(false);
-    if (next === getLocale()) return;
-    setLocale(next);
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(next === 'ar');
-    if (__DEV__) DevSettings.reload();
-    else void Updates.reloadAsync();
-  };
-
-  return (
-    <>
-      <Row
-        label={t`Language`}
-        value={locale === 'ar' ? 'العربية' : 'English'}
-        onPress={() => setOpen(true)}
-        labelClassName="text-flame"
-      />
-      <OptionSheet
-        visible={open}
-        title={t`Language`}
-        options={LANGUAGE_OPTIONS}
-        selected={locale}
-        onSelect={switchTo}
-        onClose={() => setOpen(false)}
-      />
-    </>
   );
 }
 

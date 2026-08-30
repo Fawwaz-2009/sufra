@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ember — Find your roast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ember:#E2552B;
+    --ink:#241712;
+    --cream:#F6EFE4;
+    --clay:#C8825A;
+    --sage:#6E7B5B;
+    --gold:#D8A24A;
+    --ink-60:rgba(36,23,18,.62);
+    --ink-40:rgba(36,23,18,.42);
+    --line:rgba(36,23,18,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  html,body{width:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#160c07;
+    color:var(--ink);
+    display:block;
+    min-height:100%;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .tile{
+    width:100%;
+    min-height:100%;
+    background:var(--cream);
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 40px 90px rgba(0,0,0,.55);
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:30px 38px 38px;
+    color:var(--cream);
+    overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 12% 6%, #F4923F 0%, transparent 52%),
+      radial-gradient(130% 110% at 90% 0%, #E2552B 0%, transparent 48%),
+      linear-gradient(168deg, #C13A1A 0%, #9A2E18 56%, #6E2415 100%);
+  }
+  .hero::before{
+    content:"";
+    position:absolute;inset:0;
+    background:
+      radial-gradient(58% 48% at 80% 92%, rgba(216,162,74,.32), transparent 70%),
+      radial-gradient(42% 40% at 16% 96%, rgba(255,138,60,.22), transparent 70%);
+    pointer-events:none;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;inset:0;
+    opacity:.07;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events:none;
+    mix-blend-mode:overlay;
+  }
+  .hero > *{position:relative;z-index:1}
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:rgba(246,239,228,.74);
+    font-weight:500;
+  }
+  .topbar .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 12px rgba(216,162,74,.95);
+    display:inline-block;
+    margin-right:8px;
+    vertical-align:middle;
+  }
+
+  .wordmark{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:76px;
+    line-height:.9;
+    letter-spacing:-.025em;
+    margin-top:52px;
+    color:#FBF4E8;
+  }
+  .wordmark .glow{color:var(--gold)}
+
+  .promise{
+    font-family:'Fraunces',serif;
+    font-weight:400;
+    font-style:italic;
+    font-size:21px;
+    line-height:1.34;
+    color:rgba(246,239,228,.93);
+    margin-top:18px;
+    max-width:340px;
+  }
+  .promise b{font-style:normal;font-weight:600;color:#fff}
+
+  .cta-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-top:30px;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--ink);
+    background:var(--cream);
+    border:none;
+    padding:14px 24px;
+    border-radius:999px;
+    cursor:pointer;
+    letter-spacing:.01em;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);
+    transition:transform .18s ease, box-shadow .18s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+  }
+  .btn .arr{transition:transform .2s ease}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.34)}
+  .btn:hover .arr{transform:translateX(4px)}
+
+  .secondary{
+    font-size:13.5px;
+    font-weight:500;
+    color:rgba(246,239,228,.88);
+    text-decoration:none;
+    border-bottom:1px solid rgba(246,239,228,.42);
+    padding-bottom:2px;
+    white-space:nowrap;
+  }
+  .secondary:hover{color:#fff;border-color:#fff}
+
+  /* ---------- HOW IT WORKS ---------- */
+  .body{
+    flex:1;
+    padding:26px 38px 0;
+    display:flex;
+    flex-direction:column;
+  }
+  .eyebrow{
+    font-size:10.5px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ember);
+    font-weight:600;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .eyebrow::after{
+    content:"";flex:1;height:1px;
+    background:var(--line);
+  }
+
+  .steps{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+  }
+  .step{position:relative}
+  .step .num{
+    font-family:'Fraunces',serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--cream);
+    width:26px;height:26px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(150deg,var(--ember),#B73C1C);
+    margin-bottom:11px;
+    box-shadow:0 4px 10px rgba(226,85,43,.32);
+  }
+  .step h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16.5px;
+    line-height:1.16;
+    letter-spacing:-.01em;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .step p{
+    font-size:12px;
+    line-height:1.42;
+    color:var(--ink-60);
+  }
+  .step:not(:last-child)::before{
+    content:"";
+    position:absolute;
+    top:13px;
+    right:-9px;
+    width:8px;height:8px;
+    border-top:1.5px solid var(--clay);
+    border-right:1.5px solid var(--clay);
+    transform:rotate(45deg);
+    opacity:.7;
+  }
+
+  /* ---------- EDITORIAL ---------- */
+  .editorial{
+    margin-top:30px;
+    padding:22px 24px 20px;
+    border-radius:14px;
+    background:linear-gradient(135deg, rgba(110,123,91,.11), rgba(216,162,74,.11));
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .editorial .mark{
+    font-family:'Fraunces',serif;
+    font-size:48px;
+    line-height:.6;
+    color:var(--clay);
+    position:absolute;
+    top:20px;left:16px;
+    opacity:.5;
+  }
+  .editorial p{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    line-height:1.46;
+    color:var(--ink);
+    padding-left:30px;
+    font-weight:400;
+  }
+  .editorial .by{
+    display:block;
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    letter-spacing:.04em;
+    color:var(--ink-40);
+    margin-top:12px;
+    padding-left:30px;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+
+  /* ---------- FOOTER ---------- */
+  .footer{
+    margin-top:auto;
+    padding:18px 38px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-top:1px solid var(--line);
+    font-size:11px;
+    color:var(--ink-40);
+  }
+  .footer .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+    letter-spacing:.01em;
+  }
+  .footer .links{display:flex;gap:16px;font-weight:500;letter-spacing:.02em}
+  .footer a{color:var(--ink-60);text-decoration:none}
+  .footer a:hover{color:var(--ember)}
+</style>
+</head>
+<body>
+  <main class="tile" role="main">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="topbar">
+        <span><span class="dot"></span>Single-origin · roasted to order</span>
+        <span>Est. 2019</span>
+      </div>
+
+      <h1 class="wordmark">Ember<span class="glow">.</span></h1>
+
+      <p class="promise">
+        Tell us how you take it. We’ll match you to the <b>single roast</b> your palate has been waiting for.
+      </p>
+
+      <div class="cta-row">
+        <button class="btn" type="button">
+          Find my roast
+          <span class="arr">→</span>
+        </button>
+        <a class="secondary" href="#">See this month’s coffees</a>
+      </div>
+    </header>
+
+    <!-- BODY -->
+    <section class="body">
+      <div class="eyebrow">How it works</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Take the taste quiz</h3>
+          <p>Six quick questions on how you brew and what you love.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>We match your roast</h3>
+          <p>Our roasters pair you with an origin that fits your cup.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Fresh-roasted, shipped</h3>
+          <p>Roasted the day it leaves us, at your door in days.</p>
+        </div>
+      </div>
+
+      <!-- EDITORIAL -->
+      <div class="editorial">
+        <span class="mark">“</span>
+        <p>We buy from a handful of farms we know by name — washed Ethiopians, honeyed Colombians, a Sumatran worth the wait. One harvest, one place, never blended away.</p>
+        <span class="by">On single-origin sourcing</span>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <span class="brand">Ember</span>
+      <nav class="links">
+        <a href="#">Our farms</a>
+        <a href="#">Journal</a>
+        <a href="#">Gift</a>
+      </nav>
+    </footer>
+  </main>
+</body>
+</html>

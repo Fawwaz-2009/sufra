@@ -1,0 +1,89 @@
+{
+  "schema": "infinite-canvas/1",
+  "version": 1,
+  "grid": {
+    "snap": 20
+  },
+  "artifacts": [
+    {
+      "id": "landing",
+      "path": "artifacts/landing"
+    },
+    {
+      "id": "pricing",
+      "path": "artifacts/pricing"
+    },
+    {
+      "id": "flavor-explorer",
+      "path": "artifacts/flavor-explorer"
+    },
+    {
+      "id": "mobile-onboarding",
+      "path": "artifacts/mobile-onboarding"
+    },
+    {
+      "id": "brand-moodboard",
+      "path": "artifacts/brand-moodboard"
+    },
+    {
+      "id": "positioning-note",
+      "path": "artifacts/positioning-note"
+    },
+    {
+      "id": "roast-api",
+      "path": "artifacts/roast-api"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "landing",
+      "to": "pricing",
+      "fromSide": "right",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "see plans"
+    },
+    {
+      "id": "e2",
+      "from": "mobile-onboarding",
+      "to": "flavor-explorer",
+      "fromSide": "left",
+      "toSide": "right",
+      "toEnd": "arrow",
+      "label": "taste quiz"
+    },
+    {
+      "id": "e3",
+      "from": "positioning-note",
+      "to": "landing",
+      "fromSide": "left",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "informs"
+    }
+  ],
+  "groups": [
+    {
+      "id": "product",
+      "label": "Product & brand",
+      "members": [
+        "landing",
+        "pricing",
+        "flavor-explorer",
+        "brand-moodboard"
+      ],
+      "color": "ember"
+    },
+    {
+      "id": "gtm",
+      "label": "Mobile · story · backend",
+      "members": [
+        "mobile-onboarding",
+        "positioning-note",
+        "roast-api"
+      ],
+      "color": "sage"
+    }
+  ]
+}

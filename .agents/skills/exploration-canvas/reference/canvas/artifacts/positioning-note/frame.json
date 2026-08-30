@@ -1,0 +1,19 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "positioning-note",
+  "title": "Positioning",
+  "kind": "document",
+  "entry": "note.md",
+  "frame": {
+    "x": 1550,
+    "y": 0,
+    "w": 430,
+    "h": 470
+  },
+  "tier": "static",
+  "tags": [
+    "strategy",
+    "narrative"
+  ],
+  "status": "draft"
+}

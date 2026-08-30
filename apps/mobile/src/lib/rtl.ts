@@ -1,18 +1,15 @@
 import { I18nManager } from 'react-native';
 
-import { getLocale } from './locale';
-
 /**
- * Direction is BOOT state (frontend-expo.md "RTL", mined from the radeef spike): I18nManager flags
- * only take effect on the next launch, so this module runs as a SIDE EFFECT — imported FIRST in the
- * root app/_layout.tsx, before any view lays out. The stored-Locale read is synchronous.
+ * Layout direction follows the DEVICE/OS language. The in-app Language toggle was removed: a switch
+ * can't reliably re-apply direction at runtime — RN's New Architecture governs LTR/RTL from the OS
+ * language at native launch, and runtime `forceRTL`/`allowRTL` overrides don't take effect until a
+ * full relaunch (if at all). So there is nothing to switch in-app — an Arabic-language device gets
+ * RTL, an English device gets LTR, automatically.
  *
- * First launch on an Arabic device renders RTL from frame one via app.json's
- * `extra.supportsRTL` (the expo-localization plugin); this module then keeps the persisted native
- * flag in lockstep with the chosen Locale (an explicit switch reloads — see the Language row).
+ * Imported FIRST in the root app/_layout.tsx (before any view lays out). It only ALLOWS RTL so an
+ * Arabic device renders RTL from frame one (paired with app.json `extra.supportsRTL`) and clears any
+ * stale forced override — `allowRTL(true) + forceRTL(false)` ⇒ isRTL follows the device.
  */
 I18nManager.allowRTL(true);
-const wantRTL = getLocale() === 'ar';
-if (I18nManager.isRTL !== wantRTL) {
-  I18nManager.forceRTL(wantRTL);
-}
+I18nManager.forceRTL(false);

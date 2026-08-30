@@ -45,6 +45,17 @@ export const serveFallback = (request: Request): Response => {
  * stays one static string. Flow mirrors the native screen: GET show → form → POST redeem → "open
  * the app" hand-off. An invalid/expired token is a uniform 404 (ADR 0013/0016) → the friendly
  * dead-link state.
+ *
+ * APP BOUNCE (works for ANY backend origin — Universal Links only cover lean-sufra.fawwaz.dev).
+ * When the app is installed AND the origin is `lean-sufra.fawwaz.dev`, iOS intercepts the HTTPS URL
+ * via the AASA above and THIS PAGE NEVER LOADS. Everywhere else — self-hosted origins not in the
+ * store entitlement, in-app browsers, Android — the page loads and offers a TAP-ONLY "Open in Sufra"
+ * button that navigates to the custom scheme `sufra://set-password/<token>?origin=<enc location.origin>`
+ * (the shape the native screen parses — token = path segment, origin = REQUIRED query param, ADR 0018).
+ * Tap-only by design: iOS honours a custom-scheme navigation only when USER-ACTIVATED. A 302 / on-load
+ * `location` change / iframe / meta-refresh is non-activated → iOS throws "Cannot Open Page" when the
+ * app is absent and in-app browsers drop it silently. A real tap launches the app when installed and
+ * no-ops harmlessly when not — the web form below is always on screen as the fallback. No auto-fire.
  */
 const SET_PASSWORD_HTML = /* html */ `<!doctype html>
 <html lang="en">
@@ -66,6 +77,10 @@ const SET_PASSWORD_HTML = /* html */ `<!doctype html>
   button:disabled { opacity: 0.5; }
   .err { color: #b91c1c; font-size: 0.9rem; min-height: 1.2rem; margin: 0.5rem 0 0; }
   .hide { display: none; }
+  .openApp { display: block; text-align: center; box-sizing: border-box; text-decoration: none;
+             margin-top: 1rem; padding: 0.85rem; font-size: 1rem; font-weight: 600;
+             color: #fff; background: #E45527; border-radius: 999px; }
+  .bounceHint { color: #57534e; font-size: 0.9rem; text-align: center; margin: 0.75rem 0 0.25rem; }
 </style>
 </head>
 <body>
@@ -79,7 +94,8 @@ const SET_PASSWORD_HTML = /* html */ `<!doctype html>
 
   <form id="form" class="hide">
     <h1 id="welcome"></h1>
-    <p>Choose a password to finish setting up your account.</p>
+    <a id="openApp" class="openApp" href="#" role="button">Open in Sufra</a>
+    <p class="bounceHint">Have the app? Tap above. Otherwise, set your password here:</p>
     <input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="new-password" minlength="6" required>
     <input id="pw2" type="password" placeholder="Confirm password" autocomplete="new-password" minlength="6" required>
     <p class="err" id="err"></p>
@@ -98,6 +114,15 @@ const SET_PASSWORD_HTML = /* html */ `<!doctype html>
   function show(id) {
     ["loading", "invalid", "form", "done"].forEach(function (s) { $(s).classList.toggle("hide", s !== id); });
   }
+
+  // App bounce: build the custom-scheme URL the native screen parses (token = path segment, origin =
+  // REQUIRED query param). Fire it ONLY from the tap handler — a user-activated navigation opens the
+  // app when installed and no-ops with no "Cannot Open Page" dialog when it isn't. Never on load.
+  var appUrl = "sufra://set-password/" + token + "?origin=" + encodeURIComponent(location.origin);
+  $("openApp").addEventListener("click", function (e) {
+    e.preventDefault();
+    window.location.href = appUrl;
+  });
 
   var username = "";
   fetch(api).then(function (r) {

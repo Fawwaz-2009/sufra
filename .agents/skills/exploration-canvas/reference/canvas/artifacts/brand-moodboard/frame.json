@@ -1,0 +1,19 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "brand-moodboard",
+  "title": "Brand moodboard",
+  "kind": "image",
+  "entry": "board.svg",
+  "frame": {
+    "x": 0,
+    "y": 740,
+    "w": 520,
+    "h": 420
+  },
+  "tier": "static",
+  "tags": [
+    "brand",
+    "reference"
+  ],
+  "status": "draft"
+}

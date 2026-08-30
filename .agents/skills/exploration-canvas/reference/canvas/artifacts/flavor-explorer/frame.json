@@ -1,0 +1,22 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "flavor-explorer",
+  "title": "Flavor explorer",
+  "kind": "spa",
+  "entry": "index.html",
+  "frame": {
+    "x": 560,
+    "y": 580,
+    "w": 470,
+    "h": 360
+  },
+  "tier": "spa",
+  "runtime": {
+    "framework": "react (CDN today, Sandpack in prod)"
+  },
+  "tags": [
+    "product",
+    "web"
+  ],
+  "status": "draft"
+}

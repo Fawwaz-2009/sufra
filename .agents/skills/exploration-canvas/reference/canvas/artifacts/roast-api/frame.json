@@ -1,0 +1,24 @@
+{
+  "schema": "infinite-canvas-frame/1",
+  "id": "roast-api",
+  "title": "Roast match API",
+  "kind": "app",
+  "frame": {
+    "x": 1550,
+    "y": 510,
+    "w": 430,
+    "h": 300
+  },
+  "tier": "fullstack",
+  "runtime": {
+    "framework": "vite-react + node",
+    "dev": "npm run dev",
+    "port": null,
+    "idleStopSec": 120
+  },
+  "tags": [
+    "backend",
+    "integration"
+  ],
+  "status": "draft"
+}
